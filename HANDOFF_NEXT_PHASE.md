@@ -1,5 +1,15 @@
 # Collective Strike 3D - Next Phase Handoff
 
+## July 23 production hardening pass
+
+- Fixed Vector Shift dash tunneling by stepping movement through the collision grid.
+- Fixed targeted bot abilities so they aim at the bot's combat target instead of the human cursor.
+- Added mobile twin-stick controls, touch actions, and standard dual-stick gamepad support.
+- Added objective guidance, reload progress, directional damage, and elimination-chain HUD feedback.
+- Added adaptive pixel-ratio scaling, automatic focus pause, WebGL context recovery, and a graceful unsupported-GPU screen.
+- Added deterministic `npm run check` verification, a reproducible `dist/index.html` build, Vercel configuration, and project documentation.
+- Production: https://collective-strike-3d.vercel.app
+
 ## Current Pass (specimen characters + map art)
 
 - **three.js upgraded r128 → r149** (matches the specimen engine's inlined build; CapsuleGeometry required).
@@ -34,7 +44,7 @@
 3. Real map art pass: authored rooms, layered floors, doors, signage, decals, debris.
 4. Post-plant gameplay tuning: bot site retakes, defender rotations, plant-fake behavior.
 5. Weapon feel: recoil bloom UI, per-weapon tracer profiles, reload animation on the rig.
-6. Mobile/touch controls (twin virtual sticks) — HUD already responsive.
+6. Replace CDN runtime dependencies with a bundled, pinned production dependency graph.
 
 ## Caution
 
