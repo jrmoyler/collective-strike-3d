@@ -1,33 +1,41 @@
-# Collective Strike 3D
+# Collective Strike 3D: Riftfall
 
-A browser-native 5v5 tactical arena built with Three.js. Choose one of 20 Collective AI division operators, buy weapons, use operator abilities, plant or defuse the spike, and fight first-to-six matches against adaptive bot squads.
+Riftfall is the React Three Fiber generation of Collective Strike 3D: a tactical dungeon shooter featuring 20 division operators, physically separate held weapons, two-hand grip rigs, corruption anchors, enemy waves, combat abilities, procedural PBR textures, shader-driven dungeon surfaces, post-processing, physics debris, responsive HUDs, gamepad input, and adaptive render settings.
 
-## Run locally
+## Stack
+
+- React 19 and Vite 8
+- Three.js 0.185
+- React Three Fiber and Drei
+- React Three Rapier
+- React Three Postprocessing
+- Zustand
+- Anime.js 4
+- Custom GLSL rune and mist shaders
+
+## Development
 
 ```bash
-python3 -m http.server 4173
+npm install
+npm run dev
 ```
 
-Open `http://localhost:4173/COLLECTIVE_STRIKE_3D.html`.
-
-## Verify and build
+## Verification and production build
 
 ```bash
 npm run check
 ```
 
-The production build is written to `dist/index.html`. Vercel uses the checked-in `vercel.json` configuration.
-
 ## Controls
 
 - `WASD`: move
 - Mouse: aim and fire
-- `E`: operator ability
-- `F`: plant or defuse
-- `B`: armory
+- `Shift`: sprint
+- `E`: division ability
 - `R`: reload
-- `1–4`: weapon select
-- `Tab`: scoreboard
 - `Esc`: pause
+- Standard dual-stick gamepads are supported
 
-Touch and standard dual-stick gamepads are supported.
+## Legacy build
+
+`COLLECTIVE_STRIKE_3D.html` remains in the repository as the first-generation standalone build. Vercel deploys the new Vite application.

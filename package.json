@@ -1,14 +1,32 @@
 {
-  "name": "collective-strike-3d",
-  "version": "1.0.0",
+  "name": "collective-strike-3d-goty",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node scripts/verify.mjs",
-    "build": "node scripts/build.mjs",
-    "check": "npm run test && npm run build"
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "verify": "node scripts/verify-r3f.mjs",
+    "check": "npm run verify && npm run build"
+  },
+  "dependencies": {
+    "@react-three/drei": "10.7.7",
+    "@react-three/fiber": "9.6.1",
+    "@react-three/postprocessing": "3.0.4",
+    "@react-three/rapier": "2.2.0",
+    "animejs": "4.5.0",
+    "postprocessing": "6.39.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "three": "0.185.1",
+    "zustand": "5.0.14"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.0.4",
+    "vite": "8.1.5"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }
