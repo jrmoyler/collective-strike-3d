@@ -1,0 +1,14 @@
+{
+  "name": "collective-strike-3d",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/verify.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "npm run test && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
