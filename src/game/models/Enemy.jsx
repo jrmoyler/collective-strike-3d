@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGame } from "../../store";
 import { simulation, moveWithCollision } from "../simulation";
+import { riftAudio } from "../audio";
 
 const temp = new THREE.Vector3();
 
@@ -14,7 +15,8 @@ export function Enemy({ unit }) {
   const damagePlayer = useGame(state => state.damagePlayer);
   const paused = useGame(state => state.paused);
   const phase = useGame(state => state.phase);
-  const geometry = useMemo(() => unit.type === "hound" ? "hound" : unit.type === "wraith" ? "wraith" : "knight", [unit.type]);
+  const difficulty = useGame(state => state.difficulty);
+  const geometry = useMemo(() => unit.type === "hound" ? "hound" : unit.type === "wraith" ? "wraith" : unit.type === "monarch" ? "monarch" : "knight", [unit.type]);
 
   React.useEffect(() => () => simulation.enemies.delete(unit.id), [unit.id]);
 
@@ -33,8 +35,8 @@ export function Enemy({ unit }) {
     const distance = temp.length();
     temp.normalize();
     const flank = Math.sin(state.clock.elapsedTime * 0.7 + unit.seed) * 0.22;
-    enemy.velocity.set(temp.x + temp.z * flank, 0, temp.z - temp.x * flank).normalize().multiplyScalar((unit.type === "hound" ? 5.3 : unit.type === "wraith" ? 3.8 : 2.8) * delta);
-    if (distance > (unit.type === "wraith" ? 7 : 2.2)) moveWithCollision(enemy.position, enemy.velocity, 0.7);
+    enemy.velocity.set(temp.x + temp.z * flank, 0, temp.z - temp.x * flank).normalize().multiplyScalar((unit.type === "hound" ? 5.3 : unit.type === "wraith" ? 3.8 : unit.type === "monarch" ? 2.15 : 2.8) * delta);
+    if (distance > (unit.type === "wraith" ? 7 : unit.type === "monarch" ? 3.4 : 2.2)) moveWithCollision(enemy.position, enemy.velocity, unit.type === "monarch" ? 1.4 : 0.7);
     enemy.angle = Math.atan2(temp.x, temp.z);
     root.current.position.copy(enemy.position);
     root.current.rotation.y = enemy.angle;
@@ -43,14 +45,16 @@ export function Enemy({ unit }) {
       core.current.scale.setScalar(1 + Math.sin(state.clock.elapsedTime * 4 + unit.seed) * 0.08);
       core.current.material.emissiveIntensity = performance.now() - hitAt < 140 ? 8 : 2.8;
     }
-    if (distance < (unit.type === "wraith" ? 8 : 2.4) && state.clock.elapsedTime - lastAttack.current > (unit.type === "wraith" ? 1.6 : 0.8)) {
+    if (distance < (unit.type === "wraith" ? 8 : unit.type === "monarch" ? 4 : 2.4) && state.clock.elapsedTime - lastAttack.current > (unit.type === "wraith" ? 1.6 : unit.type === "monarch" ? 1.15 : 0.8)) {
       lastAttack.current = state.clock.elapsedTime;
-      damagePlayer(unit.type === "knight" ? 18 : unit.type === "wraith" ? 13 : 10);
+      const baseDamage = unit.type === "monarch" ? 28 : unit.type === "knight" ? 18 : unit.type === "wraith" ? 13 : 10;
+      damagePlayer(baseDamage * (difficulty === "ascendant" ? 1.32 : difficulty === "story" ? 0.68 : 1));
+      riftAudio.hurt();
     }
   });
 
   return (
-    <group ref={root} name={`enemy-${unit.type}`}>
+    <group ref={root} name={`enemy-${unit.type}`} scale={geometry === "monarch" ? 1.58 : 1}>
       {geometry === "hound" && (
         <>
           <mesh castShadow position={[0, 0.72, 0]} scale={[0.62, 0.48, 1.05]}>
@@ -69,7 +73,7 @@ export function Enemy({ unit }) {
           </mesh>
         </>
       )}
-      {geometry === "knight" && (
+      {(geometry === "knight" || geometry === "monarch") && (
         <>
           <mesh castShadow position={[0, 1.1, 0]}>
             <capsuleGeometry args={[0.52, 1.15, 7, 12]} />
@@ -87,6 +91,20 @@ export function Enemy({ unit }) {
             <octahedronGeometry args={[0.7, 0]} />
             <meshStandardMaterial color="#3f1528" metalness={0.65} roughness={0.28} />
           </mesh>
+          {geometry === "monarch" && (
+            <>
+              <mesh position={[0, 2.54, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[0.56, 0.07, 10, 32]} />
+                <meshStandardMaterial color="#ff2f74" emissive="#ff165d" emissiveIntensity={5} toneMapped={false} />
+              </mesh>
+              {[0, 1, 2].map(index => (
+                <mesh key={index} position={[0, 2.52 + index * 0.22, 0]} rotation={[Math.PI / 2, 0, index * 0.7]}>
+                  <torusGeometry args={[0.48 - index * 0.1, 0.025, 8, 28]} />
+                  <meshBasicMaterial color={index === 1 ? "#fbbf24" : "#ff2f74"} transparent opacity={0.8} toneMapped={false} />
+                </mesh>
+              ))}
+            </>
+          )}
         </>
       )}
       {geometry === "wraith" && (
@@ -102,7 +120,7 @@ export function Enemy({ unit }) {
         </>
       )}
       <mesh ref={core} position={[0, geometry === "hound" ? 0.9 : 1.62, geometry === "hound" ? 0.62 : 0.38]}>
-        <octahedronGeometry args={[geometry === "hound" ? 0.16 : 0.22, 0]} />
+        <octahedronGeometry args={[geometry === "hound" ? 0.16 : geometry === "monarch" ? 0.3 : 0.22, 0]} />
         <meshStandardMaterial color="#ff2f74" emissive="#ff165d" emissiveIntensity={3} toneMapped={false} />
         <pointLight color="#ff165d" intensity={2.8} distance={5} />
       </mesh>

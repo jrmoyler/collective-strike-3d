@@ -12,6 +12,7 @@ import { Effects } from "./VFX";
 import { OPERATOR_BY_ID } from "../data/operators";
 import { useGame } from "../store";
 import { collides, moveWithCollision, simulation } from "./simulation";
+import { riftAudio } from "./audio";
 
 const direction = new THREE.Vector3();
 const moveDelta = new THREE.Vector3();
@@ -39,23 +40,54 @@ function spawnEnemy(wave) {
   };
 }
 
+function spawnMonarch(wave) {
+  const hp = 1050 + wave * 110;
+  return {
+    id: `rift-monarch-${enemyId++}`,
+    type: "monarch",
+    seed: Math.random() * 100,
+    hp,
+    maxHp: hp,
+    position: [0, 0, -20]
+  };
+}
+
 function CombatDirector() {
   const phase = useGame(state => state.phase);
   const paused = useGame(state => state.paused);
   const enemies = useGame(state => state.enemies);
   const wave = useGame(state => state.wave);
+  const anchors = useGame(state => state.anchors);
+  const bossSpawned = useGame(state => state.bossSpawned);
   const spawnClock = useRef(0);
 
   useFrame((_, delta) => {
     if (phase !== "playing" || paused) return;
     simulation.elapsed += delta;
     spawnClock.current -= delta;
+    if (anchors.every(anchor => anchor.hp <= 0)) {
+      if (!bossSpawned) {
+        const monarch = spawnMonarch(wave);
+        useGame.setState(state => ({
+          bossSpawned: true,
+          enemies: [...state.enemies, monarch],
+          message: "RIFT MONARCH MANIFESTED",
+          objective: "Annihilate the Rift Monarch",
+          trauma: 1
+        }));
+        riftAudio.boss();
+      }
+      return;
+    }
     const cap = Math.min(13, 4 + wave * 2);
     if (spawnClock.current <= 0 && enemies.length < cap) {
       spawnClock.current = Math.max(0.7, 2.15 - wave * 0.1);
       useGame.getState().setEnemies([...useGame.getState().enemies, spawnEnemy(wave)]);
     }
-    if (simulation.elapsed > wave * 48) useGame.setState({ wave: wave + 1, message: `CORRUPTION WAVE ${wave + 1}` });
+    if (simulation.elapsed > wave * 48) {
+      useGame.setState({ wave: wave + 1, message: `CORRUPTION WAVE ${wave + 1}` });
+      riftAudio.wave();
+    }
   });
   return null;
 }
@@ -69,13 +101,17 @@ function PlayerController({ operator }) {
   const hitAnchor = useGame(state => state.hitAnchor);
   const get = useGame.getState;
   const cooldown = useRef(0);
-  const ability = useRef(0);
+  const abilityRemaining = useRef(0);
+  const abilityPressed = useRef(false);
+  const gamepadAbility = useRef(false);
+  const cooldownUiClock = useRef(0);
 
   useEffect(() => {
     const down = event => {
       simulation.keys.add(event.key.toLowerCase());
-      if (event.key.toLowerCase() === "r") get().reload();
-      if (event.key.toLowerCase() === "e") ability.current = 0;
+      get().dismissTutorial();
+      if (event.key.toLowerCase() === "r" && get().reload()) riftAudio.reload();
+      if (event.key.toLowerCase() === "e" && !event.repeat) abilityPressed.current = true;
       if (event.key === "Escape") get().togglePause();
     };
     const up = event => simulation.keys.delete(event.key.toLowerCase());
@@ -104,6 +140,7 @@ function PlayerController({ operator }) {
     cooldown.current = operator.id === "signal" ? 0.075 : operator.id === "kinetic" ? 0.09 : 0.115;
     simulation.player.firing = true;
     consumeAmmo();
+    riftAudio.shot();
     const origin = simulation.player.position.clone().add(new THREE.Vector3(0, 1.42, 0.95).applyAxisAngle(new THREE.Vector3(0, 1, 0), simulation.player.angle));
     direction.copy(simulation.player.aimPoint).sub(simulation.player.position).setY(0).normalize();
     let distance = 34;
@@ -116,7 +153,7 @@ function PlayerController({ operator }) {
       const projection = relative.dot(direction);
       if (projection < 0 || projection > distance) continue;
       const miss = relative.clone().addScaledVector(direction, -projection).length();
-      if (miss < (unit.type === "knight" ? 1.05 : 0.82)) {
+      if (miss < (unit.type === "monarch" ? 1.72 : unit.type === "knight" ? 1.05 : 0.82)) {
         distance = projection;
         target = unit;
         targetKind = "enemy";
@@ -139,16 +176,28 @@ function PlayerController({ operator }) {
     addEffect({ type: "tracer", from: origin.toArray(), to: end.toArray(), color: operator.accent, life: 0.2 });
     if (target) {
       addEffect({ type: "impact", position: end.toArray(), color: targetKind === "anchor" ? "#ff2f74" : operator.accent, life: 0.4 });
-      if (targetKind === "enemy") hitEnemy(target.id, operator.id === "animus" ? 48 : operator.id === "nexus" ? 37 : 32);
-      else hitAnchor(target.id, 18);
+      if (targetKind === "enemy") {
+        const damage = operator.id === "animus" ? 48 : operator.id === "nexus" ? 37 : 32;
+        riftAudio.hit(target.hp <= damage);
+        hitEnemy(target.id, damage);
+      } else {
+        riftAudio.hit(target.hp <= 18);
+        hitAnchor(target.id, 18);
+      }
     }
     useGame.setState({ trauma: Math.min(1, get().trauma + 0.035) });
   };
 
   useFrame((state, delta) => {
     cooldown.current = Math.max(0, cooldown.current - delta);
-    ability.current += delta;
+    abilityRemaining.current = Math.max(0, abilityRemaining.current - delta);
+    cooldownUiClock.current -= delta;
+    if (cooldownUiClock.current <= 0) {
+      cooldownUiClock.current = 0.1;
+      get().setAbilityCooldown(abilityRemaining.current, operator.id === "zenflow" ? 5.5 : 8);
+    }
     simulation.player.cooldown = cooldown.current;
+    simulation.player.abilityCooldown = abilityRemaining.current;
     if (cooldown.current <= 0.02) simulation.player.firing = false;
     if (phase !== "playing" || paused) {
       simulation.player.velocity.set(0, 0, 0);
@@ -166,23 +215,55 @@ function PlayerController({ operator }) {
     simulation.player.velocity.lerp(direction.multiplyScalar(speed), 1 - Math.exp(-delta * 12));
     moveDelta.copy(simulation.player.velocity).multiplyScalar(delta);
     moveWithCollision(simulation.player.position, moveDelta);
+    const lookX = Math.abs(gamepad?.axes[2] || 0) > 0.18 ? gamepad.axes[2] : 0;
+    const lookZ = Math.abs(gamepad?.axes[3] || 0) > 0.18 ? gamepad.axes[3] : 0;
+    if (lookX || lookZ) {
+      simulation.player.aimPoint.set(
+        simulation.player.position.x + lookX * 14,
+        0,
+        simulation.player.position.z + lookZ * 14
+      );
+    }
     direction.copy(simulation.player.aimPoint).sub(simulation.player.position);
     simulation.player.angle = Math.atan2(direction.x, direction.z);
-    if ((simulation.keys.has("e") || gamepad?.buttons[0]?.pressed) && ability.current > (operator.id === "zenflow" ? 5 : 8)) {
-      ability.current = 0;
-      if (operator.id === "vector" || operator.id === "nomad" || operator.id === "kinetic") {
+    const gamepadPressed = Boolean(gamepad?.buttons[0]?.pressed);
+    if (gamepadPressed && !gamepadAbility.current) abilityPressed.current = true;
+    gamepadAbility.current = gamepadPressed;
+    if (abilityPressed.current && abilityRemaining.current <= 0) {
+      abilityPressed.current = false;
+      const abilityMax = operator.id === "zenflow" ? 5.5 : 8;
+      abilityRemaining.current = abilityMax;
+      const mobility = ["vector", "nomad", "kinetic"];
+      const offensive = ["zenflow", "nexus", "binary", "obsidian", "quantum", "signal", "cognara"];
+      const bulwark = ["terra", "animus", "juris", "collective"];
+      if (mobility.includes(operator.id)) {
         direction.set(Math.sin(simulation.player.angle), 0, Math.cos(simulation.player.angle)).multiplyScalar(5.5);
         for (let step = 0; step < 9; step++) {
           moveDelta.copy(direction).multiplyScalar(1 / 9);
           if (collides(simulation.player.position.x + moveDelta.x, simulation.player.position.z + moveDelta.z)) break;
           simulation.player.position.add(moveDelta);
         }
+      } else if (offensive.includes(operator.id)) {
+        for (const unit of get().enemies) {
+          const runtime = simulation.enemies.get(unit.id);
+          if (runtime?.position.distanceTo(simulation.player.position) <= 9.5) hitEnemy(unit.id, unit.type === "monarch" ? 70 : 92);
+        }
+        for (const anchor of get().anchors) {
+          if (anchor.hp > 0 && new THREE.Vector3(...anchor.position).distanceTo(simulation.player.position) <= 10) hitAnchor(anchor.id, 34);
+        }
+      } else if (bulwark.includes(operator.id)) {
+        useGame.setState(stateValue => ({ armor: Math.min(operator.armor, stateValue.armor + 46) }));
       } else {
-        useGame.setState(stateValue => ({ hp: Math.min(100, stateValue.hp + 18), armor: Math.min(operator.armor, stateValue.armor + 18) }));
+        useGame.setState(stateValue => ({
+          hp: Math.min(100, stateValue.hp + 26),
+          armor: Math.min(operator.armor, stateValue.armor + 22)
+        }));
       }
       addEffect({ type: "ability", position: simulation.player.position.toArray(), color: operator.color, life: 0.8 });
       useGame.setState({ message: `${operator.ability.toUpperCase()} DEPLOYED`, trauma: Math.min(1, get().trauma + 0.2) });
+      riftAudio.ability();
     }
+    if (abilityPressed.current && abilityRemaining.current > 0) abilityPressed.current = false;
     if ((simulation.player.firing || gamepad?.buttons[7]?.pressed) && cooldown.current <= 0) fire();
   });
 
@@ -196,6 +277,7 @@ function PlayerController({ operator }) {
       }}
       onPointerDown={event => {
         event.stopPropagation();
+        get().dismissTutorial();
         simulation.player.firing = true;
         fire();
       }}
@@ -222,6 +304,33 @@ function CameraRig() {
     if (trauma > 0) decay(delta * 1.4);
     camera.fov = THREE.MathUtils.lerp(camera.fov, simulation.player.velocity.length() > 6 ? 53 : 49, 1 - Math.exp(-delta * 5));
     camera.updateProjectionMatrix();
+  });
+  return null;
+}
+
+function PerformanceGovernor() {
+  const quality = useGame(state => state.quality);
+  const elapsed = useRef(0);
+  const frames = useRef(0);
+  const settled = useRef(false);
+
+  useFrame((_, delta) => {
+    if (settled.current) return;
+    elapsed.current += Math.min(delta, 0.1);
+    frames.current += 1;
+    if (elapsed.current < 5) return;
+    const fps = frames.current / elapsed.current;
+    if (fps < 34 && quality !== "low") {
+      useGame.setState({ quality: "low", message: "Adaptive renderer: performance mode" });
+      settled.current = true;
+    } else if (fps < 48 && quality === "ultra") {
+      useGame.setState({ quality: "high", message: "Adaptive renderer: high mode" });
+      settled.current = true;
+    } else {
+      elapsed.current = 0;
+      frames.current = 0;
+      if (fps >= 54) settled.current = true;
+    }
   });
   return null;
 }
@@ -265,6 +374,7 @@ export function GameWorld() {
       <PlayerController operator={operator} />
       <CombatDirector />
       <CameraRig />
+      <PerformanceGovernor />
       <Environment resolution={128}>
         <Lightformer intensity={2.2} color="#8b5cf6" position={[0, 8, -18]} scale={[18, 6, 1]} />
         <Lightformer intensity={1.6} color="#38bdf8" position={[18, 5, 10]} rotation={[0, -Math.PI / 2, 0]} scale={[12, 6, 1]} />

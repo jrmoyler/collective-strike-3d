@@ -21,6 +21,10 @@ const dungeon = read("src/game/Dungeon.jsx");
 const materials = read("src/game/materials.js");
 const store = read("src/store.js");
 const data = read("src/data/operators.js");
+const audio = read("src/game/audio.js");
+const enemy = read("src/game/models/Enemy.jsx");
+const styles = read("src/styles.css");
+const vite = read("vite.config.js");
 
 for (const dependency of [
   "three",
@@ -47,8 +51,19 @@ assert(/const OPERATORS = \[/.test(data), "operator roster exists");
 const operatorCount = [...data.matchAll(/\{ id:/g)].length;
 assert(operatorCount === 20, `20 division operators are present (found ${operatorCount})`);
 assert(/spawnEnemy/.test(game) && /CombatDirector/.test(game), "enemy wave director is active");
+assert(/spawnMonarch/.test(game) && /RIFT MONARCH/.test(game), "Rift Monarch boss encounter is active");
+assert(/geometry === "monarch"/.test(enemy), "Rift Monarch has a distinct render rig");
+assert(/abilityPressed/.test(game) && !/key\.toLowerCase\(\) === "e"\) ability\.current = 0/.test(game), "ability input activates instead of resetting");
+assert(/offensive/.test(game) && /bulwark/.test(game) && /mobility/.test(game), "operator ability archetypes are distinct");
+assert(/axes\[2\]/.test(game) && /axes\[3\]/.test(game), "dual-stick gamepad aiming is active");
+assert(/class RiftAudio/.test(audio) && /AudioContext/.test(audio), "procedural Web Audio combat engine is active");
+assert(/reloading/.test(store) && /880/.test(store), "reload timing contract is active");
+assert(/difficulty/.test(store) && /ascendant/.test(enemy), "difficulty damage scaling is active");
+assert(/boss-bar/.test(styles) && /combat-tutorial/.test(styles), "boss and onboarding HUD layers are styled");
+assert(/PerformanceGovernor/.test(game) && /Adaptive renderer/.test(game), "adaptive performance governor is active");
+assert(/manualChunks/.test(vite) && /three-engine/.test(vite) && /physics/.test(vite), "engine and physics bundles are split for staged loading");
 assert(/moveWithCollision/.test(game), "collision-aware movement is active");
-assert(/gpu-fallback/.test(read("src/styles.css")), "unsupported-GPU recovery UI is styled");
+assert(/gpu-fallback/.test(styles), "unsupported-GPU recovery UI is styled");
 
 for (const file of [
   "src/App.jsx",

@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { OPERATORS } from "./data/operators";
-import { simulation } from "./game/simulation";
+import { OPERATORS } from "./data/operators.js";
+import { simulation } from "./game/simulation.js";
 
 const initialAnchors = [
   { id: "alpha", position: [-20, 0, -18], hp: 180 },
@@ -28,6 +28,14 @@ export const useGame = create((set, get) => ({
   trauma: 0,
   paused: false,
   quality: "ultra",
+  difficulty: "standard",
+  sound: true,
+  tutorial: true,
+  reloading: false,
+  abilityCooldown: 0,
+  abilityMax: 8,
+  lastHit: 0,
+  bossSpawned: false,
   select: selected => set({
     selected,
     armor: OPERATORS.find(operator => operator.id === selected)?.armor ?? 100
@@ -51,7 +59,24 @@ export const useGame = create((set, get) => ({
       enemies: [],
       effects: [],
       trauma: 0,
-      paused: false
+      paused: false,
+      tutorial: true,
+      reloading: false,
+      abilityCooldown: 0,
+      abilityMax: get().selected === "zenflow" ? 5.5 : 8,
+      lastHit: 0,
+      bossSpawned: false
+    });
+  },
+  returnToMenu: () => {
+    simulation.reset();
+    set({
+      phase: "menu",
+      paused: false,
+      enemies: [],
+      effects: [],
+      reloading: false,
+      message: "Choose your division operator"
     });
   },
   togglePause: () => set(state => state.phase === "playing" ? { paused: !state.paused } : {}),
@@ -69,30 +94,48 @@ export const useGame = create((set, get) => ({
     };
   }),
   consumeAmmo: () => set(state => state.ammo > 0 ? { ammo: state.ammo - 1 } : {}),
-  reload: () => set(state => {
-    if (state.ammo >= 36 || state.reserve <= 0) return {};
-    const need = 36 - state.ammo;
-    const take = Math.min(need, state.reserve);
-    return { ammo: state.ammo + take, reserve: state.reserve - take, message: "Weapon lattice reloaded" };
-  }),
+  reload: () => {
+    const state = get();
+    if (state.reloading || state.ammo >= 36 || state.reserve <= 0 || state.phase !== "playing") return false;
+    set({ reloading: true, message: "Cycling weapon lattice…" });
+    window.setTimeout(() => {
+      const current = get();
+      if (!current.reloading || current.phase !== "playing") return;
+      const need = 36 - current.ammo;
+      const take = Math.min(need, current.reserve);
+      set({
+        ammo: current.ammo + take,
+        reserve: current.reserve - take,
+        reloading: false,
+        message: "Weapon lattice reloaded"
+      });
+    }, 880);
+    return true;
+  },
   setEnemies: enemies => set({ enemies }),
   setEffects: effects => set({ effects }),
   hitEnemy: (id, damage) => set(state => {
     const enemy = state.enemies.find(unit => unit.id === id);
     if (!enemy) return {};
     const hp = enemy.hp - damage;
-    if (hp > 0) return { enemies: state.enemies.map(unit => unit.id === id ? { ...unit, hp, hit: performance.now() } : unit) };
-    const enemies = state.enemies.filter(unit => unit.id !== id);
+    if (hp > 0) return {
+      enemies: state.enemies.map(unit => unit.id === id ? { ...unit, hp, hit: performance.now() } : unit),
+      lastHit: performance.now()
+    };
+    const bossKill = enemy.type === "monarch";
+    const enemies = bossKill ? [] : state.enemies.filter(unit => unit.id !== id);
     const allAnchorsSealed = state.anchors.every(anchor => anchor.hp <= 0);
     return {
       enemies,
       kills: state.kills + 1,
       combo: Math.min(9, state.combo + 1),
-      score: state.score + 125 * Math.max(1, state.combo),
-      credits: state.credits + 150,
-      trauma: Math.min(1, state.trauma + 0.08),
-      message: `${enemy.type.toUpperCase()} PURGED`,
-      phase: allAnchorsSealed && enemies.length === 0 ? "victory" : state.phase
+      score: state.score + (bossKill ? 10000 : 125 * Math.max(1, state.combo)),
+      credits: state.credits + (bossKill ? 2500 : 150),
+      trauma: Math.min(1, state.trauma + (bossKill ? 0.8 : 0.08)),
+      lastHit: performance.now(),
+      message: bossKill ? "RIFT MONARCH ANNIHILATED" : `${enemy.type.toUpperCase()} PURGED`,
+      objective: bossKill ? "The Riftfall lattice is secure" : state.objective,
+      phase: bossKill || (allAnchorsSealed && state.bossSpawned && enemies.length === 0) ? "victory" : state.phase
     };
   }),
   hitAnchor: (id, damage) => set(state => {
@@ -107,10 +150,14 @@ export const useGame = create((set, get) => ({
       credits: state.credits + (hp <= 0 ? 500 : 0),
       trauma: Math.min(1, state.trauma + (hp <= 0 ? 0.55 : 0.04)),
       message: hp <= 0 ? `ANCHOR ${id.toUpperCase()} SEALED` : state.message,
-      objective: remaining ? `Seal ${remaining} remaining corruption anchor${remaining === 1 ? "" : "s"}` : "Rift monarch incoming",
-      phase: remaining === 0 && state.enemies.length === 0 ? "victory" : state.phase
+      lastHit: performance.now(),
+      objective: remaining ? `Seal ${remaining} remaining corruption anchor${remaining === 1 ? "" : "s"}` : "Brace for the Rift Monarch"
     };
   }),
   decayTrauma: amount => set(state => ({ trauma: Math.max(0, state.trauma - amount) })),
-  setQuality: quality => set({ quality })
+  setQuality: quality => set({ quality }),
+  setDifficulty: difficulty => set({ difficulty }),
+  setSound: sound => set({ sound }),
+  dismissTutorial: () => set({ tutorial: false }),
+  setAbilityCooldown: (abilityCooldown, abilityMax) => set({ abilityCooldown, abilityMax })
 }));

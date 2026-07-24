@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { Operator } from "./game/models/Operator";
 import { OPERATOR_BY_ID, OPERATORS } from "./data/operators";
 import { useGame } from "./store";
+import { riftAudio } from "./game/audio";
 
 const GameWorld = lazy(() => import("./game/GameWorld").then(module => ({ default: module.GameWorld })));
 
@@ -85,8 +86,15 @@ function OperatorMenu() {
   const selected = useGame(state => state.selected);
   const select = useGame(state => state.select);
   const deploy = useGame(state => state.deploy);
+  const difficulty = useGame(state => state.difficulty);
+  const setDifficulty = useGame(state => state.setDifficulty);
   const operator = OPERATOR_BY_ID[selected];
   const panel = useRef();
+  const startMission = () => {
+    riftAudio.start();
+    riftAudio.ui();
+    deploy();
+  };
 
   useEffect(() => {
     animate(".operator-card", {
@@ -117,7 +125,11 @@ function OperatorMenu() {
               type="button"
               className={`operator-card ${item.id === selected ? "selected" : ""}`}
               style={{ "--operator": item.color, "--accent": item.accent }}
-              onClick={() => select(item.id)}
+              onClick={() => {
+                riftAudio.start();
+                riftAudio.ui();
+                select(item.id);
+              }}
             >
               <i>{item.name.split(" ").map(word => word[0]).join("").slice(0, 2)}</i>
               <span><b>{item.name}</b><small>{item.role}</small></span>
@@ -135,7 +147,14 @@ function OperatorMenu() {
           <div><dt>PASSIVE</dt><dd>{operator.passive}</dd></div>
           <div><dt>ARMOR</dt><dd>{operator.armor}</dd></div>
         </dl>
-        <button type="button" className="deploy" onClick={deploy}>ENTER RIFTFALL</button>
+        <label className="difficulty-select">THREAT LEVEL
+          <select value={difficulty} onChange={event => setDifficulty(event.target.value)}>
+            <option value="story">Initiate</option>
+            <option value="standard">Riftfall</option>
+            <option value="ascendant">Ascendant</option>
+          </select>
+        </label>
+        <button type="button" className="deploy" onClick={startMission}>ENTER RIFTFALL</button>
         <p>WASD move · Mouse aim/fire · E ability · R reload · Shift sprint · Esc pause</p>
       </aside>
     </main>
@@ -154,24 +173,54 @@ function HUD() {
   const selected = useGame(state => state.selected);
   const objective = useGame(state => state.objective);
   const message = useGame(state => state.message);
+  const abilityCooldown = useGame(state => state.abilityCooldown);
+  const abilityMax = useGame(state => state.abilityMax);
+  const reloading = useGame(state => state.reloading);
+  const lastHit = useGame(state => state.lastHit);
+  const enemies = useGame(state => state.enemies);
+  const tutorial = useGame(state => state.tutorial);
+  const dismissTutorial = useGame(state => state.dismissTutorial);
   const operator = OPERATOR_BY_ID[selected];
+  const monarch = enemies.find(enemy => enemy.type === "monarch");
+  const abilityCharge = Math.max(0, Math.min(100, (1 - abilityCooldown / abilityMax) * 100));
+
+  useEffect(() => {
+    if (!tutorial) return undefined;
+    const timer = window.setTimeout(dismissTutorial, 7200);
+    return () => window.clearTimeout(timer);
+  }, [tutorial, dismissTutorial]);
+
   return (
-    <div className="hud" style={{ "--operator": operator.color, "--accent": operator.accent }}>
+    <div className={`hud ${hp < 34 ? "critical" : ""}`} style={{ "--operator": operator.color, "--accent": operator.accent }}>
       <div className="objective"><span>RIFTFALL // WAVE {wave}</span><b>{objective}</b></div>
+      {monarch && (
+        <div className="boss-bar">
+          <span>RIFT MONARCH</span>
+          <i><b style={{ width: `${Math.max(0, monarch.hp / monarch.maxHp * 100)}%` }} /></i>
+        </div>
+      )}
       <div className="vitals">
         <div className="operator-tag"><i />{operator.name.toUpperCase()}</div>
         <strong>{Math.ceil(hp)}</strong><small>HP</small>
         <div className="health-track"><i style={{ width: `${hp}%` }} /></div>
-        <div className="armor-line">{Math.ceil(armor)} ARMOR · E {operator.ability.toUpperCase()}</div>
+        <div className="armor-line">{Math.ceil(armor)} ARMOR · E {abilityCooldown <= 0.05 ? "READY" : `${abilityCooldown.toFixed(1)}S`}</div>
+        <div className="ability-track"><i style={{ width: `${abilityCharge}%` }} /></div>
       </div>
       <div className="weapon-hud">
         <div className="ammo"><strong>{ammo}</strong><span>/ {reserve}</span></div>
-        <b>{operator.weapon}</b>
+        <b>{reloading ? "CYCLING LATTICE…" : operator.weapon}</b>
         <small>{credits.toLocaleString()} ESSENCE</small>
       </div>
       <div className="score-hud"><span>SCORE</span><b>{score.toLocaleString()}</b>{combo > 1 && <em>{combo}X CHAIN</em>}</div>
       <div className="combat-message">{message}</div>
-      <div className="crosshair"><i /><i /><i /><i /><b /></div>
+      <div key={lastHit || "idle"} className={`crosshair ${lastHit ? "hit" : ""}`}><i /><i /><i /><i /><b /></div>
+      {tutorial && (
+        <button type="button" className="combat-tutorial" onClick={dismissTutorial}>
+          <span>COMBAT LINK ONLINE</span>
+          <b>WASD</b> MOVE <b>MOUSE</b> AIM/FIRE <b>E</b> ABILITY <b>R</b> RELOAD
+          <small>CLICK TO DISMISS</small>
+        </button>
+      )}
     </div>
   );
 }
@@ -181,6 +230,9 @@ function Pause() {
   const togglePause = useGame(state => state.togglePause);
   const quality = useGame(state => state.quality);
   const setQuality = useGame(state => state.setQuality);
+  const sound = useGame(state => state.sound);
+  const setSound = useGame(state => state.setSound);
+  const returnToMenu = useGame(state => state.returnToMenu);
   if (!paused) return null;
   return (
     <div className="modal-backdrop">
@@ -194,7 +246,18 @@ function Pause() {
             <option value="low">Performance</option>
           </select>
         </label>
+        <label>COMBAT AUDIO
+          <select value={sound ? "on" : "off"} onChange={event => {
+            const enabled = event.target.value === "on";
+            setSound(enabled);
+            riftAudio.setEnabled(enabled);
+          }}>
+            <option value="on">Enabled</option>
+            <option value="off">Muted</option>
+          </select>
+        </label>
         <button type="button" className="deploy" onClick={togglePause}>RESUME</button>
+        <button type="button" className="ghost-button" onClick={returnToMenu}>ABORT TO OPERATOR BAY</button>
       </section>
     </div>
   );
@@ -204,6 +267,7 @@ function EndState({ phase }) {
   const deploy = useGame(state => state.deploy);
   const score = useGame(state => state.score);
   const kills = useGame(state => state.kills);
+  const returnToMenu = useGame(state => state.returnToMenu);
   return (
     <div className="modal-backdrop">
       <section className="end-panel">
@@ -211,6 +275,7 @@ function EndState({ phase }) {
         <h2>{phase === "victory" ? "ASCENDANT" : "FALLEN"}</h2>
         <p>{score.toLocaleString()} score · {kills} corruption forms purged</p>
         <button type="button" className="deploy" onClick={deploy}>RUN THE DUNGEON AGAIN</button>
+        <button type="button" className="ghost-button" onClick={returnToMenu}>CHANGE OPERATOR</button>
       </section>
     </div>
   );

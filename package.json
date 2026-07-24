@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "verify": "node scripts/verify-r3f.mjs",
-    "check": "npm run verify && npm run build"
+    "test:state": "node scripts/test-state.mjs",
+    "check": "npm run verify && npm run test:state && npm run build"
   },
   "dependencies": {
     "@react-three/drei": "10.7.7",

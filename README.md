@@ -1,6 +1,6 @@
 # Collective Strike 3D: Riftfall
 
-Riftfall is the React Three Fiber generation of Collective Strike 3D: a tactical dungeon shooter featuring 20 division operators, physically separate held weapons, two-hand grip rigs, corruption anchors, enemy waves, combat abilities, procedural PBR textures, shader-driven dungeon surfaces, post-processing, physics debris, responsive HUDs, gamepad input, and adaptive render settings.
+Riftfall is the React Three Fiber generation of Collective Strike 3D: a tactical dungeon shooter featuring 20 division operators, physically separate held weapons, two-hand grip rigs, corruption anchors, escalating enemy waves, a Rift Monarch boss encounter, distinct combat ability archetypes, procedural Web Audio, PBR textures, shader-driven dungeon surfaces, post-processing, physics debris, responsive HUDs, dual-stick gamepad input, and adaptive render settings.
 
 ## Stack
 
@@ -35,6 +35,8 @@ npm run check
 - `R`: reload
 - `Esc`: pause
 - Standard dual-stick gamepads are supported
+
+Threat levels range from Initiate to Ascendant. The renderer automatically steps down expensive effects when sustained frame rate falls below its performance target.
 
 ## Legacy build
 
