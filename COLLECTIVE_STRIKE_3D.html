@@ -14,6 +14,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #stage canvas{display:block;width:100%;height:100%;touch-action:none}
 .glass{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(14px);box-shadow:0 18px 60px rgba(0,0,0,.34)}
 #loading{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:#050812;color:var(--muted);font:700 12px "JetBrains Mono";letter-spacing:.28em;text-transform:uppercase}
+#loading.loadFail{padding:24px;text-align:center;line-height:1.8;letter-spacing:.16em;color:#d6deeb}#loading.loadFail b{display:block;margin-bottom:8px;color:#f4f7fb;font-size:16px}#loading.loadFail small{display:block;max-width:560px;color:#93a1b8;font:500 12px "Space Grotesk";letter-spacing:.04em;text-transform:none}#loading.loadFail button{margin-top:18px;padding:11px 24px;border:1px solid rgba(212,168,67,.5);border-radius:8px;background:rgba(212,168,67,.12);color:#f8fafc;font:700 10px "JetBrains Mono";letter-spacing:.18em;cursor:pointer}
 
 /* Operator select: command panel on the left, 3D preview protected on the right. */
 #menu{position:fixed;inset:0;z-index:100;display:none;grid-template-columns:minmax(360px,28vw) 1fr minmax(280px,24vw);gap:22px;padding:24px 28px 22px;background:radial-gradient(circle at 58% 42%,rgba(124,58,237,.18),transparent 30%),linear-gradient(90deg,rgba(3,6,14,.98),rgba(5,8,18,.84) 32%,rgba(5,8,18,.38) 62%,rgba(5,8,18,.9));overflow:hidden}
@@ -1728,7 +1729,10 @@ addEventListener("mousemove",e=>{mouse.x=e.clientX;mouse.y=e.clientY});addEventL
 addEventListener("keyup",e=>{const k=e.key.toLowerCase();if(k==="tab"){e.preventDefault();setScoreboard(false);return}keys[k]=false});
 addEventListener("blur",()=>{keys={};touchMove.x=touchMove.y=padMove.x=padMove.y=0;mouse.down=false;setScoreboard(false);if(phase!=="menu"&&!paused)togglePause()});addEventListener("contextmenu",e=>e.preventDefault());
 function loop(){requestAnimationFrame(loop);const dt=Math.min(.05,clock.getDelta());SND.tick();if(paused)return;perf.t+=dt;globalU.uTime.value=perf.t;pollGamepad(dt);updateAim();updateSim(dt);updateRender(dt);renderHUD();updateCombatUI();drawMinimap();adaptiveQuality(dt);if(sbOpen&&Math.random()<dt*4)renderScoreboard()}
-window.addEventListener("load",()=>{if(!window.THREE){document.getElementById("loading").textContent="Three.js failed to load";return}init3D();initMenu();initTouch();document.getElementById("loading").style.display="none";document.getElementById("menu").style.display="grid";loop()});
+function showBootFailure(message){
+ const loading=document.getElementById("loading");loading.className="loadFail";loading.innerHTML=`<div><b>RENDERING LATTICE OFFLINE</b><small>${message}</small><button type="button" onclick="location.reload()">RETRY INITIALIZATION</button></div>`;
+}
+window.addEventListener("load",()=>{if(!window.THREE){showBootFailure("The 3D engine could not be loaded. Check your network connection and try again.");return}try{init3D();initMenu();initTouch();document.getElementById("loading").style.display="none";document.getElementById("menu").style.display="grid";loop()}catch(error){console.warn("Collective Strike 3D boot fallback:",error?.message||error);showBootFailure("WebGL could not start on this browser or GPU. Enable hardware acceleration, update your graphics driver, or open the game in a current Chrome, Edge, Firefox, or Safari build.")}});
 addEventListener("pointerdown",function bootAudio(){SND.resume();if(phase==="menu")SND.setMusic(true);removeEventListener("pointerdown",bootAudio)});
 </script>
 </body>
