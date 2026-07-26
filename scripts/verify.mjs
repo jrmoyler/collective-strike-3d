@@ -50,8 +50,27 @@ for (const contract of [
   ["touch controls", /function initTouch\(/],
   ["gamepad controls", /function pollGamepad\(/],
   ["adaptive quality", /function adaptiveQuality\(/],
-  ["WebGL recovery", /webglcontextlost/]
+  ["WebGL recovery", /webglcontextlost/],
+  ["operator rigs grip their weapon", /function twoBoneIK\(/],
+  ["single rig implementation", /function makeRig\(/],
+  ["arena polish pass", /function buildArenaPolish\(/],
+  ["bloom post-processing", /function initComposer\(/]
 ]) assert(contract[1].test(html), `${contract[0]} contract is present`);
+
+for (const [label, pattern] of [
+  ["makeRig", /function makeRig\(/g],
+  ["updateRig", /function updateRig\(/g]
+]) assert((html.match(pattern) || []).length === 1, `${label} is defined exactly once`);
+
+const remoteHosts = [...html.matchAll(/https?:\/\/([^\s"')]+)/g)]
+  .map(match => match[1].split("/")[0])
+  .filter(host => !/^(openapi\.vercel\.sh|www\.w3\.org)$/.test(host));
+assert(remoteHosts.length === 0, `no remote runtime hosts${remoteHosts.length ? `: ${[...new Set(remoteHosts)].join(", ")}` : ""}`);
+
+for (const asset of ["vendor/cs3d-runtime.js", "vendor/cs3d-fonts.css"]) {
+  assert(html.includes(asset), `${asset} is referenced locally`);
+  assert(fs.existsSync(path.join(root, asset)), `${asset} is built`);
+}
 
 assert(!/\b(?:TODO|FIXME|lorem ipsum|placeholder)\b/i.test(html), "no placeholder or unfinished-copy markers");
 
@@ -61,4 +80,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`\n${14 + 8} verification checks passed.`);
+console.log("\nAll verification checks passed.");
