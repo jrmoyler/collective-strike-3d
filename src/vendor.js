@@ -1,17 +1,35 @@
 /*
  * Collective Strike 3D - runtime dependency bundle.
  *
- * The game ships as a single self-contained HTML document that expects the
- * renderer and the animation helper on `window`. This entry point pins those
- * dependencies to the versions in package.json, bundles them with esbuild, and
- * publishes them as globals so the game never reaches for a CDN at runtime.
+ * Pins three@0.185.x and animejs@4.5.x, exposes them on window so the
+ * single-file game never reaches for a CDN. Anime v4 is published both as
+ * the modern named API and a thin v3-compatible shim so existing UI
+ * animations keep working while new code can use animate()/stagger().
  */
 import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import anime from "animejs";
+import { animate, stagger, createTimeline, utils, engine } from "animejs";
+
+/* v3-compatible surface used by the existing HUD/menu animations */
+function animeCompat(params) {
+  if (!params || !params.targets) return null;
+  const { targets, delay, duration, easing, complete, update, ...rest } = params;
+  const opts = {
+    ...rest,
+    duration: duration ?? 1000,
+    ease: easing || "outQuad",
+    delay: typeof delay === "function" ? delay : (delay ?? 0),
+    onComplete: complete,
+    onUpdate: update
+  };
+  return animate(targets, opts);
+}
+animeCompat.stagger = stagger;
+animeCompat.timeline = (params) => createTimeline(params || {});
+animeCompat.remove = (targets) => utils.remove(targets);
 
 window.THREE = Object.freeze({
   ...THREE,
@@ -20,5 +38,9 @@ window.THREE = Object.freeze({
   ShaderPass,
   UnrealBloomPass
 });
-window.anime = anime;
-window.CS3D_VENDOR = { three: THREE.REVISION };
+window.anime = animeCompat;
+window.animejs = { animate, stagger, createTimeline, utils, engine };
+window.CS3D_VENDOR = {
+  three: THREE.REVISION,
+  anime: "4.5.0"
+};
