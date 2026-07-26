@@ -2,7 +2,7 @@
  * Renders a close-up turntable frame of every division operator holding each
  * weapon class, so rig changes can be eyeballed without playing a match.
  *
- *   node scripts/rig-sheet.mjs [--out <dir>] [--weapon rifle]
+ *   node scripts/rig-sheet.mjs [--out <dir>] [--weapon signature]
  */
 import fs from "node:fs";
 import http from "node:http";
@@ -17,7 +17,7 @@ const argOf = (flag, fallback) => {
   return i === -1 ? fallback : args[i + 1];
 };
 const outDir = path.resolve(root, argOf("--out", "screenshots/rigs"));
-const weapon = argOf("--weapon", "rifle");
+const weapon = argOf("--weapon", "signature");
 
 const server = http.createServer((req, res) => {
   const rel = decodeURIComponent(req.url.split("?")[0]).replace(/^\/+/, "") || "index.html";
@@ -73,10 +73,11 @@ for (const id of ids) {
       const old = rigs.get(preview.id);
       if (old) { old.root.traverse(o => o.material?.dispose?.()); scene.remove(old.root); rigs.delete(preview.id); }
     }
+    const equipped = wid === "signature" ? doctrineWeapon(divId) : { ...WEAPONS[wid], ammo: WEAPONS[wid].mag, reserve: 90 };
     preview = {
       id: "sheet_" + divId, team: myTeam, div: d, x: WORLD_W * .82, y: WORLD_H * .24,
       angle: 0, alive: true, cur: wid,
-      weapons: { [wid]: { ...WEAPONS[wid], ammo: WEAPONS[wid].mag, reserve: 90 } }, fireKick: 0
+      weapons: { [wid]: equipped }, fireKick: 0
     };
     makeRig(preview, true);
     paused = false;
