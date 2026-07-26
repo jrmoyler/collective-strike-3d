@@ -100,7 +100,7 @@ try {
   await page.waitForTimeout(1500);
 
   await page.mouse.move(980, 300);
-  await page.keyboard.press("5");
+  await page.keyboard.press("6");
   await page.keyboard.press("q");
   await page.waitForTimeout(350);
   await page.keyboard.down("w");
@@ -127,7 +127,10 @@ try {
     phase,
     liveRound: round,
     doctrineCount: Object.keys(SIGNATURES).length,
-    doctrineForms: new Set(Object.values(SIGNATURES).map(w => w.form)).size,
+    series03Count: Object.keys(ADDITIONAL_WEAPONS).length,
+    arsenalCount: Object.keys(ARSENAL_ROSTER).length,
+    doctrineForms: new Set(Object.values(ARSENAL_ROSTER).map(w => w.form)).size,
+    equippedSeries03: me.cur.startsWith("series03_"),
     doctrineTriggered: me.doctrineT > performance.now() / 1000,
     holdingWeapon: [...rigs.values()].every(r => r.arms && r.arms.length === 2),
     maxSocketError: Math.max(...[...rigs.values()].flatMap(r => {
@@ -141,8 +144,11 @@ try {
   console.log("runtime:", JSON.stringify(stats));
   if (!stats.holdingWeapon) problems.push("some rigs are missing weapon arms");
   if (stats.doctrineCount !== 20) problems.push(`expected 20 doctrine weapons, found ${stats.doctrineCount}`);
-  if (stats.doctrineForms < 10) problems.push(`expected at least 10 doctrine forms, found ${stats.doctrineForms}`);
-  if (!stats.doctrineTriggered) problems.push("player doctrine special did not trigger");
+  if (stats.series03Count !== 21) problems.push(`expected 21 Series 03 weapons, found ${stats.series03Count}`);
+  if (stats.arsenalCount !== 41) problems.push(`expected 41 total arsenal weapons, found ${stats.arsenalCount}`);
+  if (stats.doctrineForms < 15) problems.push(`expected at least 15 doctrine forms, found ${stats.doctrineForms}`);
+  if (!stats.equippedSeries03) problems.push("slot 6 did not equip a Series 03 weapon");
+  if (!stats.doctrineTriggered) problems.push("Series 03 special did not trigger");
   if (!(stats.maxSocketError < 0.03)) problems.push(`weapon hand socket error too high: ${stats.maxSocketError}`);
 } catch (error) {
   problems.push(`flow: ${error.message}`);
