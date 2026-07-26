@@ -10,7 +10,89 @@
 - Added deterministic `npm run check` verification, a reproducible `dist/index.html` build, Vercel configuration, and project documentation.
 - Production: https://collective-strike-3d.vercel.app
 
-## Current Pass (specimen characters + map art)
+## Current Pass (original operators with gripped weapons, arena polish, vendored runtime)
+
+### Characters reverted
+
+- The specimen creature engine (toon shader, gait systems, IK creature rig,
+  ~600 lines) was **removed**. The original division blob anatomy - sphere
+  torso, DNA-driven shells/plates/humps/helixes/tendrils, head with
+  visor/lens/beak/brows/helmet/ears, cylinder legs with the walk cycle, wings,
+  coin and hourglass rings - is once again the only rig in the file.
+  `makeRig` / `updateRig` are now each defined exactly once (verified by
+  `npm test`), so there is no dead-code override left behind.
+- What is new is the grip: every operator carries a two-bone IK arm pair
+  (shoulder pad, upper arm, forearm, gloved hand). The trigger hand lands on the
+  weapon grip and the support hand on the foregrip, both solved per frame from
+  the live weapon transform, so the pose follows weapon switches, recoil kick,
+  and aim yaw automatically.
+- The carry point is solved from arm reach at build time rather than hard-coded,
+  so short-armed flyers and long-bodied quadrupeds both hold their weapon in
+  front of the chest without the barrel intersecting the head. Quadrupeds and
+  hexapods anchor their arms lower on the flanks and carry below the head.
+- Reload plays on the rig: the support hand drops to the magazine, the weapon
+  rolls and dips, then the hand returns to the foregrip.
+- Menu preview: framing now derives from the rig's own silhouette bounds
+  (`fitR` / `fitY`), so all 20 divisions are framed identically instead of by a
+  hand-tuned constant. The key light is tinted to the division colour with a
+  cool rim behind, and the camera snaps on first selection instead of flying in
+  from the origin.
+- The `d20` division id was renamed to `cognara` to match its display name,
+  Cognara Mind.
+
+### Arena polish (same layout, better presentation)
+
+The map geometry, collision grid, sites, and spawns are untouched. Added on top:
+
+- Emissive skirting along every wall base and a metal capping trim on top.
+- Volumetric light shafts under the gantry lamps.
+- Framed doorways with hazard strips on the six lane chokepoints.
+- 1200 drifting dust motes through the play volume.
+- Aimed spotlights over both plant sites with visible fixtures.
+- Crates rebuilt as lidded, hazard-banded cover props.
+- An outer floor plate so the world does not end in a void at the camera edge.
+- Lighting rebalanced for contrast (hemi .62 -> .30, ambient .15 -> .09,
+  sun 1.35 -> 1.18, exposure 1.02 -> .98), darker floor tint, thicker fog, and a
+  CSS vignette plus faint scanline over the render surface.
+
+### Rendering
+
+- `EffectComposer` + `UnrealBloomPass` on a 4x-multisampled half-float target.
+  Bloom strength is user-controllable from the pause menu (`CFG.bloom`,
+  persisted) and the composer follows the adaptive pixel-ratio scaler. If
+  post-processing fails to construct, the game silently falls back to a direct
+  `renderer.render`.
+- Weapons were remodelled: dark receiver, metal barrel, stock, magazine, pistol
+  grip, top rail, accent core strip, sight bead, and two energy rings. The muzzle
+  flash now has its own material, so the accent parts stay lit between shots
+  instead of blinking off. The local player's weapon casts a real muzzle flash
+  point light.
+
+### Dependencies are now installed, not fetched
+
+- `three@0.149.0`, `animejs@3.2.2`, `@fontsource/space-grotesk`,
+  `@fontsource/jetbrains-mono` are real npm dependencies; `esbuild` and
+  `playwright` are dev dependencies.
+- `npm run vendor` bundles Three.js, EffectComposer, RenderPass, ShaderPass,
+  UnrealBloomPass, and anime.js into `vendor/cs3d-runtime.js` (622 kB minified)
+  and publishes them on `window`.
+- `npm run fonts` inlines the six needed woff2 faces into
+  `vendor/cs3d-fonts.css` (128 kB).
+- Both are committed, so opening the HTML file directly still works with zero
+  build step and zero network. `npm test` fails the build if any remote host
+  reappears in the document.
+
+### Test tooling
+
+- `npm run smoke` drives headless Chromium from the operator select screen into
+  a live round (movement, firing, reload), captures five screenshots, asserts
+  every rig has its weapon arms, and fails on any console error, page error, or
+  failed request.
+- `npm run rigs` renders a close-up turntable frame of all 20 operators holding
+  a chosen weapon class, for eyeballing rig changes without playing a match.
+- `npm run check` is `test` + `build` + `smoke`.
+
+## Previous Pass (specimen characters + map art) - reverted
 
 - **three.js upgraded r128 → r149** (matches the specimen engine's inlined build; CapsuleGeometry required).
 - **Specimen creature engine ported** from `collective-specimen-21-standalone.html`: toon shader with rim light + spec cap, per-division seamless skin gradients, analytic two-bone IK, planted-foot stepper (walks 2/4/6 legs), flyer flap/bob, hopper squash-and-stretch gait, spring-driven tails/ears/antennae/tendrils, blinking eyes and head-look. All 20 divisions build from the existing DNA table (same schema as the specimen file).
