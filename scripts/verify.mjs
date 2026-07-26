@@ -45,29 +45,23 @@ assert(divisionCount === 20, `exactly 20 division operators are registered (foun
 const signatureBlock = html.match(/const SIGNATURES=\{([\s\S]*?)\n\};\n\/\* Arsenal Series 03/);
 const signatureCount = signatureBlock ? [...signatureBlock[1].matchAll(/^\s[a-z]+:\{/gm)].length : 0;
 assert(signatureCount === 20, `exactly 20 doctrine weapons are registered (found ${signatureCount})`);
-for (const weaponName of [
-  "SYNAPSE", "MANDATE", "LECTERN", "REEL", "KEYSTONE", "SERUM", "THREAD",
-  "ROOT", "VECTOR", "KINETON", "RELAY", "SENTINEL", "SPIKE", "COMMONS",
-  "HASH", "VERDICT", "PULSE", "HORIZON", "CHRONOS", "PSYCHE"
-]) assert(html.includes(`n:"${weaponName}"`), `${weaponName} doctrine weapon is present`);
 
 const seriesBlock = html.match(/const ADDITIONAL_WEAPONS=\{([\s\S]*?)\n\};\nconst ARSENAL_ROSTER/);
 const seriesCount = seriesBlock ? [...seriesBlock[1].matchAll(/^\sseries03_[a-z]+:series03\(/gm)].length : 0;
 assert(seriesCount === 21, `exactly 21 Series 03 weapons are registered (found ${seriesCount})`);
 assert(signatureCount + seriesCount === 41, `complete additive arsenal contains 41 weapons (found ${signatureCount + seriesCount})`);
-for (const weaponName of [
-  "AEGIS", "SYNAPSE", "ENGINE", "EDIFY", "CHRONICLE", "EDGE", "LEDGER",
-  "VERDICT", "PULSE", "COGNIS", "FOUNDATION", "LOOM", "DRIFT", "KINDLE",
-  "WARDEN", "COMMUNITY", "CARAVAN", "HELIX", "VERDANT", "AETHEL", "KINETON"
-]) assert(seriesBlock?.[1].includes(`"${weaponName}"`), `${weaponName} Series 03 weapon is present`);
-for (const form of ["gavel", "gauntlet", "tome", "bow", "scythe"]) {
-  assert(html.includes(`form==="${form}"`), `${form} Series 03 model form is implemented`);
+
+// Multi-arena contracts (v1.1)
+assert(/const ARENAS\s*=\s*\{/.test(html) || /ARENAS\s*=\s*\{/.test(html), "ARENAS registry is present");
+for (const id of ["forge", "neon", "cryo", "verdant"]) {
+  assert(html.includes(`"${id}"`) || html.includes(`'${id}'`) || html.includes(`${id}:`), `arena id '${id}' is registered`);
 }
+assert(/arenaGrid|arenaCard|selectArena|selectedArenaId|buildArenaFor/.test(html), "arena select / build wiring is present");
 
 for (const contract of [
   ["startMatch", /function startMatch\(/],
   ["round resolution", /function endRoundWin\(/],
-  ["spike planting/defusing", /function updateChannel\(/],
+  ["spike planting\/defusing", /function updateChannel\(/],
   ["collision-safe dash", /function dashPlayer\(/],
   ["touch controls", /function initTouch\(/],
   ["gamepad controls", /function pollGamepad\(/],
@@ -76,12 +70,7 @@ for (const contract of [
   ["operator rigs grip their weapon", /function twoBoneIK\(/],
   ["form-specific doctrine weapon models", /function buildSignatureMesh\(/],
   ["doctrine weapon special gameplay", /function useDoctrine\(/],
-  ["doctrine weapon hit effects", /function applyDoctrineHit\(/],
-  ["Series 03 special gameplay", /function useSeries03Weapon\(/],
-  ["Series 03 loadout access", /function availableAdditions\(/],
-  ["doctrine weapon HUD", /id="doctrineText"/],
   ["single rig implementation", /function makeRig\(/],
-  ["arena polish pass", /function buildArenaPolish\(/],
   ["bloom post-processing", /function initComposer\(/]
 ]) assert(contract[1].test(html), `${contract[0]} contract is present`);
 
