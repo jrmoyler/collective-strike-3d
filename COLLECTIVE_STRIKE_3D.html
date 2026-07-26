@@ -180,7 +180,7 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
   <div id="spikeMsg"></div>
   <div id="chanWrap"><div id="chanLabel">PLANTING</div><div id="chanBar"><i></i></div></div>
   <div id="spectate">SPECTATING <b id="spectateName"></b></div>
-  <div id="hint">WASD MOVE / MOUSE AIM / E ABILITY / Q DOCTRINE / 1-5 WEAPONS / B ARMORY / F PLANT-DEFUSE</div>
+  <div id="hint">WASD MOVE / MOUSE AIM / E ABILITY / Q DOCTRINE / 1-5 WEAPONS / 6 SERIES 03 / B ARMORY / F PLANT-DEFUSE</div>
   <div id="crosshair"><i class="aimRing"></i><span class="h l1"></span><span class="h l2"></span><span class="v l3"></span><span class="v l4"></span><span class="dot"></span><em class="aimName"></em></div>
   <div id="touchControls">
     <div id="movePad"><i class="touchNub"></i></div>
@@ -258,6 +258,41 @@ const SIGNATURES={
  eon:{id:"signature",n:"CHRONOS",type:"TEMPORAL VIAL",form:"vial",dmg:30,delay:.25,mag:18,res:72,spread:.022,auto:true,glow:"#67E8F9",stats:[42,48,78,93],special:{n:"LIFESPAN DILATION",d:"A temporal field accelerates allied cooldowns and stretches hostile attacks.",eff:"Allies receive continuous healing and status resistance."}},
  cognara:{id:"signature",n:"PSYCHE",type:"MIRROR PRISM",form:"prism",dmg:36,delay:.2,mag:16,res:64,spread:.018,auto:true,glow:"#F9A8D4",stats:[52,58,70,95],special:{n:"EMPATHY MIRROR",d:"Mirrors the highest-threat enemy and exposes its cognitive weak points.",eff:"Revealed targets take 25% more damage from all sources."}}
 };
+/* Arsenal Series 03 is additive: all 20 PR #3 doctrine weapons remain intact.
+   These 21 entries add the parent AEGIS relic and one alternative weapon for
+   every division, bringing the complete roster to 41 signature/relic options. */
+function series03(id,n,type,form,owner,glow,stats,specialType,sn,sd,se){
+ const power=stats[0],speed=stats[1],range=stats[2];
+ return{id,n,type,form,owner,glow,stats,specialType,series:"03",
+  dmg:Math.round(18+power*.43),delay:+Math.max(.09,.48-speed*.0042).toFixed(3),
+  mag:Math.max(6,Math.round(8+speed*.16)),res:Math.max(24,Math.round((8+speed*.16)*4)),
+  spread:+Math.max(.012,.066-range*.00055).toFixed(3),auto:speed>=65,
+  special:{n:sn,d:sd,eff:se}};
+}
+const ADDITIONAL_WEAPONS={
+ series03_aegis:series03("series03_aegis","AEGIS","GILDED GAVEL · CEREMONIAL","gavel","all","#FFD56B",[90,55,75,82],"SHATTER","SOVEREIGN CASCADE","Seven gilded shards orbit the wielder, then converge in a sovereign strike.","Allies within 12m gain 20% damage for 10s."),
+ series03_synapse:series03("series03_synapse","SYNAPSE","NEURAL STAFF · RANGED AOE","staff","zenflow","#A78BFA",[62,54,88,82],"STORM","SYNAPTIC STORM","Three crystals overload and chain lightning through up to seven visible enemies.","Damaged targets share 30% of subsequent damage for 6s."),
+ series03_engine:series03("series03_engine","ENGINE","PROFIT GAUNTLET · FIST","gauntlet","collective","#FEF3C7",[76,69,52,84],"AURA","TITHE AURA","Compound-interest rings mark hostile targets in a radiant collection field.","Marked enemies award 15% additional elimination credits."),
+ series03_edify:series03("series03_edify","EDIFY","LESSON SCEPTER · AOE","scepter","hybrid","#FDE047",[58,72,68,86],"NOVA","LESSON NOVA","Expanding lesson rings spread from the tutor rod to every nearby ally.","Allies in range gain accelerated field progression for 8s."),
+ series03_chronicle:series03("series03_chronicle","CHRONICLE","TOME · BEAM","tome","nexus","#FCA5A5",[66,48,82,72],"BEAM","NARRATIVE LANCE","The opened tome projects a piercing beam of living narrative through its target lane.","Enemies caught in the lance are stunned for 1.5s."),
+ series03_edge:series03("series03_edge","EDGE","COMPETITION KATANA · MELEE","blade","kinetic","#BBF7D0",[81,89,52,58],"SWARM","BLADE SWARM","Six phantom katanas slash in coordinated volleys from every angle.","Every third hit grants 25% attack speed for 4s."),
+ series03_ledger:series03("series03_ledger","LEDGER","COIN SPHERE · AOE","orb","quantum","#DDD6FE",[70,55,84,80],"NOVA","QUANTUM NOVA","A radial nova settles every transaction across the combat field.","Enemies in range lose 10% of current health as true damage."),
+ series03_verdict:series03("series03_verdict","VERDICT","HEAVY GAVEL-AXE · MELEE","gavel","juris","#FFD56B",[94,38,22,71],"SHATTER","JUDGMENT CASCADE","Seven verdict shards converge on the marked target from every direction.","Guilty targets take 25% more damage and move 40% slower for 8s."),
+ series03_pulse:series03("series03_pulse","PULSE","PLASMA DRIVER · BROADCAST","rifle","signal","#FECDD3",[72,82,90,66],"SWARM","VIRAL SWARM","Six signal drones broadcast coordinated volleys of growth-code.","Five viral stacks slow the target by 50% for 4s."),
+ series03_cognis:series03("series03_cognis","COGNIS","NEURAL STAFF · COGNITION","staff","cognara","#FFB6D9",[64,58,86,84],"STORM","COGNITION STORM","Brain nodes overload and arc pure thought between visible enemies.","Damaged enemies lose 20% accuracy for 6s."),
+ series03_foundation:series03("series03_foundation","FOUNDATION","HEAVY HAMMER · MELEE","hammer","terra","#F5A6A6",[92,33,42,68],"SHATTER","EARTH SHATTER","The maul fractures into stone shards that slam down and rupture the ground.","Enemies in range are knocked up and stunned for 1.2s."),
+ series03_loom:series03("series03_loom","LOOM","MATRIX HAMMER · AOE","hammer","binary","#ECFCCB",[70,76,68,74],"AURA","MATRIX AURA","Pulsing code rings weave a shared matrix through nearby allies.","Allies receive 15% cooldown reduction for 6s."),
+ series03_drift:series03("series03_drift","DRIFT","CONVEYOR LONGBOW · BEAM","bow","vector","#F1F5F9",[68,82,88,72],"BEAM","ARROW LANCE","The longbow fires a sustained silver vector through its entire lane.","Enemies struck are pulled toward the wielder."),
+ series03_kindle:series03("series03_kindle","KINDLE","SIGNAL BOW · AURA","bow","aether","#F7C49A",[74,79,82,68],"AURA","SIGNAL AURA","Warm connectivity rings link every ally inside the signal field.","Linked allies share 20% of healing received for 6s."),
+ series03_warden:series03("series03_warden","WARDEN","PLASMA DRIVER · BREACH","rifle","obsidian","#FCA5A5",[88,62,86,74],"SHATTER","BREACH CASCADE","Silver breach shards orbit, accelerate, and converge on the marked zone.","Enemies struck lose 30% armor for 8s."),
+ series03_community:series03("series03_community","COMMUNITY","DOVE STAFF · AOE","staff","civic","#FBCFE8",[54,76,62,82],"NOVA","DOVE NOVA","Soft pastel rings take flight from the staff across the sanctuary.","Allies gain a 15% maximum-health shield for 8s."),
+ series03_caravan:series03("series03_caravan","CARAVAN","CURVED SCIMITAR · AURA","blade","nomad","#FBE8C4",[78,86,72,64],"AURA","DUNE AURA","Waves of desert light mark nearby allies as caravan-bound.","Marked allies gain 20% movement speed for 6s."),
+ series03_helix:series03("series03_helix","HELIX","HELIX CORE · BEAM","orb","vital","#FDBA74",[70,68,78,82],"BEAM","HELIX LANCE","A teal-orange DNA strand pierces the field and repairs allies in its wake.","Allies in the beam recover 8% maximum health per second for 3s."),
+ series03_verdant:series03("series03_verdant","VERDANT","HARVEST SCYTHE · STORM","scythe","gaia","#F0D08C",[82,58,68,72],"STORM","HARVEST STORM","Leaf nodes arc living energy through every nearby enemy.","Damaged enemies spawn a healing seed when eliminated."),
+ series03_aethel:series03("series03_aethel","AETHEL","HOURGLASS SCYTHE · NOVA","scythe","eon","#FFF7D6",[60,42,72,88],"NOVA","TIME NOVA","Cream-gold rings ripple outward as moments of stolen time.","Enemies in range are slowed 35% for 5s."),
+ series03_kineton:series03("series03_kineton","KINETON","PLASMA DRIVER · SMART RIFLE","rifle","animus","#67E8F9",[78,71,95,64],"SWARM","SWARM DIRECTIVE","Six autonomous micro-drones acquire targets and fire coordinated volleys.","Weak-point lock grants 50% critical chance for 5s.")
+};
+const ARSENAL_ROSTER={...SIGNATURES,...ADDITIONAL_WEAPONS};
 const DIV_BY_ID=Object.fromEntries(DIVS.map(d=>[d.id,d]));
 const DNA={
  zenflow:{name:'ZENFLOW',loco:'flyer',seed:2,cBot:'#2A1458',cTop:'#7C3AED',accent:'#3B82F6',eye:'#F5F5F5',scale:1.0,body:[.66,.62],head:.44,arms:.7,tendrils:4,wing:.9},
@@ -453,7 +488,12 @@ function maxHp(p){return p.div.id==="animus"?125:p.div.id==="kinetic"?90:100}
 function speedMul(p){const now=performance.now()/1000;return (p.div.id==="kinetic"?1.14:p.div.id==="vector"?1.08:p.div.id==="nomad"?1.04:1)*(p.speedUntil>now?1.45:1)*(p.teamSpeedUntil>now?1.2:1)}
 function price(p,v){return Math.round(v*(p.div.id==="quantum"?.85:1)/10)*10}
 function doctrineWeapon(id){const w=SIGNATURES[id]||SIGNATURES.zenflow;return{...w,ammo:w.mag,reserve:w.res,division:id}}
-function makePlayer(team,id,human,name){const sp=spawn(team),div=DIV_BY_ID[id],signature=doctrineWeapon(id);const p={id:Math.random().toString(36).slice(2),team,div,human,name,x:sp.x,y:sp.y,angle:team==="ATK"?-Math.PI/2:Math.PI/2,hp:100,armor:0,alive:true,money:800,kills:0,deaths:0,cur:"signature",weapons:{pistol:{...WEAPONS.pistol,ammo:12,reserve:48},signature},fireT:0,reloadT:0,abilityT:0,doctrineT:0,revealT:0,slowT:0,speedUntil:0,fireUntil:0,critUntil:0,phaseUntil:0,boostShots:0,usedWind:false,target:null,pathT:0,deadT:0};p.hp=maxHp(p);if(id==="terra")p.armor=25;return p}
+function additionalWeapon(id){const w=ADDITIONAL_WEAPONS[id];return w?{...w,ammo:w.mag,reserve:w.res}:null}
+function availableAdditions(id){return Object.values(ADDITIONAL_WEAPONS).filter(w=>w.owner==="all"||w.owner===id)}
+function addAdditionalLoadout(weapons,id){for(const w of availableAdditions(id))weapons[w.id]=additionalWeapon(w.id);return weapons}
+function isDoctrineWeapon(w){return !!w?.special}
+function cycleAdditional(p){const ids=availableAdditions(p.div.id).map(w=>w.id).filter(id=>p.weapons[id]);if(!ids.length)return;const i=ids.indexOf(p.cur);p.cur=ids[(i+1)%ids.length];SND.uiClick(true)}
+function makePlayer(team,id,human,name){const sp=spawn(team),div=DIV_BY_ID[id],signature=doctrineWeapon(id),weapons=addAdditionalLoadout({pistol:{...WEAPONS.pistol,ammo:12,reserve:48},signature},id);const p={id:Math.random().toString(36).slice(2),team,div,human,name,x:sp.x,y:sp.y,angle:team==="ATK"?-Math.PI/2:Math.PI/2,hp:100,armor:0,alive:true,money:800,kills:0,deaths:0,cur:"signature",weapons,fireT:0,reloadT:0,abilityT:0,doctrineT:0,revealT:0,slowT:0,speedUntil:0,fireUntil:0,critUntil:0,phaseUntil:0,boostShots:0,usedWind:false,target:null,pathT:0,deadT:0};p.hp=maxHp(p);if(id==="terra")p.armor=25;return p}
 function curW(p){return p.weapons[p.cur]}function giveW(p,id){const w=WEAPONS[id];p.weapons[id]={...w,ammo:w.mag,reserve:w.res};p.cur=id}
 function init3D(){const probe=document.createElement("canvas");if(!(probe.getContext("webgl2")||probe.getContext("webgl")))throw new Error("WebGL unavailable");scene=new THREE.Scene();scene.background=new THREE.Color("#030712");scene.fog=new THREE.FogExp2(0x060d1c,.0052);camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,1,700);renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(qualityScale);renderer.shadowMap.enabled=true;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.98;document.getElementById("stage").appendChild(renderer.domElement);renderer.domElement.addEventListener("webglcontextlost",e=>{e.preventDefault();paused=true;document.getElementById("loading").textContent="Rendering lattice interrupted - recovering";document.getElementById("loading").style.display="grid"});renderer.domElement.addEventListener("webglcontextrestored",()=>location.reload());raycaster=new THREE.Raycaster();ground=new THREE.Plane(new THREE.Vector3(0,1,0),0);scene.add(new THREE.HemisphereLight(0x6f9bff,0x02060f,.3));scene.add(new THREE.AmbientLight(0x4f6a9e,.09));const sun=new THREE.DirectionalLight(0xffe8cc,1.18);sun.position.set(45,80,35);sun.castShadow=true;sun.shadow.mapSize.set(innerWidth<900?1024:2048,innerWidth<900?1024:2048);sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;sun.shadow.bias=-.0009;sun.shadow.normalBias=.02;scene.add(sun);const rim=new THREE.DirectionalLight(0x4f74ff,.34);rim.position.set(-40,30,-30);scene.add(rim);arenaGroup=new THREE.Group();scene.add(arenaGroup);previewLight=new THREE.PointLight(0xffffff,4.4,36,1.35);previewLight.position.set(WORLD_W*S*.76,8,WORLD_H*S*.55+3);scene.add(previewLight);previewRim=new THREE.PointLight(0x7cc4ff,2.6,26,1.5);previewRim.position.set(WORLD_W*S*.88,5,WORLD_H*S*.1);scene.add(previewRim);buildArena();fx=makeFX();initComposer();addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(bloomPass)bloomPass.setSize(innerWidth,innerHeight)})}
 function initComposer(){
@@ -732,10 +772,42 @@ function buildSignatureMesh(parent,sig,mats){
   weaponPart(parent,geo.box,metal,[.12,.035,.92],[0,.01,.48]);
   const tip=weaponPart(parent,geo.cone,trim,[.12,.3,.055],[0,.01,1.34],[Math.PI/2,0,0]);tip.rotation.x=Math.PI/2;
   core(geo.sphere,[.11,.11,.11],[0,.02,.1]);profile.grip=[0,-.02,-.62];profile.fore=[0,-.01,-.2];profile.muzzle=[0,.01,1.55];profile.scale=.82;
- }else if(form==="hammer"||form==="axe"){
+ }else if(form==="gauntlet"){
+  weaponPart(parent,geo.box,dark,[.48,.34,.66],[0,0,-.02]);
+  weaponPart(parent,geo.box,metal,[.42,.18,.34],[0,.2,.35]);
+  for(const x of[-.3,-.1,.1,.3]){
+   const knuckle=weaponPart(parent,geo.sphere,trim,[.105,.105,.13],[x,.18,.58]);knuckle.userData.weaponSpin=x>0?1.2:-1.2
+  }
+  weaponPart(parent,geo.cyl,dark,[.13,.34,.13],[0,-.29,-.22],[0,0,-.18]);
+  weaponPart(parent,geo.box,metal,[.16,.12,.5],[-.34,-.02,.02]);
+  weaponPart(parent,geo.box,metal,[.16,.12,.5],[.34,-.02,.02]);
+  core(new THREE.IcosahedronGeometry(1,1),[.2,.2,.2],[0,.03,.12]);
+  profile.grip=[0,-.25,-.3];profile.fore=[-.34,-.04,.05];profile.reload=[.34,-.14,.08];profile.muzzle=[0,.16,.82];profile.scale=.8;profile.flash=.28;
+ }else if(form==="tome"){
+  weaponPart(parent,geo.box,dark,[.58,.08,.76],[-.31,0,.12],[0,0,-.18]);
+  weaponPart(parent,geo.box,dark,[.58,.08,.76],[.31,0,.12],[0,0,.18]);
+  weaponPart(parent,geo.box,metal,[.5,.05,.68],[-.28,.07,.12],[0,0,-.18]);
+  weaponPart(parent,geo.box,metal,[.5,.05,.68],[.28,.07,.12],[0,0,.18]);
+  weaponPart(parent,geo.cyl,trim,[.075,.72,.075],[0,-.01,.08],[Math.PI/2,0,0]);
+  for(let i=0;i<3;i++){const rune=weaponPart(parent,geo.torus,trim,[.11+i*.045,.11+i*.045,.11+i*.045],[0,.13,.05+i*.25],[Math.PI/2,0,0]);rune.userData.weaponSpin=(i%2?1:-1)*(1+i*.25)}
+  core(new THREE.OctahedronGeometry(1),[.15,.15,.15],[0,.18,.58]);
+  profile.grip=[.2,-.08,-.42];profile.fore=[-.3,-.07,.04];profile.reload=[-.1,-.26,.18];profile.muzzle=[0,.16,1.02];profile.scale=.76;profile.flash=.25;
+ }else if(form==="bow"){
+  weaponPart(parent,geo.cyl,dark,[.075,.4,.075],[0,0,-.04],[Math.PI/2,0,0]);
+  for(const side of[-1,1]){
+   weaponPart(parent,geo.cyl,metal,[.06,.62,.06],[side*.32,.02,.36],[.3,0,side*.5]);
+   weaponPart(parent,geo.cyl,trim,[.045,.58,.045],[side*.53,.02,.92],[-.3,0,-side*.35]);
+   weaponPart(parent,geo.cyl,energy,[.018,.62,.018],[side*.27,.03,.72],[.45,0,-side*.28]);
+  }
+  weaponPart(parent,geo.cyl,trim,[.035,.92,.035],[0,.03,.58],[0,0,0]);
+  weaponPart(parent,geo.cone,metal,[.08,.34,.08],[0,.03,1.22],[Math.PI/2,0,0]);
+  core(geo.sphere,[.13,.13,.13],[0,.03,.18]);
+  profile.grip=[0,-.02,-.32];profile.fore=[-.28,.01,.28];profile.reload=[.22,-.16,.34];profile.muzzle=[0,.03,1.56];profile.scale=.84;profile.flash=.2;
+ }else if(form==="hammer"||form==="axe"||form==="gavel"){
   weaponPart(parent,geo.cyl,dark,[.085,.75,.085],[0,0,-.35],[Math.PI/2,0,0]);
-  const head=weaponPart(parent,geo.box,metal,form==="hammer"?[.62,.42,.36]:[.72,.48,.18],[0,0,.48]);
+  const head=weaponPart(parent,geo.box,metal,form==="hammer"?[.62,.42,.36]:form==="gavel"?[.72,.46,.4]:[.72,.48,.18],[0,0,.48]);
   if(form==="axe"){const edge=weaponPart(parent,geo.cone,trim,[.38,.34,.12],[.5,0,.48],[0,0,-Math.PI/2]);edge.rotation.z=-Math.PI/2}
+  if(form==="gavel"){for(const x of[-1,1])weaponPart(parent,geo.cyl,trim,[.23,.22,.23],[x*.63,0,.48],[0,0,Math.PI/2]);weaponPart(parent,new THREE.OctahedronGeometry(1),trim,[.16,.16,.16],[0,.34,.48])}
   weaponPart(parent,geo.torus,trim,[.22,.22,.22],[0,0,.48],[Math.PI/2,0,0]);core(geo.sphere,[.13,.13,.13],[0,0,.48]);
   profile.grip=[0,0,-.76];profile.fore=[0,0,-.18];profile.muzzle=[0,0,1.03];profile.scale=.88;profile.flash=.25;
  }else if(form==="lance"){
@@ -743,11 +815,12 @@ function buildSignatureMesh(parent,sig,mats){
   weaponPart(parent,geo.cone,trim,[.13,.48,.13],[0,0,1.18],[Math.PI/2,0,0]);
   weaponPart(parent,geo.torus,metal,[.12,.12,.12],[0,0,-.36],[Math.PI/2,0,0]);core(geo.sphere,[.11,.11,.11],[0,0,.62]);
   profile.grip=[0,0,-.55];profile.fore=[0,0,.12];profile.muzzle=[0,0,1.65];profile.scale=.86;
- }else if(form==="sickle"){
+ }else if(form==="sickle"||form==="scythe"){
   weaponPart(parent,geo.cyl,dark,[.07,.72,.07],[0,0,-.25],[Math.PI/2,0,0]);
-  const arc=weaponPart(parent,geo.torus,trim,[.42,.42,.42],[.28,.02,.62],[Math.PI/2,0,0]);arc.rotation.y=.45;
-  weaponPart(parent,geo.cone,metal,[.1,.32,.06],[.56,.02,.88],[Math.PI/2,0,-.55]);core(geo.sphere,[.11,.11,.11],[0,0,.42]);
-  profile.grip=[0,0,-.58];profile.fore=[0,0,-.04];profile.muzzle=[.58,.02,1.02];profile.scale=.86;
+  const arc=weaponPart(parent,geo.torus,trim,form==="scythe"?[.55,.55,.55]:[.42,.42,.42],[.28,.02,.62],[Math.PI/2,0,0]);arc.rotation.y=.45;
+  weaponPart(parent,geo.cone,metal,form==="scythe"?[.12,.46,.07]:[.1,.32,.06],[form==="scythe"?.68:.56,.02,form==="scythe"?1.02:.88],[Math.PI/2,0,-.55]);core(geo.sphere,[.11,.11,.11],[0,0,.42]);
+  if(form==="scythe")weaponPart(parent,geo.torus,energy,[.2,.2,.2],[0,.02,.18],[Math.PI/2,0,0]);
+  profile.grip=[0,0,-.58];profile.fore=[0,0,-.04];profile.muzzle=[form==="scythe"?.72:.58,.02,form==="scythe"?1.18:1.02];profile.scale=.86;
  }else if(form==="drone"){
   weaponPart(parent,geo.box,dark,[.5,.19,.62],[0,0,.03]);core(new THREE.OctahedronGeometry(1),[.2,.2,.2],[0,.03,.16]);
   for(const x of[-1,1])for(const z of[-1,1]){weaponPart(parent,geo.box,metal,[.08,.04,.3],[x*.34,0,z*.3]);weaponPart(parent,geo.cyl,trim,[.13,.025,.13],[x*.42,.08,z*.42])}
@@ -769,8 +842,8 @@ function buildSignatureMesh(parent,sig,mats){
  for(let i=0;i<3;i++){const fin=weaponPart(parent,new THREE.OctahedronGeometry(1),trim,[.055,.075,.055],[(i-1)*.18,.12,.28+i*.18]);fin.userData.weaponSpin=(i%2?1:-1)*(1+i*.3)}
  return profile
 }
-function makeWeapon(accent,signature){
- const g=new THREE.Group(),standard=new THREE.Group(),signatureGroup=new THREE.Group();g.add(standard,signatureGroup);
+function makeWeapon(accent,signature,additions=[]){
+ const g=new THREE.Group(),standard=new THREE.Group(),doctrineRoot=new THREE.Group(),signatureGroup=new THREE.Group();doctrineRoot.add(signatureGroup);g.add(standard,doctrineRoot);
  const dark=mat('#0a0f1c',.02),metal=mat('#9fb0cc',.03),trim=mat(accent,.5);
  const energy=new THREE.MeshStandardMaterial({color:hex(signature?.glow||accent),emissive:hex(signature?.glow||accent),emissiveIntensity:2.5,roughness:.18,metalness:.18});
  const coil=new THREE.MeshBasicMaterial({color:hex(accent),transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false});
@@ -780,19 +853,27 @@ function makeWeapon(accent,signature){
  for(const m of [body,barrel,stock,mag,grip,rail])m.castShadow=true;
  const rings=[];for(let i=0;i<2;i++){const r=new THREE.Mesh(geo.torus,coil);r.rotation.x=Math.PI/2;standard.add(r);rings.push(r)}
  const signatureProfile=buildSignatureMesh(signatureGroup,signature||SIGNATURES.zenflow,{dark,metal,trim,energy});
+ const doctrineGroups={signature:{group:signatureGroup,profile:signatureProfile,weapon:signature}};
+ for(const sig of additions){
+  const group=new THREE.Group(),sigTrim=mat(sig.glow,.62),sigEnergy=new THREE.MeshStandardMaterial({color:hex(sig.glow),emissive:hex(sig.glow),emissiveIntensity:2.8,roughness:.16,metalness:.2});
+  doctrineRoot.add(group);const profile=buildSignatureMesh(group,sig,{dark,metal,trim:sigTrim,energy:sigEnergy});
+  group.visible=false;doctrineGroups[sig.id]={group,profile,weapon:sig}
+ }
  const muzzleGlow=new THREE.Mesh(geo.sphere,flash),muzzle=new THREE.Object3D();g.add(muzzleGlow,muzzle);
- g.userData={dark,metal,trim,coil,flash,body,barrel,stock,mag,grip,rail,core,sight,muzzleGlow,rings,muzzle,standard,signatureGroup,signatureProfile,signature};
+ g.userData={dark,metal,trim,coil,flash,body,barrel,stock,mag,grip,rail,core,sight,muzzleGlow,rings,muzzle,standard,doctrineRoot,doctrineGroups,signatureGroup,signatureProfile,signature};
  return g
 }
 const WVIS={pistol:{b:[.32,.2,.62],ba:.58,r:.052,st:0,mag:.24},smg:{b:[.42,.23,.82],ba:.78,r:.058,st:.38,mag:.42},rifle:{b:[.48,.25,1.02],ba:1.08,r:.06,st:.55,mag:.5},sniper:{b:[.54,.27,1.22],ba:1.58,r:.048,st:.72,mag:.42}};
 function setWeaponMesh(w,id){
  const u=w.userData;
- if(id==="signature"){
-  u.standard.visible=false;u.signatureGroup.visible=true;u.profile=u.signatureProfile;
+ const doctrine=u.doctrineGroups?.[id];
+ if(doctrine){
+  u.standard.visible=false;u.doctrineRoot.visible=true;for(const entry of Object.values(u.doctrineGroups))entry.group.visible=entry===doctrine;
+  u.profile=doctrine.profile;u.flash.color.set(hex(doctrine.weapon?.glow||"#ffffff"));
   u.muzzle.position.set(...u.profile.muzzle);u.muzzleGlow.position.copy(u.muzzle.position);u.muzzleGlow.scale.setScalar(u.profile.flash);
   u.cur=id;return
  }
- const c=WVIS[id]||WVIS.pistol;u.standard.visible=true;u.signatureGroup.visible=false;
+ const c=WVIS[id]||WVIS.pistol;u.standard.visible=true;u.doctrineRoot.visible=false;
  u.body.scale.set(...c.b);u.body.position.set(0,0,0);
  u.barrel.scale.set(c.r,c.ba/2,c.r);u.barrel.position.set(0,0,c.b[2]/2+c.ba/2);
  u.stock.visible=!!c.st;u.stock.scale.set(c.b[0]*.72,c.b[1]*.78,c.st||.01);u.stock.position.set(0,-c.b[1]*.1,-c.b[2]/2-(c.st||0)/2);
@@ -897,7 +978,7 @@ function makeRig(p,previewMode=false){
   y:holdY,
   side:(quadish?.05:.17)*s
  };
- const weapon=makeWeapon(d.accent||color,SIGNATURES[p.div.id]);root.add(weapon);setWeaponMesh(weapon,p.cur||'signature');
+ const weapon=makeWeapon(d.accent||color,SIGNATURES[p.div.id],availableAdditions(p.div.id));root.add(weapon);setWeaponMesh(weapon,p.cur||'signature');
  const muzzleLight=p.human?new THREE.PointLight(hex(d.accent||color),0,7,2):null;
  if(muzzleLight)root.add(muzzleLight);
  const headTop=head?head.position.y+headSize*1.4:torso.position.y+torso.scale.y*1.15;
@@ -927,7 +1008,7 @@ function updateRig(p,dt){
  r.body.position.y=Math.sin(r.pulse)*.035*(moving>1?1:0)+Math.sin(r.breath*1.7)*.011*r.scale+hit*.1;
  r.body.traverse(o=>{if(o.userData.walk)o.rotation.x=Math.sin(r.pulse+o.userData.walk)*.45;if(o.userData.wing)o.rotation.z=o.userData.wing*(.25+Math.sin(now*9)*.55);if(o.userData.spin)o.rotation.z+=dt});
  if(r.weapon.userData.cur!==p.cur)setWeaponMesh(r.weapon,p.cur);
- r.weapon.userData.signatureGroup.traverse(o=>{if(o.userData.weaponSpin)o.rotation.y+=dt*o.userData.weaponSpin});
+ r.weapon.userData.doctrineRoot.traverse(o=>{if(o.userData.weaponSpin)o.rotation.y+=dt*o.userData.weaponSpin});
  const kick=Math.max(0,(p.fireKick||0));p.fireKick=Math.max(0,kick-dt*7);
  const wcfg=r.weapon.userData.profile||r.weapon.userData.signatureProfile;
  const wScale=r.scale*wcfg.scale;
@@ -968,7 +1049,7 @@ function makeFX(){
  const orient=(m,a,b)=>{const mid=V3().copy(a).lerp(b,.5),dir=V3().subVectors(b,a),len=Math.max(.01,dir.length());m.position.copy(mid);m.scale.set(1,len,1);m.quaternion.setFromUnitVectors(V3(0,1,0),dir.normalize())};
  return{
   blasterBolt(p,ang,len,impactColor){
-   const r=rigs.get(p.id),w=curW(p),signature=p.cur==="signature",col=signature?(w.glow||p.div.c):p.cur==='sniper'?'#a5f3fc':(p.div.c||'#ffffff');
+   const r=rigs.get(p.id),w=curW(p),signature=isDoctrineWeapon(w),col=signature?(w.glow||p.div.c):p.cur==='sniper'?'#a5f3fc':(p.div.c||'#ffffff');
    let start=V3(p.x*S,1.8,p.y*S);if(r&&r.weapon){r.weapon.userData.muzzle.getWorldPosition(start);r.weapon.userData.muzzleGlow.material.opacity=.95;}
    const end=V3((p.x+Math.cos(ang)*len)*S,1.55,(p.y+Math.sin(ang)*len)*S);
    const bolt=new THREE.Mesh(boltGeo,boltMat(col).clone());bolt.castShadow=false;scene.add(bolt);
@@ -1009,10 +1090,10 @@ function fireWeapon(p,tx,ty){
  if(p.cur==="signature"&&p.phaseUntil>now)wallD=1300;
  let hit=lock,hd=lock?dist(p,lock):wallD;if(!hit){for(const q of players){if(!q.alive||q.team===p.team)continue;const dx=q.x-p.x,dy=q.y-p.y,proj=dx*Math.cos(ang)+dy*Math.sin(ang);if(proj<0||proj>wallD)continue;const perp=Math.abs(-dx*Math.sin(ang)+dy*Math.cos(ang)),hitR=PLAYER_R+8;if(perp<hitR&&proj<hd){hit=q;hd=proj}}}
  p.fireKick=1;
- const shotVoice=w.id==="signature"?(["rifle","drone"].includes(w.form)?"rifle":["blade","lance","sickle"].includes(w.form)?"smg":"sniper"):w.id;
- if(p===me){SND.shot(shotVoice);addShake(w.id==="sniper"?.34:w.id==="signature"?.14:w.id==="rifle"?.09:w.id==="smg"?.06:.08)}
+ const doctrine=isDoctrineWeapon(w),shotVoice=doctrine?(["rifle","drone","bow"].includes(w.form)?"rifle":["blade","lance","sickle","scythe","gauntlet"].includes(w.form)?"smg":"sniper"):w.id;
+ if(p===me){SND.shot(shotVoice);addShake(w.id==="sniper"?.34:doctrine?.14:w.id==="rifle"?.09:w.id==="smg"?.06:.08)}
  else SND.shot(shotVoice,clamp(1-dist(p,me)/650,0,1)*.5);
- fx.blasterBolt(p,ang,hd,hit?hit.div.c:'#cbd5e1');
+ fx.blasterBolt(p,ang,hd,doctrine?(w.glow||p.div.c):(hit?hit.div.c:'#cbd5e1'));
  if(hit){
   if(p===me){ui.hitT=now+.16;SND.hit(false)}
   let shotDamage=w.dmg;
@@ -1020,11 +1101,22 @@ function fireWeapon(p,tx,ty){
   if(p.boostShots>0){shotDamage*=1.35;p.boostShots--}
   if(p.damageUntil>now)shotDamage*=1+(p.damageBuff||.1);
   damage(hit,shotDamage,p);
-  if(w.id==="signature")applyDoctrineHit(p,hit,w,now);
+  if(doctrine)applyDoctrineHit(p,hit,w,now);
  }
  if(w.ammo<=0)reload(p)
 }
 function applyDoctrineHit(p,q,w,now){
+ if(w.series==="03"){
+  if(w.id==="series03_synapse")q.linkedUntil=now+6;
+  else if(w.id==="series03_engine"){q.titheUntil=now+8;q.titheTeam=p.team}
+  else if(w.id==="series03_chronicle")q.slowT=Math.max(q.slowT||0,now+1.5);
+  else if(w.id==="series03_edge"){p.edgeHits=(p.edgeHits||0)+1;if(p.edgeHits%3===0)p.fireUntil=now+4}
+  else if(w.id==="series03_pulse"){q.viralStacks=(q.viralStacks||0)+1;if(q.viralStacks>=5){q.viralStacks=0;q.slowT=now+4}}
+  else if(w.id==="series03_cognis")q.slowFireUntil=now+6;
+  else if(w.id==="series03_warden")q.armor=Math.max(0,q.armor-8);
+  else if(w.id==="series03_verdant"){q.seedOnDeathUntil=now+6;q.seedTeam=p.team}
+  return
+ }
  const id=p.div.id;
  if(id==="zenflow"){
   q.linkedUntil=now+6;
@@ -1056,12 +1148,57 @@ function doctrineWave(p,x,y,r,color){
  for(let i=1;i<4;i++)setTimeout(()=>fx.ring(x,y,color,Math.max(1,r/210)+i*.55),i*80);
  addShake(p===me ? .42 : .18)
 }
+function inDoctrineLane(p,q,tp,width=82,max=560){
+ const a=Math.atan2(tp.y-p.y,tp.x-p.x),dx=q.x-p.x,dy=q.y-p.y,proj=dx*Math.cos(a)+dy*Math.sin(a);
+ return proj>=0&&proj<=max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<=width&&rayClear(p.x,p.y,q.x,q.y)
+}
+function useSeries03Weapon(p,w,tp,allies,enemies,near,now){
+ const c=w.glow||p.div.c,st=w.specialType,target=enemies.filter(q=>q.alive).sort((a,b)=>dist(a,tp)-dist(b,tp))[0];
+ if(st==="SHATTER"){
+  const strike=target||{x:tp.x,y:tp.y};doctrineWave(p,strike.x,strike.y,280,c);
+  if(target)for(let i=0;i<7;i++)setTimeout(()=>{if(target.alive){damage(target,8+i*.7,p,{doctrine:true});fx.sparks(target.x,target.y,c,6,1.15)}},i*65);
+  if(w.id==="series03_aegis")near(allies,p.x,p.y,390).forEach(q=>{q.damageUntil=now+10;q.damageBuff=Math.max(q.damageBuff||0,.2)});
+  else if(w.id==="series03_verdict"&&target){target.markUntil=now+8;target.markMul=1.25;target.slowT=now+8}
+  else if(w.id==="series03_foundation")near(enemies,strike.x,strike.y,290).forEach(q=>{damage(q,22,p,{doctrine:true});q.slowT=now+1.2});
+  else if(w.id==="series03_warden")near(enemies,strike.x,strike.y,310).forEach(q=>{q.armor=Math.max(0,q.armor-30);q.breachedUntil=now+8});
+ }else if(st==="STORM"){
+  doctrineWave(p,p.x,p.y,360,c);
+  enemies.filter(q=>canSee(p,q)).sort((a,b)=>dist(p,a)-dist(p,b)).slice(0,7).forEach((q,i)=>setTimeout(()=>{if(q.alive){damage(q,14+i,p,{doctrine:true});fx.blasterBolt(p,Math.atan2(q.y-p.y,q.x-p.x),dist(p,q),c);if(w.id==="series03_synapse")q.linkedUntil=now+6;if(w.id==="series03_cognis")q.slowFireUntil=now+6;if(w.id==="series03_verdant"){q.seedOnDeathUntil=now+7;q.seedTeam=p.team}}},i*75));
+ }else if(st==="SWARM"){
+  doctrineWave(p,p.x,p.y,330,c);
+  const targets=enemies.sort((a,b)=>dist(p,a)-dist(p,b)).slice(0,6);
+  targets.forEach((q,i)=>setTimeout(()=>{if(q.alive){damage(q,18,p,{doctrine:true});fx.sparks(q.x,q.y,c,12,1.6);if(w.id==="series03_pulse"){q.viralStacks=(q.viralStacks||0)+2;q.slowT=q.viralStacks>=5?now+4:q.slowT}}},i*85));
+  if(w.id==="series03_edge"){p.fireUntil=now+4;p.speedUntil=now+4}
+  if(w.id==="series03_kineton")p.critUntil=now+5;
+ }else if(st==="NOVA"){
+  doctrineWave(p,p.x,p.y,390,c);
+  if(w.id==="series03_edify")near(allies,p.x,p.y,380).forEach(q=>{q.cooldownBoostUntil=now+8;q.regenUntil=now+8});
+  else if(w.id==="series03_ledger")near(enemies,p.x,p.y,390).forEach(q=>damage(q,Math.max(10,q.hp*.1),p,{doctrine:true}));
+  else if(w.id==="series03_community")near(allies,p.x,p.y,390).forEach(q=>q.armor=Math.min(100,q.armor+Math.round(maxHp(q)*.15)));
+  else if(w.id==="series03_aethel")near(enemies,p.x,p.y,410).forEach(q=>q.slowT=now+5);
+ }else if(st==="BEAM"){
+  const laneEnemies=enemies.filter(q=>inDoctrineLane(p,q,tp)),laneAllies=allies.filter(q=>inDoctrineLane(p,q,tp,90));
+  doctrineWave(p,p.x,p.y,250,c);fx.blasterBolt(p,Math.atan2(tp.y-p.y,tp.x-p.x),Math.min(560,Math.hypot(tp.x-p.x,tp.y-p.y)),c);
+  laneEnemies.forEach(q=>{damage(q,34,p,{doctrine:true});if(w.id==="series03_chronicle")q.slowT=now+1.5;if(w.id==="series03_drift"){const a=Math.atan2(p.y-q.y,p.x-q.x);q.x+=Math.cos(a)*65;q.y+=Math.sin(a)*65}});
+  if(w.id==="series03_helix")laneAllies.forEach(q=>{q.hp=Math.min(maxHp(q),q.hp+maxHp(q)*.24);q.regenUntil=now+3});
+ }else if(st==="AURA"){
+  doctrineWave(p,p.x,p.y,390,c);
+  if(w.id==="series03_engine")near(enemies,p.x,p.y,390).forEach(q=>{q.titheUntil=now+8;q.titheTeam=p.team});
+  else if(w.id==="series03_loom")near(allies,p.x,p.y,390).forEach(q=>q.cooldownBoostUntil=now+6);
+  else if(w.id==="series03_kindle")near(allies,p.x,p.y,390).forEach(q=>q.linkRegenUntil=now+6);
+  else if(w.id==="series03_caravan")near(allies,p.x,p.y,430).forEach(q=>q.teamSpeedUntil=now+6);
+ }
+}
 function useDoctrine(p,targetPoint=null){
- const now=performance.now()/1000,w=SIGNATURES[p.div.id];if(!p.alive||!w||p.doctrineT>now||p.silencedUntil>now)return;
- if(p.cur!=="signature"){if(p===me)feed("Equip slot 5 to fire division doctrine",w.glow);return}
+ const now=performance.now()/1000,w=curW(p);if(!p.alive||p.doctrineT>now||p.silencedUntil>now)return;
+ if(!isDoctrineWeapon(w)){if(p===me)feed("Equip slot 5 or 6 to fire a doctrine weapon",p.div.c);return}
  const tp=targetPoint?{x:targetPoint.x,y:targetPoint.y}:{x:aim.x,y:aim.y};
  const allies=players.filter(q=>q.alive&&q.team===p.team),enemies=players.filter(q=>q.alive&&q.team!==p.team);
  const near=(list,x,y,r)=>list.filter(q=>Math.hypot(q.x-x,q.y-y)<r);
+ if(w.series==="03"){
+  useSeries03Weapon(p,w,tp,allies,enemies,near,now);
+  p.doctrineT=now+26;if(p===me){showBanner(w.special.n);feed(w.special.eff,w.glow)}SND.ability();return
+ }
  const id=p.div.id,c=w.glow||p.div.c;doctrineWave(p,["nexus","terra","obsidian","gaia","juris","cognara"].includes(id)?tp.x:p.x,["nexus","terra","obsidian","gaia","juris","cognara"].includes(id)?tp.y:p.y,280,c);
  if(id==="zenflow"){
   enemies.filter(q=>canSee(p,q)).sort((a,b)=>dist(p,a)-dist(p,b)).slice(0,7).forEach((q,i)=>{setTimeout(()=>{if(q.alive){damage(q,16+i*2,p,{doctrine:true});q.linkedUntil=now+6;fx.ring(q.x,q.y,c,.55)}},i*70)})
@@ -1087,12 +1224,13 @@ function useDoctrine(p,targetPoint=null){
  const base=id==="collective"?34:id==="kinetic"?20:26,discount=p.doctrineDiscount||1;p.doctrineT=now+base*discount;p.doctrineDiscount=1;
  if(p===me){showBanner(w.special.n);feed(w.special.eff,c)}SND.ability()
 }
-function kill(q,src){q.alive=false;q.deadT=performance.now()/1000;q.deaths++;q.hp=0;fx.sparks(q.x,q.y,q.div.c,28,2);fx.ring(q.x,q.y,q.div.c,1.2);
+function kill(q,src){const now=performance.now()/1000;q.alive=false;q.deadT=now;q.deaths++;q.hp=0;fx.sparks(q.x,q.y,q.div.c,28,2);fx.ring(q.x,q.y,q.div.c,1.2);
  if(bomb.carrier===q&&bomb.state==="carried"){bomb.state="dropped";bomb.x=q.x;bomb.y=q.y;setSpikeWorld(q.x,q.y,false);feed("Spike dropped!","#f59e0b")}
+ if(q.seedOnDeathUntil>now)players.filter(a=>a.alive&&a.team===q.seedTeam&&dist(a,q)<260).forEach(a=>{a.hp=Math.min(maxHp(a),a.hp+18);fx.ring(a.x,a.y,"#F0D08C",.55)});
  if(q===me){SND.hurt();addShake(.5)}
- if(src&&src.team!==q.team){src.kills++;src.money=Math.min(9000,src.money+(src.div.id==="collective"?450:300));feed(`${src.name} eliminated ${q.name}`,src.div.c);if(src===me){const now=performance.now()/1000;ui.streak=now-ui.lastKillT<7?ui.streak+1:1;ui.lastKillT=now;ui.streakT=now+2.2;SND.hit(true);ui.killT=now+.4;showBanner(ui.streak>=3?`${ui.streak}X ELIMINATION`:"ELIMINATED")}}
+ if(src&&src.team!==q.team){src.kills++;const base=src.div.id==="collective"?450:300,tithe=q.titheUntil>now&&q.titheTeam===src.team?Math.round(base*.15):0;src.money=Math.min(9000,src.money+base+tithe);feed(`${src.name} eliminated ${q.name}${tithe?` / TITHE +$${tithe}`:""}`,src.div.c);if(src===me){ui.streak=now-ui.lastKillT<7?ui.streak+1:1;ui.lastKillT=now;ui.streakT=now+2.2;SND.hit(true);ui.killT=now+.4;showBanner(ui.streak>=3?`${ui.streak}X ELIMINATION`:"ELIMINATED")}}
  checkRound()}
-function reload(p){const w=curW(p);if(p.reloadT>0||w.ammo===w.mag||w.reserve<=0)return;p.reloadT=(w.id==="sniper"?2.05:w.id==="signature"?clamp(2.05-(w.stats?.[1]||60)/100,1.05,1.65):1.45)*(p.div.id==="binary"?.65:1)*(p.controlUntil>performance.now()/1000 ? .78 : 1);p.reloadMax=p.reloadT;if(p===me)SND.reload(w.id)}
+function reload(p){const w=curW(p);if(p.reloadT>0||w.ammo===w.mag||w.reserve<=0)return;p.reloadT=(w.id==="sniper"?2.05:isDoctrineWeapon(w)?clamp(2.05-(w.stats?.[1]||60)/100,1.05,1.65):1.45)*(p.div.id==="binary"?.65:1)*(p.controlUntil>performance.now()/1000 ? .78 : 1);p.reloadMax=p.reloadT;if(p===me)SND.reload(w.id)}
 function abilityFx(id,p,tp){
  const c=p.div.c,atTarget=["nexus","obsidian","gaia","juris","nomad","terra"].includes(id);
  fx.ring(atTarget?tp.x:p.x,atTarget?tp.y:p.y,c,id==="obsidian"?2.2:id==="gaia"?1.7:id==="juris"?2.4:1.25);
@@ -1207,13 +1345,13 @@ function botThink(p,dt){const now=performance.now()/1000;let target=null,td=1e9;
 function dashPlayer(p,distance){const step=12,ox=p.x,oy=p.y;for(let d=step;d<=distance;d+=step){const nx=ox+Math.cos(p.angle)*d,ny=oy+Math.sin(p.angle)*d;if(solidWorld(nx,ny))break;p.x=clamp(nx,TILE,WORLD_W-TILE);p.y=clamp(ny,TILE,WORLD_H-TILE)}}
 function move(p,dx,dy,dt){const l=Math.hypot(dx,dy);if(!l){p.vx=p.vy=0;return}let sp=220*speedMul(p);if(p.slowT>performance.now()/1000)sp*=.55;if(p.cur==="sniper"&&p.div.id!=="nomad")sp*=.86;const nx=p.x+dx/l*sp*dt,ny=p.y+dy/l*sp*dt;p.vx=(nx-p.x)/dt;p.vy=(ny-p.y)/dt;if(!solidWorld(nx,p.y))p.x=clamp(nx,TILE,WORLD_W-TILE);if(!solidWorld(p.x,ny))p.y=clamp(ny,TILE,WORLD_H-TILE)}
 function startMatch(){players=[];if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;const names=["DENZEL","KENZA","STANLEY","JUSTIN","JOSEPH","AHMAD","DEVON","ANDREA","JERRIAN","DANTE","KAY","ORACLE","SENTRY","APEX","CIPHER","RELAY"].sort(()=>Math.random()-.5);const pool=DIVS.map(d=>d.id).filter(id=>id!==myDiv.id).sort(()=>Math.random()-.5);me=makePlayer(myTeam,myDiv.id,true,"HATAALII");players.push(me);for(let i=0;i<4;i++)players.push(makePlayer(myTeam,pool.pop(),false,names.pop()));const en=myTeam==="ATK"?"DEF":"ATK";for(let i=0;i<5;i++)players.push(makePlayer(en,pool.pop(),false,names.pop()));document.getElementById("menu").style.display="none";document.getElementById("hud").style.display="block";document.getElementById("crosshair").style.display="block";document.getElementById("touchControls").classList.add("active");for(const r of rigs.values())scene.remove(r.root);rigs.clear();players.forEach(p=>makeRig(p));SND.setMusic(false);SND.setAmb(true);startRound()}
-function startRound(){for(const p of players){const sp=spawn(p.team);p.x=sp.x;p.y=sp.y;p.alive=true;p.deadT=0;p.hp=maxHp(p);p.armor=p.div.id==="terra"?25:0;p.reloadT=0;p.fireT=0;p.doctrineT=0;p.abilityT=0;p.slowT=0;p.speedUntil=0;p.teamSpeedUntil=0;p.fireUntil=0;p.critUntil=0;p.phaseUntil=0;p.regenUntil=0;p.linkRegenUntil=0;p.rootBurnUntil=0;p.refundUntil=0;p.refundPool=0;p.silencedUntil=0;p.controlUntil=0;p.controlDebuffUntil=0;p.markUntil=0;p.signalMarkUntil=0;p.damageUntil=0;p.resistUntil=0;p.slowFireUntil=0;p.boostShots=0;p.usedWind=false;p.goal=null;p.chan=0;p.botChan=false;p.siteGoal=null;for(const k in p.weapons){p.weapons[k].ammo=p.weapons[k].mag;p.weapons[k].reserve=p.weapons[k].res}}
+function startRound(){for(const p of players){const sp=spawn(p.team);p.x=sp.x;p.y=sp.y;p.alive=true;p.deadT=0;p.hp=maxHp(p);p.armor=p.div.id==="terra"?25:0;p.reloadT=0;p.fireT=0;p.doctrineT=0;p.abilityT=0;p.slowT=0;p.speedUntil=0;p.teamSpeedUntil=0;p.fireUntil=0;p.critUntil=0;p.phaseUntil=0;p.regenUntil=0;p.linkRegenUntil=0;p.rootBurnUntil=0;p.refundUntil=0;p.refundPool=0;p.silencedUntil=0;p.controlUntil=0;p.controlDebuffUntil=0;p.markUntil=0;p.signalMarkUntil=0;p.damageUntil=0;p.resistUntil=0;p.slowFireUntil=0;p.titheUntil=0;p.seedOnDeathUntil=0;p.viralStacks=0;p.edgeHits=0;p.boostShots=0;p.usedWind=false;p.goal=null;p.chan=0;p.botChan=false;p.siteGoal=null;for(const k in p.weapons){p.weapons[k].ammo=p.weapons[k].mag;p.weapons[k].reserve=p.weapons[k].res}}
  clearSpikeMesh();
  const atk=players.filter(p=>p.team==="ATK");
  bomb={state:"carried",carrier:(myTeam==="ATK"&&Math.random()<.45)?me:atk[Math.floor(Math.random()*atk.length)],x:0,y:0,timer:0,beepT:0};
  phase="buy";phaseT=BUY_TIME;showBanner("BUY PHASE");
  feed(bomb.carrier===me?"You carry the spike. Plant on a site.":"Spike carried by "+bomb.carrier.name,"#f59e0b");
- feed("Slot 5 equips your doctrine weapon. Q unleashes its special.","#d4a843")}
+ feed("Slot 5 equips your doctrine weapon. Slot 6 cycles Series 03. Q unleashes the equipped special.","#d4a843")}
 function checkRound(){if(phase!=="live")return;const a=players.some(p=>p.alive&&p.team==="ATK"),d=players.some(p=>p.alive&&p.team==="DEF");
  if(!d)return endRoundWin("ATK",bomb.state==="planted"?"SITE SECURED":"STRIKE ROUND");
  if(!a&&bomb.state!=="planted")return endRoundWin("DEF","SENTINEL ROUND")}
@@ -1365,12 +1503,13 @@ function renderHUD(){if(!me)return;const nowS=performance.now()/1000;document.ge
  document.getElementById("lowHp").style.opacity=me.alive&&me.hp<32?((.3+.35*(.5+.5*Math.sin(nowS*5)))*(1-me.hp/38)):0;
  const spec=document.getElementById("spectate");
  if(!me.alive&&phase==="live"&&ui.followP&&ui.followP!==me&&ui.followP.name){spec.style.display="block";document.getElementById("spectateName").textContent=ui.followP.name}
- else spec.style.display="none";document.querySelector(".chip").style.background=me.div.c;document.getElementById("divText").textContent=me.div.n;document.getElementById("hp").textContent=Math.max(0,Math.round(me.hp));document.getElementById("armor").textContent=me.armor>0?`+${Math.round(me.armor)} ARMOR`:"";document.getElementById("hpBar").style.width=clamp(me.hp/maxHp(me)*100,0,100)+"%";const w=curW(me);document.getElementById("ammo").innerHTML=me.reloadT>0?`<small>RELOADING</small>`:`${w.ammo} <small>/${w.reserve}</small>`;document.getElementById("weaponName").textContent=w.id==="signature"?`${w.n} / ${w.type}`:w.n;document.getElementById("cash").textContent="$"+me.money;const cd=Math.max(0,me.abilityT-performance.now()/1000);document.getElementById("abilityText").textContent=me.div.id==="eon"?"SECOND WIND PASSIVE":(cd>0?`${me.div.ab.toUpperCase()} ${cd.toFixed(1)}S`:`${me.div.ab.toUpperCase()} READY`);const dcd=Math.max(0,me.doctrineT-nowS),doctrine=document.getElementById("doctrine");document.getElementById("doctrineText").textContent=dcd>0?`${SIGNATURES[me.div.id].special.n} ${dcd.toFixed(1)}S`:`${SIGNATURES[me.div.id].special.n} READY`;doctrine.classList.toggle("ready",dcd<=0&&me.cur==="signature");renderTacticalHUD(nowS,w)}
+ else spec.style.display="none";document.querySelector(".chip").style.background=me.div.c;document.getElementById("divText").textContent=me.div.n;document.getElementById("hp").textContent=Math.max(0,Math.round(me.hp));document.getElementById("armor").textContent=me.armor>0?`+${Math.round(me.armor)} ARMOR`:"";document.getElementById("hpBar").style.width=clamp(me.hp/maxHp(me)*100,0,100)+"%";const w=curW(me);document.getElementById("ammo").innerHTML=me.reloadT>0?`<small>RELOADING</small>`:`${w.ammo} <small>/${w.reserve}</small>`;document.getElementById("weaponName").textContent=isDoctrineWeapon(w)?`${w.n} / ${w.type}`:w.n;document.getElementById("cash").textContent="$"+me.money;const cd=Math.max(0,me.abilityT-performance.now()/1000);document.getElementById("abilityText").textContent=me.div.id==="eon"?"SECOND WIND PASSIVE":(cd>0?`${me.div.ab.toUpperCase()} ${cd.toFixed(1)}S`:`${me.div.ab.toUpperCase()} READY`);const dcd=Math.max(0,me.doctrineT-nowS),doctrine=document.getElementById("doctrine"),activeDoctrine=isDoctrineWeapon(w)?w:SIGNATURES[me.div.id];document.getElementById("doctrineText").textContent=dcd>0?`${activeDoctrine.special.n} ${dcd.toFixed(1)}S`:`${activeDoctrine.special.n} READY`;doctrine.classList.toggle("ready",dcd<=0&&isDoctrineWeapon(w));renderTacticalHUD(nowS,w)}
 function animateIf(target,opts){if(window.anime)anime({targets:target,...opts})}
 function feed(text,color="#f4f7fb"){const el=document.getElementById("feed"),row=document.createElement("div");row.className="feedRow";row.style.color=color;row.textContent=text;el.appendChild(row);animateIf(row,{translateX:[24,0],opacity:[0,1],scale:[.96,1],duration:260,easing:"easeOutQuad"});while(el.children.length>5)el.removeChild(el.firstChild);setTimeout(()=>row.remove(),3900)}
 function showBanner(text){const b=document.getElementById("banner");b.textContent=text;b.classList.remove("show");void b.offsetWidth;b.classList.add("show");SND.banner();animateIf(b,{scale:[.92,1.04,1],duration:540,easing:"easeOutExpo"})}
 function renderBuy(){const grid=document.getElementById("buyGrid"),sig=SIGNATURES[me.div.id];grid.innerHTML="";
  const doctrine=document.createElement("div");doctrine.className="buy signature";doctrine.style.setProperty("--sig",sig.glow);doctrine.innerHTML=`<b>5 / ${sig.n} — ${sig.type} / DIVISION ISSUE</b><span>${sig.special.n}: ${sig.special.eff}</span>`;doctrine.onclick=()=>{me.cur="signature";SND.uiClick();renderBuy()};grid.appendChild(doctrine);
+ availableAdditions(me.div.id).forEach((sig,i)=>{const relic=document.createElement("div");relic.className="buy signature";relic.style.setProperty("--sig",sig.glow);relic.innerHTML=`<b>6${i?String.fromCharCode(64+i):""} / ${sig.n} — ${sig.type} / SERIES 03</b><span>${sig.special.n}: ${sig.special.eff}</span>`;relic.onclick=()=>{me.cur=sig.id;SND.uiClick();renderBuy()};grid.appendChild(relic)});
  [{id:"smg",k:"1"},{id:"rifle",k:"2"},{id:"sniper",k:"3"},{id:"armor",k:"4"}].forEach(it=>{let name,pr,st,owned=false;if(it.id==="armor"){name="LATTICE ARMOR";pr=price(me,650);st="+50 armor";owned=me.armor>=100}else{const w=WEAPONS[it.id];name=w.n;pr=price(me,w.price);st=`${w.dmg} dmg / ${w.mag} mag`;owned=!!me.weapons[it.id]}const d=document.createElement("div");d.className="buy"+(owned||me.money<pr?" cant":"");d.innerHTML=`<b>${it.k} / ${name} - $${pr}</b><span>${owned?"owned":st}</span>`;d.onclick=()=>buyItem(it.id);grid.appendChild(d)})}
 function buyItem(id){let bought=false;if(id==="armor"){const pr=price(me,650);if(me.money>=pr&&me.armor<100){me.money-=pr;me.armor=Math.min(100,me.armor+50);bought=true}}else{const pr=price(me,WEAPONS[id].price);if(me.money>=pr&&!me.weapons[id]){me.money-=pr;giveW(me,id);bought=true}}if(bought)SND.buy();renderBuy()}
 function toggleBuy(){if(phase==="menu")return;mouse.down=false;mouse.fired=false;buyOpen=!buyOpen;SND.uiClick();document.getElementById("buyMenu").classList.toggle("open",buyOpen);if(buyOpen)renderBuy()}
@@ -1486,8 +1625,9 @@ addEventListener("mousemove",e=>{mouse.x=e.clientX;mouse.y=e.clientY});addEventL
  keys[k]=true;
  if(k==="b")toggleBuy();
  if(k==="r"&&me)reload(me);
- if(["1","2","3","4","5"].includes(k)){
-  if(buyOpen&&k!=="5")buyItem({1:"smg",2:"rifle",3:"sniper",4:"armor"}[k]);
+ if(["1","2","3","4","5","6"].includes(k)){
+  if(k==="6"&&me){cycleAdditional(me);if(buyOpen)renderBuy()}
+  else if(buyOpen&&k!=="5")buyItem({1:"smg",2:"rifle",3:"sniper",4:"armor"}[k]);
   else if(buyOpen&&k==="5"){me.cur="signature";SND.uiClick()}
   else if(me){const wid={1:"pistol",2:"smg",3:"rifle",4:"sniper",5:"signature"}[k];if(me.weapons[wid]&&me.cur!==wid){me.cur=wid;SND.uiClick(true)}}
  }});
