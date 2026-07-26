@@ -42,6 +42,15 @@ const divisionBlock = html.match(/const DIVS=\[([\s\S]*?)\]\.map/);
 const divisionCount = divisionBlock ? [...divisionBlock[1].matchAll(/^\["/gm)].length : 0;
 assert(divisionCount === 20, `exactly 20 division operators are registered (found ${divisionCount})`);
 
+const signatureBlock = html.match(/const SIGNATURES=\{([\s\S]*?)\n\};\nconst DIV_BY_ID/);
+const signatureCount = signatureBlock ? [...signatureBlock[1].matchAll(/^\s[a-z]+:\{/gm)].length : 0;
+assert(signatureCount === 20, `exactly 20 doctrine weapons are registered (found ${signatureCount})`);
+for (const weaponName of [
+  "SYNAPSE", "MANDATE", "LECTERN", "REEL", "KEYSTONE", "SERUM", "THREAD",
+  "ROOT", "VECTOR", "KINETON", "RELAY", "SENTINEL", "SPIKE", "COMMONS",
+  "HASH", "VERDICT", "PULSE", "HORIZON", "CHRONOS", "PSYCHE"
+]) assert(html.includes(`n:"${weaponName}"`), `${weaponName} doctrine weapon is present`);
+
 for (const contract of [
   ["startMatch", /function startMatch\(/],
   ["round resolution", /function endRoundWin\(/],
@@ -52,6 +61,10 @@ for (const contract of [
   ["adaptive quality", /function adaptiveQuality\(/],
   ["WebGL recovery", /webglcontextlost/],
   ["operator rigs grip their weapon", /function twoBoneIK\(/],
+  ["form-specific doctrine weapon models", /function buildSignatureMesh\(/],
+  ["doctrine weapon special gameplay", /function useDoctrine\(/],
+  ["doctrine weapon hit effects", /function applyDoctrineHit\(/],
+  ["doctrine weapon HUD", /id="doctrineText"/],
   ["single rig implementation", /function makeRig\(/],
   ["arena polish pass", /function buildArenaPolish\(/],
   ["bloom post-processing", /function initComposer\(/]

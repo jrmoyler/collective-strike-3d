@@ -100,6 +100,9 @@ try {
   await page.waitForTimeout(1500);
 
   await page.mouse.move(980, 300);
+  await page.keyboard.press("5");
+  await page.keyboard.press("q");
+  await page.waitForTimeout(350);
   await page.keyboard.down("w");
   await page.waitForTimeout(1600);
   await page.keyboard.up("w");
@@ -123,10 +126,24 @@ try {
     vendorThree: window.CS3D_VENDOR?.three,
     phase,
     liveRound: round,
-    holdingWeapon: [...rigs.values()].every(r => r.arms && r.arms.length === 2)
+    doctrineCount: Object.keys(SIGNATURES).length,
+    doctrineForms: new Set(Object.values(SIGNATURES).map(w => w.form)).size,
+    doctrineTriggered: me.doctrineT > performance.now() / 1000,
+    holdingWeapon: [...rigs.values()].every(r => r.arms && r.arms.length === 2),
+    maxSocketError: Math.max(...[...rigs.values()].flatMap(r => {
+      r.root.updateMatrixWorld(true);
+      const profile = r.weapon.userData.profile;
+      const grip = new THREE.Vector3(...profile.grip).applyMatrix4(r.weapon.matrix);
+      const fore = new THREE.Vector3(...profile.fore).applyMatrix4(r.weapon.matrix);
+      return [r.arms[0].hand.position.distanceTo(grip), r.arms[1].hand.position.distanceTo(fore)];
+    }))
   }));
   console.log("runtime:", JSON.stringify(stats));
   if (!stats.holdingWeapon) problems.push("some rigs are missing weapon arms");
+  if (stats.doctrineCount !== 20) problems.push(`expected 20 doctrine weapons, found ${stats.doctrineCount}`);
+  if (stats.doctrineForms < 10) problems.push(`expected at least 10 doctrine forms, found ${stats.doctrineForms}`);
+  if (!stats.doctrineTriggered) problems.push("player doctrine special did not trigger");
+  if (!(stats.maxSocketError < 0.03)) problems.push(`weapon hand socket error too high: ${stats.maxSocketError}`);
 } catch (error) {
   problems.push(`flow: ${error.message}`);
   await page.screenshot({ path: path.join(outDir, "99-failure.png") }).catch(() => {});
