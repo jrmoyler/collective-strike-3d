@@ -1,6 +1,17 @@
 # Collective Strike 3D
 
-A browser-native 5v5 tactical arena built with Three.js. Choose one of 20 Collective AI division operators, buy weapons, use operator abilities, plant or defuse the spike, and fight first-to-six matches against adaptive bot squads.
+A browser-native 5v5 tactical arena built with Three.js. Choose one of 20 Collective AI division operators, buy weapons, use operator abilities and team doctrines, plant or defuse the spike, and fight first-to-six matches against adaptive bot squads.
+
+Four fully realized combat spaces ship in the offline build: the molten Iron
+Forge, rain-soaked Neon District, frozen Cryo Lab, and bioluminescent Verdant
+Ruins. Each arena has its own architecture, materials, atmosphere, landmarks,
+lighting, and ambient effects while preserving the same learnable competitive
+layout.
+
+Three difficulty profiles make the game welcoming for a first-time player and
+still demanding for tactical-game veterans. Persistent career XP, operator
+mastery, arena wins, best streak, contextual coaching, and match rewards give
+every session a clear arc.
 
 Every runtime dependency is vendored into the repository, so the game runs with
 no network access at all — no CDN, no webfont request.
@@ -45,6 +56,7 @@ Open `http://localhost:4173/`. Serving the repository root and opening
 - `WASD`: move
 - Mouse: aim and fire
 - `E`: operator ability
+- `Q`: team doctrine
 - `F`: plant or defuse
 - `B`: armory
 - `R`: reload
@@ -53,6 +65,15 @@ Open `http://localhost:4173/`. Serving the repository root and opening
 - `Esc`: pause
 
 Touch and standard dual-stick gamepads are supported.
+
+## Progression and difficulty
+
+- `Rookie`: forgiving aim, slower reactions, lighter ability pressure
+- `Tactical`: the intended balanced experience
+- `Elite`: faster flanks, sharper aim, aggressive ability and doctrine use
+
+Career XP and mastery are stored locally in the browser. Nothing is uploaded,
+and clearing browser storage resets progression.
 
 ## Deployment
 

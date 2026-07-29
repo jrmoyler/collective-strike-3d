@@ -13,10 +13,10 @@ const versions = BUNDLED.map(name => `${name}@${pkg.dependencies[name]}`).join("
 
 fs.mkdirSync(path.dirname(outfile), { recursive: true });
 
-await build({
+const result = await build({
   entryPoints: [entry],
-  outfile,
   bundle: true,
+  write: false,
   format: "iife",
   platform: "browser",
   target: ["es2020"],
@@ -24,6 +24,11 @@ await build({
   legalComments: "none",
   banner: { js: `/* Collective Strike 3D runtime bundle - ${versions} - regenerate with: npm run vendor */` }
 });
+
+const bundled = result.outputFiles[0].text
+  .replace(/[ \t]+$/gm, "")
+  .replace(/^ +\t/gm, "\t");
+fs.writeFileSync(outfile, bundled);
 
 const bytes = fs.statSync(outfile).size;
 console.log(`Bundled ${versions} -> ${path.relative(root, outfile)} (${(bytes / 1024).toFixed(0)} kB)`);

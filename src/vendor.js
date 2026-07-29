@@ -11,7 +11,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { animate, stagger, createTimeline, utils, engine } from "animejs";
+import { animate, stagger, utils } from "animejs";
 
 /* v3-compatible surface used by the existing HUD/menu animations */
 function animeCompat(params) {
@@ -28,7 +28,6 @@ function animeCompat(params) {
   return animate(targets, opts);
 }
 animeCompat.stagger = stagger;
-animeCompat.timeline = (params) => createTimeline(params || {});
 animeCompat.remove = (targets) => utils.remove(targets);
 
 window.THREE = Object.freeze({
@@ -39,7 +38,7 @@ window.THREE = Object.freeze({
   UnrealBloomPass
 });
 window.anime = animeCompat;
-window.animejs = { animate, stagger, createTimeline, utils, engine };
+window.animejs = { animate, stagger, utils };
 window.CS3D_VENDOR = {
   three: THREE.REVISION,
   anime: "4.5.0"
