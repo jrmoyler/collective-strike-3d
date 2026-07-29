@@ -61,6 +61,12 @@ for (const id of ["forge", "neon", "cryo", "verdant"]) {
   assert(corpus.includes(`"${id}"`) || corpus.includes(`'${id}'`) || corpus.includes(`${id}:`), `arena id '${id}' is registered`);
 }
 assert(/selectArena|initArenaSelect|buildArenaFor|arenaCard|arenaRow/.test(corpus), "arena select / build wiring is present");
+assert(/function rebuildArena\(/.test(html) && /CS3D_rebuildArena/.test(corpus), "selected arenas rebuild their scene graph");
+assert(/function buildArenaThemeSet\(/.test(html), "arena-specific architecture sets are present");
+for (const architecture of ["forge", "neon", "cryo", "verdant"]) {
+  assert(corpus.includes(`architecture: "${architecture}"`) || corpus.includes(`architecture:"${architecture}"`), `${architecture} architecture profile is registered`);
+}
+assert(!/for\(let i=0;i<14;i\+\+\)\{\s*const x=1\.6\+rndP/.test(html), "decorative cover no longer spawns through walkable collision lanes");
 
 for (const contract of [
   ["startMatch", /function startMatch\(/],
@@ -72,6 +78,11 @@ for (const contract of [
   ["adaptive quality", /function adaptiveQuality\(/],
   ["WebGL recovery", /webglcontextlost/],
   ["operator rigs grip their weapon", /function twoBoneIK\(/],
+  ["tactical bot pathfinding", /function findGridPath\(/],
+  ["bot waypoint movement", /function botMoveTo\(/],
+  ["three combat intensity profiles", /const DIFFICULTIES=\{/],
+  ["persistent career progression", /function awardMatchXP\(/],
+  ["operator exoshell treatment", /Layered exoshell/],
   ["form-specific doctrine weapon models", /function buildSignatureMesh\(/],
   ["doctrine weapon special gameplay", /function useDoctrine\(/],
   ["single rig implementation", /function makeRig\(/],
