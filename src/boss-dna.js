@@ -10,13 +10,19 @@
  * See docs/BOSS_ROSTER.md for design rationale and encounter hooks.
  *
  * Schema notes:
- *   loco     — new classes: colossus | swarm_host | phase | orbital |
- *              anchor | storm | mirror | helix_titan
- *   scale    — larger than operators (operators are ~0.8–1.28)
- *   hpMult   — relative to a standard operator body
- *   segments — for multi-part bosses (drones, rings, heads)
- *   All other fields follow the specimen DNA conventions so a future
- *   makeBossRig can share material / skin / gradient helpers.
+ *   loco       — primary class: colossus | swarm_host | phase | orbital |
+ *                anchor | storm | mirror | helix_titan
+ *   hybrid     — optional array of additional loco classes (hybrid bosses).
+ *                makeBossRig must instantiate every class listed here while
+ *                preserving single-loco bosses (hybrid omitted or []).
+ *   scale      — larger than operators (operators are ~0.8–1.28)
+ *   hpMult     — relative to a standard operator body
+ *   segments   — for multi-part bosses (drones, rings, heads)
+ *   All other fields follow the specimen DNA conventions so makeBossRig
+ *   can share material / skin / gradient helpers.
+ *
+ * Hybrid example (LOOM HYDRA): loco = 'helix_titan', hybrid = ['swarm_host']
+ * so the vertical coil and detachable heads are both first-class.
  */
 
 export const BOSS_DNA = [
@@ -199,7 +205,7 @@ export const BOSS_DNA = [
   {
     id: 'cognara_mirror',
     name: 'COGNARA MIRROR',
-    role: 'Cognara Mind apex · ability thief',
+    role: 'Cognara Mind apex · ability thief (last-used only)',
     echoes: ['cognara'],
     loco: 'mirror',
     seed: 1009,
@@ -216,6 +222,8 @@ export const BOSS_DNA = [
     brain: true,
     hpMult: 4.5,
     segments: 0,
+    // Distinct from operator Cognitive Surge (random E borrow):
+    // this boss copies only the single most recent player ability used.
     signature: 'copy_last_player_ability',
   },
   {
@@ -243,9 +251,12 @@ export const BOSS_DNA = [
   {
     id: 'loom_hydra',
     name: 'LOOM HYDRA',
-    role: 'Binary Loom apex · vertical multi-head',
+    role: 'Binary Loom apex · vertical multi-head hybrid',
     echoes: ['binary-loom'],
+    // Explicit hybrid: primary helix_titan coil + swarm_host heads.
+    // Do not rely on segments alone to imply the second class.
     loco: 'helix_titan',
+    hybrid: ['swarm_host'],
     seed: 1011,
     cBot: '#3F6212',
     cTop: '#A3E635',
@@ -259,7 +270,7 @@ export const BOSS_DNA = [
     ears: 'antenna',
     helix: true,
     hpMult: 6.5,
-    segments: 3, // attack heads when uncoiled
+    segments: 3, // attack heads when uncoiled (swarm_host segments)
     signature: 'over_cover_coil_and_heads',
   },
   {
@@ -297,5 +308,16 @@ export const BOSS_LOCO_CLASSES = [
   'mirror',
   'helix_titan',
 ];
+
+/**
+ * Resolve the full set of locomotion classes for a boss DNA entry.
+ * Single-loco bosses return [loco]; hybrids return [loco, ...hybrid].
+ */
+export function resolveBossLocos(dna) {
+  if (!dna) return [];
+  const primary = dna.loco ? [dna.loco] : [];
+  const extra = Array.isArray(dna.hybrid) ? dna.hybrid : [];
+  return [...new Set([...primary, ...extra])];
+}
 
 export default BOSS_DNA;

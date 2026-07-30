@@ -2,7 +2,7 @@
 
 ## Analysis: current state
 
-Collective Strike 3D has **no bosses**.  
+Collective Strike 3D has **no bosses in the live 5v5 loop**.  
 Gameplay is strictly 5v5 operator squads vs adaptive bot squads on a shared tactical lattice (spike plant/defuse, first-to-six). Operators are built from the same DNA table as Specimen Series 21 (sphere torso + DNA-driven shells/plates/humps/helixes/tendrils, locomotion classes biped / quad / hex / hopper / flyer).
 
 The specimen engine (toon shader, analytic two-bone IK, planted-foot stepper, spring appendages) was ported then reverted; the live game uses the lighter blob rig with two-bone weapon grip arms.
@@ -14,7 +14,7 @@ This document introduces a **parallel boss layer** that re-uses the DNA vocabula
 1. **Thematic resonance, mechanical divergence** — each boss echoes one or more division roles (colour, motif, narrative) but introduces a locomotion class or combat role that no operator uses.
 2. **Readable at competitive distance** — silhouette and attack telegraphs must read clearly on the existing 36×26 grid and minimap.
 3. **Offline-first & low poly** — every boss is still procedural primitives + the shared toon/skin shader path. No external GLBs required for v1.
-4. **Drop-in data** — bosses ship as DNA-style objects so a future `makeBossRig` can mirror `makeRig` without rewriting the whole character pipeline.
+4. **Drop-in data** — bosses ship as DNA-style objects so `makeBossRig` can mirror `makeRig` without rewriting the whole character pipeline.
 5. **Encounter, not roster filler** — intended for rare mid-match events, a future Boss Mode, or post-match “Apex Challenge”, not as ordinary bots.
 
 ## New locomotion / archetype classes (not used by any operator)
@@ -29,6 +29,19 @@ This document introduces a **parallel boss layer** that re-uses the DNA vocabula
 | `storm` | High-mobility aerial that generates weather zones (wind, rain, static) |
 | `mirror` | Temporarily copies a player ability or weapon profile |
 | `helix_titan` | Vertical spiral body that coils / uncoils for reach and cover |
+
+Hybrid bosses declare `loco` (primary) plus `hybrid: [extra classes]`.  
+`resolveBossLocos(dna)` returns the full set; `makeBossRig` instantiates every class.
+
+## Cognara differentiation (verified against live HTML)
+
+| Entity | Role | Mechanic |
+|--------|------|----------|
+| **Operator Cognitive Surge (E)** | Cognara Mind active | Borrows a **random** division active each use (`DIVS[Math.floor(Math.random()*(DIVS.length-1))]`) |
+| **Operator Cognitive Brand (Q)** | Cognara Mind doctrine special | Redesigned mark: stacking cognitive brand that amplifies damage taken and briefly reflects a portion of damage. Formerly “EMPATHY MIRROR”. |
+| **Boss COGNARA MIRROR** | Apex mirror loco | Copies **only the last player ability used** (`copy_last_player_ability`). Never random. |
+
+These three must remain distinct. The boss ability runner refuses to fall back to random selection when no last-ability was recorded.
 
 ## The 12 Apex Bosses
 
@@ -92,8 +105,8 @@ This document introduces a **parallel boss layer** that re-uses the DNA vocabula
 **Echoes:** Cognara Mind  
 **Class:** `mirror`  
 **Visual:** Magenta brain-core with reflective shell and tendril array.  
-**Combat identity:** For a short window, copies the last ability or weapon the nearest player used and turns it against the team.  
-**Why different:** Ability theft / mirror is absent from the operator kit list.
+**Combat identity:** For a short window, copies the **last ability the nearest player used** and turns it against the team.  
+**Why different:** Ability theft of a recorded last ability is absent from the operator kit list. Operator Cognitive Surge is random; this is deterministic last-used.
 
 ### 10. TERRA SIEGE  
 **Echoes:** Terra Axis  
@@ -104,10 +117,12 @@ This document introduces a **parallel boss layer** that re-uses the DNA vocabula
 
 ### 11. LOOM HYDRA  
 **Echoes:** Binary Loom  
-**Class:** `helix_titan` + `swarm_host` hybrid  
+**Class:** `helix_titan` + `swarm_host` **hybrid**  
 **Visual:** Lime spiral torso that can uncoil into multiple attack heads.  
 **Combat identity:** Vertical reach attacks over cover; heads can be prioritised. When uncoiled it becomes vulnerable but covers more of the map.  
-**Why different:** Vertical / over-cover pressure and multi-targetable body segments.
+**Why different:** Vertical / over-cover pressure and multi-targetable body segments.  
+**Data shape:** `loco: 'helix_titan', hybrid: ['swarm_host'], segments: 3`.  
+`resolveBossLocos` returns both classes; `makeBossRig` instantiates coil + heads.
 
 ### 12. EON ANCHOR  
 **Echoes:** Eon Core  
@@ -124,13 +139,17 @@ This document introduces a **parallel boss layer** that re-uses the DNA vocabula
 
 ## Implementation notes for the engine
 
-- Boss DNA lives in `src/boss-dna.js` (exported array + lookup map).
-- Visual construction can extend the existing `makeRig` path with new loco branches (`colossus`, `swarm_host`, etc.) or a dedicated `makeBossRig`.
+- Boss DNA lives in `src/boss-dna.js` (exported array + lookup map + `resolveBossLocos`).
+- Procedural abilities live in `src/boss-abilities.js` (full table for all 12 + runner skeleton).
+- Visual construction: `src/boss-rig.js` → `makeBossRig` / `updateBossRig` (stub with hybrid support).
 - Collision: bosses occupy multiple grid cells or use a larger capsule; stomps and fields must respect the existing 36×26 collision grid.
 - Keep the offline / vendored contract: no network asset loads.
 - Performance budget: a single boss + its drones should stay under the cost of ~3–4 normal operators.
 
 ## Status
 
-- Design + data: complete (this PR).
-- Runtime integration (`makeBossRig`, spawn rules, HUD, minimap icons): **not yet implemented** — intentional so the design can be reviewed before engine work begins.
+- Design + data: complete (all 12 bosses).
+- Hybrid LOOM HYDRA representation: explicit `loco` + `hybrid` (this PR).
+- Procedural ability schema + runner skeleton: complete for all 12 (this PR).
+- Cognara Mirror vs Cognitive Surge vs Cognitive Brand: differentiated (this PR).
+- Runtime spawn rules, HUD, minimap icons, full mesh loco animation: **not yet** — intentional so the data layer can be reviewed before deeper engine work.
