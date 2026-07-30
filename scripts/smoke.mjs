@@ -28,7 +28,8 @@ const TYPES = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".woff2": "font/woff2",
-  ".png": "image/png"
+  ".png": "image/png",
+  ".glb": "model/gltf-binary"
 };
 
 const server = http.createServer((req, res) => {
@@ -184,6 +185,10 @@ try {
     })),
     selectedArena: window.CS3D_selectedArenaId,
     builtArena: arenaGroup?.userData?.theme,
+    modularAssets: arenaGroup?.userData?.modularAssets,
+    modularInstanceCount: arenaGroup?.userData?.modularInstanceCount || 0,
+    environmentCatalogSize: window.CS3D_ENV?.catalogSize || 0,
+    hasEnvironmentMap: Boolean(scene.environment),
     arenaArchitectureProfiles: [...document.querySelectorAll(".arenaCard")].length,
     difficultyProfiles: Object.keys(DIFFICULTIES).length,
     pathfinderReady: typeof findGridPath === "function" && findGridPath({x:80,y:880},{x:240,y:160}).length > 0,
@@ -199,6 +204,10 @@ try {
   if (!stats.doctrineTriggered) problems.push("Series 03 special did not trigger");
   if (!(stats.maxSocketError < 0.04)) problems.push(`weapon hand socket error too high: ${stats.maxSocketError}`);
   if (stats.selectedArena !== arenaId || stats.builtArena !== arenaId) problems.push(`arena mismatch: selected ${stats.selectedArena}, built ${stats.builtArena}, expected ${arenaId}`);
+  if (stats.modularAssets !== "ready") problems.push(`modular assets did not reach ready state: ${stats.modularAssets}`);
+  if (stats.modularInstanceCount < 40) problems.push(`expected at least 40 grid-snapped modular instances, found ${stats.modularInstanceCount}`);
+  if (stats.environmentCatalogSize !== 18) problems.push(`expected 18 embedded environment assets, found ${stats.environmentCatalogSize}`);
+  if (!stats.hasEnvironmentMap) problems.push("RoomEnvironment IBL is not assigned");
   if (stats.arenaArchitectureProfiles !== 4) problems.push(`expected 4 arena cards, found ${stats.arenaArchitectureProfiles}`);
   if (stats.difficultyProfiles !== 3) problems.push(`expected 3 difficulty profiles, found ${stats.difficultyProfiles}`);
   if (!stats.pathfinderReady) problems.push("bot pathfinding did not produce a route");

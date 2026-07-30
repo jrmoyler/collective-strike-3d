@@ -1,5 +1,28 @@
 # Collective Strike 3D - Next Phase Handoff
 
+## July 30 modular environment pass
+
+- Added a curated 18-model, 626 kB GLB subset from the official CC0 Kenney City
+  Kit (Industrial), Modular Space Kit, and Modular Cave Kit.
+- Added `src/environment-assets.js`, a loader and placement layer that derives
+  exposed faces from the immutable 36 × 26 collision grid and snaps 4 m Kenney
+  wall modules to them. Space pieces dress Forge/Neon; cave pieces dress
+  Cryo/Verdant. Gate arches and theme props are art-only.
+- Wall shells are instanced. Cached model geometry is shared; active arena
+  materials/textures are disposed with the arena group. An async revision guard
+  prevents late GLB parsing from attaching to an arena that was already
+  replaced.
+- Added a deterministic embedded catalog generator. Both embedded parse and
+  local individual-GLB paths are supported, while direct local/offline play
+  requires no runtime request.
+- Added vendored `GLTFLoader` and `RoomEnvironment`; PMREM IBL is generated once
+  and re-used with arena-specific intensity and exposure.
+- The build copies `assets/environments/`, the generated catalog, and the
+  environment loader to `dist/`. Verification now checks every curated model,
+  the embedded catalog, instancing/IBL contracts, and runtime readiness.
+- Gameplay numbers, bot AI, weapons, operator abilities, sites, spawns, and the
+  shared collision/pathing data were not changed.
+
 ## July 23 production hardening pass
 
 - Fixed Vector Shift dash tunneling by stepping movement through the collision grid.
@@ -70,9 +93,9 @@ The map geometry, collision grid, sites, and spawns are untouched. Added on top:
 
 ### Dependencies are now installed, not fetched
 
-- `three@0.149.0`, `animejs@3.2.2`, `@fontsource/space-grotesk`,
+- `three@0.185.1`, `animejs@4.5.0`, `@fontsource/space-grotesk`,
   `@fontsource/jetbrains-mono` are real npm dependencies; `esbuild` and
-  `playwright` are dev dependencies.
+  `playwright-core` are dev dependencies.
 - `npm run vendor` bundles Three.js, EffectComposer, RenderPass, ShaderPass,
   UnrealBloomPass, and anime.js into `vendor/cs3d-runtime.js` (622 kB minified)
   and publishes them on `window`.
@@ -123,7 +146,8 @@ The map geometry, collision grid, sites, and spawns are untouched. Added on top:
 
 1. Replace procedural character bodies with real GLB operator assets or a modular GLB kit.
 2. Split the single HTML into modules: simulation, rendering, UI, and content data.
-3. Real map art pass: authored rooms, layered floors, doors, signage, decals, debris.
+3. Extend the environment manifest with authored floor/ceiling modules, signage,
+   and arena-specific decals while retaining the shared tactical grid.
 4. Post-plant gameplay tuning: bot site retakes, defender rotations, plant-fake behavior.
 5. Weapon feel: recoil bloom UI, per-weapon tracer profiles, reload animation on the rig.
 6. Replace CDN runtime dependencies with a bundled, pinned production dependency graph.

@@ -27,6 +27,7 @@ const CSS = `
 const MARK_CSS = "/* multi-arena-css */";
 const MARK_HTML = "<!-- multi-arena-html -->";
 const MARK_SCRIPT = "<!-- multi-arena-script -->";
+const MARK_ENV = "<!-- modular-environment-script -->";
 const MARK_INIT = "/* multi-arena-init */";
 const MARK_SCENE = "/* multi-arena-scene */";
 const MARK_INLINE = "/* multi-arena-inline */";
@@ -68,6 +69,19 @@ if (!html.includes(MARK_SCRIPT)) {
   );
   console.log("✓ injected arena-runtime script tag");
 } else console.log("· arena-runtime script already present");
+
+if (!html.includes(MARK_ENV)) {
+  const anchor = `<script src="vendor/cs3d-runtime.js"></script>`;
+  if (!html.includes(anchor)) throw new Error("vendor script anchor missing");
+  html = html.replace(
+    anchor,
+    anchor +
+      `\n${MARK_ENV}\n` +
+      `<script src="src/environment-catalog.js"></script>\n` +
+      `<script src="src/environment-assets.js"></script>`
+  );
+  console.log("✓ injected modular environment scripts");
+} else console.log("· modular environment scripts already present");
 
 // Expose scene on window so arena-runtime can theme fog/background
 if (!html.includes(MARK_SCENE)) {

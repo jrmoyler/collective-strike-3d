@@ -11,6 +11,8 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { animate, stagger, utils } from "animejs";
 
 /* v3-compatible surface used by the existing HUD/menu animations */
@@ -35,7 +37,9 @@ window.THREE = Object.freeze({
   EffectComposer,
   RenderPass,
   ShaderPass,
-  UnrealBloomPass
+  UnrealBloomPass,
+  GLTFLoader,
+  RoomEnvironment
 });
 window.anime = animeCompat;
 window.animejs = { animate, stagger, utils };

@@ -5,9 +5,17 @@ import process from "node:process";
 const root = path.resolve(import.meta.dirname, "..");
 const sourcePath = path.join(root, "COLLECTIVE_STRIKE_3D.html");
 const arenaRuntimePath = path.join(root, "src", "arena-runtime.js");
+const environmentRuntimePath = path.join(root, "src", "environment-assets.js");
+const environmentCatalogPath = path.join(root, "src", "environment-catalog.js");
 const html = fs.readFileSync(sourcePath, "utf8");
 const arenaRuntime = fs.existsSync(arenaRuntimePath) ? fs.readFileSync(arenaRuntimePath, "utf8") : "";
-const corpus = html + "\n" + arenaRuntime;
+const environmentRuntime = fs.existsSync(environmentRuntimePath)
+  ? fs.readFileSync(environmentRuntimePath, "utf8")
+  : "";
+const environmentCatalog = fs.existsSync(environmentCatalogPath)
+  ? fs.readFileSync(environmentCatalogPath, "utf8")
+  : "";
+const corpus = html + "\n" + arenaRuntime + "\n" + environmentRuntime;
 const failures = [];
 const pass = message => console.log(`✓ ${message}`);
 const assert = (condition, message) => {
@@ -68,6 +76,67 @@ for (const architecture of ["forge", "neon", "cryo", "verdant"]) {
 }
 assert(!/for\(let i=0;i<14;i\+\+\)\{\s*const x=1\.6\+rndP/.test(html), "decorative cover no longer spawns through walkable collision lanes");
 
+for (const [label, source] of [
+  ["modular environment runtime", environmentRuntime],
+  ["offline GLB catalog", environmentCatalog]
+]) {
+  assert(Boolean(source), `${label} is present`);
+  if (source) {
+    try {
+      new Function(source);
+      pass(`${label} parses without syntax errors`);
+    } catch (error) {
+      failures.push(`${label} syntax error: ${error.message}`);
+    }
+  }
+}
+assert(/GLTFLoader/.test(environmentRuntime), "environment runtime uses the vendored GLTFLoader");
+assert(/RoomEnvironment/.test(environmentRuntime), "environment runtime configures RoomEnvironment IBL");
+assert(/InstancedMesh/.test(environmentRuntime), "grid-snapped wall shells use instancing");
+assert(/CS3D_ENV\.apply/.test(html), "arena builder invokes the modular environment layer");
+assert(/environmentIntensity/.test(arenaRuntime), "arena-specific IBL intensity is registered");
+assert(
+  html.includes("src/environment-catalog.js") && html.includes("src/environment-assets.js"),
+  "offline environment scripts are referenced locally"
+);
+
+const expectedModels = [
+  "industrial/building-h.glb",
+  "industrial/building-k.glb",
+  "industrial/chimney-large.glb",
+  "industrial/detail-tank.glb",
+  "space/cables.glb",
+  "space/gate.glb",
+  "space/template-detail.glb",
+  "space/template-wall.glb",
+  "space/template-wall-corner.glb",
+  "space/template-wall-detail-a.glb",
+  "space/template-wall-half.glb",
+  "cave/gate-rock.glb",
+  "cave/template-detail.glb",
+  "cave/template-floor-layer.glb",
+  "cave/template-wall.glb",
+  "cave/template-wall-corner.glb",
+  "cave/template-wall-detail-a.glb",
+  "cave/template-wall-half.glb"
+];
+for (const asset of expectedModels) {
+  assert(
+    fs.existsSync(path.join(root, "assets", "environments", "kenney", asset)),
+    `curated Kenney asset is present: ${asset}`
+  );
+}
+for (const pack of ["industrial", "space", "cave"]) {
+  assert(
+    fs.existsSync(path.join(root, "assets", "environments", "kenney", pack, "colormap.png")),
+    `curated Kenney palette texture is present: ${pack}/colormap.png`
+  );
+}
+assert(
+  (environmentCatalog.match(/"data":"[A-Za-z0-9+/=]+"/g) || []).length === expectedModels.length,
+  `offline catalog embeds all ${expectedModels.length} curated GLBs`
+);
+
 for (const contract of [
   ["startMatch", /function startMatch\(/],
   ["round resolution", /function endRoundWin\(/],
@@ -99,7 +168,12 @@ const remoteHosts = [...html.matchAll(/https?:\/\/([^\s"')]+)/g)]
   .filter(host => !/^(openapi\.vercel\.sh|www\.w3\.org)$/.test(host));
 assert(remoteHosts.length === 0, `no remote runtime hosts${remoteHosts.length ? `: ${[...new Set(remoteHosts)].join(", ")}` : ""}`);
 
-for (const asset of ["vendor/cs3d-runtime.js", "vendor/cs3d-fonts.css"]) {
+for (const asset of [
+  "vendor/cs3d-runtime.js",
+  "vendor/cs3d-fonts.css",
+  "src/environment-catalog.js",
+  "src/environment-assets.js"
+]) {
   assert(html.includes(asset), `${asset} is referenced locally`);
   assert(fs.existsSync(path.join(root, asset)) || true, `${asset} path declared`);
 }

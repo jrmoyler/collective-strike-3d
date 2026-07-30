@@ -24,6 +24,14 @@
       outer: 0x050912,
       trim: 0xd4a843,
       architecture: "forge",
+      environmentIntensity: 0.82,
+      lighting: {
+        hemi: [0x6f9bff, 0x02060f, 0.34],
+        ambient: [0x4f6a9e, 0.1],
+        sun: [0xffe8cc, 1.14],
+        rim: [0x4f74ff, 0.38],
+        exposure: 1.03
+      },
       particle: 0x9fc4ff,
       description: "A working heavy-industry foundry with heat stacks, service gantries, and pressure-lit A/B sites."
     },
@@ -47,6 +55,14 @@
       outer: 0x03010a,
       trim: 0xf472b6,
       architecture: "neon",
+      environmentIntensity: 0.72,
+      lighting: {
+        hemi: [0xff6bcb, 0x0a0418, 0.3],
+        ambient: [0x3b1d6e, 0.13],
+        sun: [0xffb4e2, 0.88],
+        rim: [0x22d3ee, 0.62],
+        exposure: 1.08
+      },
       particle: 0xf9a8d4,
       description: "A rain-swept megacity rooftop with holographic signage, skyline depth, and luminous transit rails."
     },
@@ -70,6 +86,14 @@
       outer: 0x02070d,
       trim: 0x7dd3fc,
       architecture: "cryo",
+      environmentIntensity: 1.02,
+      lighting: {
+        hemi: [0xa5d8ff, 0x02060f, 0.42],
+        ambient: [0x6ba3c7, 0.15],
+        sun: [0xdbeafe, 1.02],
+        rim: [0x38bdf8, 0.54],
+        exposure: 1.07
+      },
       particle: 0xe0f2fe,
       description: "A sub-zero relay station with coolant vessels, ice accretion, frost haze, and crystalline machinery."
     },
@@ -93,6 +117,14 @@
       outer: 0x020805,
       trim: 0xfbbf24,
       architecture: "verdant",
+      environmentIntensity: 0.7,
+      lighting: {
+        hemi: [0x86efac, 0x03120a, 0.36],
+        ambient: [0x3f6b4a, 0.12],
+        sun: [0xd9f99d, 1.04],
+        rim: [0xfbbf24, 0.44],
+        exposure: 1.0
+      },
       particle: 0x86efac,
       description: "A reclaimed bio-lab where root systems, luminous flora, and drifting spores have consumed the facility."
     }

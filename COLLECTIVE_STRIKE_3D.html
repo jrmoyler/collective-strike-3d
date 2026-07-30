@@ -230,6 +230,9 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 <div id="buyMenu" class="glass"><h3>ARMORY GRID</h3><div class="buyGrid" id="buyGrid"></div></div>
 <div id="endScreen"><div id="endCard"><h2 id="endTitle">VICTORY</h2><p id="endSub"></p><div id="endRewards"></div><button onclick="location.reload()">RUN IT BACK</button></div></div>
 <script src="vendor/cs3d-runtime.js"></script>
+<!-- modular-environment-script -->
+<script src="src/environment-catalog.js"></script>
+<script src="src/environment-assets.js"></script>
 <!-- multi-arena-script -->
 <script src="src/arena-runtime.js"></script>
 <script>
@@ -350,7 +353,7 @@ const grid=[],walls=[];function rect(x,y,w,h){walls.push({x,y,w,h});for(let j=y;
 for(let y=0;y<MAPH;y++)grid.push(Array(MAPW).fill(0));rect(0,0,MAPW,1);rect(0,MAPH-1,MAPW,1);rect(0,0,1,MAPH);rect(MAPW-1,0,1,MAPH);rect(10,1,2,7);rect(24,1,2,7);rect(10,18,2,7);rect(24,18,2,7);rect(5,10,7,2);rect(24,10,7,2);rect(15,12,6,4);rect(3,21,5,2);rect(28,21,5,2);rect(15,5,2,2);rect(19,19,2,2);
 const SITE_A={x:2,y:2,w:8,h:6,label:"A"},SITE_B={x:26,y:2,w:8,h:6,label:"B"},SPAWN_ATK={x:15,y:21,w:6,h:3},SPAWN_DEF={x:15,y:2,w:6,h:3};/* multi-arena-inline */const ARENAS=window.CS3D_ARENAS||{};const ARENA_ORDER=window.CS3D_ARENA_ORDER||["forge","neon","cryo","verdant"];let selectedArenaId=window.CS3D_selectedArenaId||"forge";
 const V3=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),hex=c=>new THREE.Color(c);
-let scene,camera,renderer,raycaster,ground,clock=new THREE.Clock(),composer=null,bloomPass=null,previewLight=null,previewRim=null,arenaGroup=null,previewPad=null;
+let scene,camera,renderer,raycaster,ground,clock=new THREE.Clock(),composer=null,bloomPass=null,previewLight=null,previewRim=null,arenaGroup=null,previewPad=null,arenaLights=null;
 let previewSnap=true;
 let players=[],me=null,myTeam="ATK",myDiv=null,phase="menu",phaseT=0,round=1,scoreATK=0,scoreDEF=0,bomb={state:"carried"},aim={x:WORLD_W/2,y:WORLD_H/2},mouse={x:innerWidth/2,y:innerHeight/2,down:false,fired:false},keys={},rigs=new Map(),preview=null,previewId=null,fx,menuOrbit=0,buyOpen=false,tempMeshes=[],worldBits=[];
 const ui={hitT:0,damageT:0,killT:0,streak:0,streakT:0,lastKillT:0};
@@ -538,10 +541,32 @@ function makePlayer(team,id,human,name){const sp=spawn(team),div=DIV_BY_ID[id],s
 function curW(p){return p.weapons[p.cur]}function giveW(p,id){const w=WEAPONS[id];p.weapons[id]={...w,ammo:w.mag,reserve:w.res};p.cur=id}
 function arenaTheme(id=selectedArenaId){return ARENAS[id]||ARENAS.forge||{id:"forge",accent:"#d4a843",secondary:"#38bdf8",accentHex:0xd4a843,secondaryHex:0x38bdf8,fog:0x060d1c,fogDensity:.0052,bg:"#030712",floor:["#111827","rgba(212,168,67,.18)"],floorTint:0xa8b4c8,floorRoughness:.68,floorMetalness:.28,wall:0x778399,wallEmissive:0x101827,outer:0x050912,trim:0xd4a843,particle:0x9fc4ff,architecture:"forge"}}
 function disposeTree(root){root.traverse(o=>{if(o.geometry&&o.geometry.dispose&&!o.geometry.userData.shared)o.geometry.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats)if(m){for(const k of["map","normalMap","roughnessMap","metalnessMap","emissiveMap","alphaMap"])if(m[k]&&m[k].dispose)m[k].dispose();if(m.dispose)m.dispose()}})}
-function rebuildArena(id=window.CS3D_selectedArenaId||selectedArenaId||"forge"){selectedArenaId=id;if(arenaGroup?.userData?.theme===id){const t=arenaTheme(id);scene.background.set(t.bg);scene.fog.color.setHex(t.fog);scene.fog.density=t.fogDensity;return}if(arenaGroup){scene.remove(arenaGroup);disposeTree(arenaGroup)}worldBits=[];arenaGroup=new THREE.Group();arenaGroup.name="arena-"+id;scene.add(arenaGroup);buildArena(id)}
+function rebuildArena(id=window.CS3D_selectedArenaId||selectedArenaId||"forge"){selectedArenaId=id;if(arenaGroup?.userData?.theme===id){const t=arenaTheme(id);scene.background.set(t.bg);scene.fog.color.setHex(t.fog);scene.fog.density=t.fogDensity;applyArenaLighting(t);return}if(arenaGroup){if(window.CS3D_ENV)window.CS3D_ENV.release(arenaGroup);scene.remove(arenaGroup);disposeTree(arenaGroup)}worldBits=[];arenaGroup=new THREE.Group();arenaGroup.name="arena-"+id;scene.add(arenaGroup);buildArena(id)}
 window.CS3D_rebuildArena=rebuildArena;
 window.CS3D_onArenaSelected=(id)=>{selectedArenaId=id};
-function init3D(){const probe=document.createElement("canvas");if(!(probe.getContext("webgl2")||probe.getContext("webgl")))throw new Error("WebGL unavailable");scene=new THREE.Scene();/* multi-arena-scene */window.scene=scene;scene.background=new THREE.Color("#030712");scene.fog=new THREE.FogExp2(0x060d1c,.0052);camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,1,700);renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance",alpha:false});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(qualityScale);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;document.getElementById("stage").appendChild(renderer.domElement);renderer.domElement.addEventListener("webglcontextlost",e=>{e.preventDefault();paused=true;document.getElementById("loading").textContent="Rendering lattice interrupted - recovering";document.getElementById("loading").style.display="grid"});renderer.domElement.addEventListener("webglcontextrestored",()=>location.reload());raycaster=new THREE.Raycaster();ground=new THREE.Plane(new THREE.Vector3(0,1,0),0);scene.add(new THREE.HemisphereLight(0x6f9bff,0x02060f,.3));scene.add(new THREE.AmbientLight(0x4f6a9e,.09));const sun=new THREE.DirectionalLight(0xffe8cc,1.18);sun.position.set(45,80,35);sun.castShadow=true;sun.shadow.mapSize.set(innerWidth<900?1024:2048,innerWidth<900?1024:2048);sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;sun.shadow.bias=-.0009;sun.shadow.normalBias=.02;scene.add(sun);const rim=new THREE.DirectionalLight(0x4f74ff,.34);rim.position.set(-40,30,-30);scene.add(rim);arenaGroup=new THREE.Group();scene.add(arenaGroup);previewLight=new THREE.PointLight(0xffffff,4.4,36,1.35);previewLight.position.set(WORLD_W*S*.76,8,WORLD_H*S*.55+3);scene.add(previewLight);previewRim=new THREE.PointLight(0x7cc4ff,2.6,26,1.5);previewRim.position.set(WORLD_W*S*.88,5,WORLD_H*S*.1);scene.add(previewRim);buildArena("forge");fx=makeFX();initComposer();addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(bloomPass)bloomPass.setSize(innerWidth,innerHeight)})}
+function applyArenaLighting(theme){
+ const light=theme.lighting;if(!arenaLights||!light)return;
+ arenaLights.hemi.color.setHex(light.hemi[0]);arenaLights.hemi.groundColor.setHex(light.hemi[1]);arenaLights.hemi.intensity=light.hemi[2];
+ arenaLights.ambient.color.setHex(light.ambient[0]);arenaLights.ambient.intensity=light.ambient[1];
+ arenaLights.sun.color.setHex(light.sun[0]);arenaLights.sun.intensity=light.sun[1];
+ arenaLights.rim.color.setHex(light.rim[0]);arenaLights.rim.intensity=light.rim[1];
+ renderer.toneMappingExposure=light.exposure;
+ if(window.CS3D_ENV)window.CS3D_ENV.applyEnvironmentTheme(scene,theme);
+}
+function init3D(){
+ const probe=document.createElement("canvas");if(!(probe.getContext("webgl2")||probe.getContext("webgl")))throw new Error("WebGL unavailable");
+ scene=new THREE.Scene();/* multi-arena-scene */window.scene=scene;scene.background=new THREE.Color("#030712");scene.fog=new THREE.FogExp2(0x060d1c,.0052);
+ camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,1,700);
+ renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance",alpha:false});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(qualityScale);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;document.getElementById("stage").appendChild(renderer.domElement);
+ renderer.domElement.addEventListener("webglcontextlost",e=>{e.preventDefault();paused=true;document.getElementById("loading").textContent="Rendering lattice interrupted - recovering";document.getElementById("loading").style.display="grid"});renderer.domElement.addEventListener("webglcontextrestored",()=>location.reload());
+ raycaster=new THREE.Raycaster();ground=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+ const hemi=new THREE.HemisphereLight(0x6f9bff,0x02060f,.3),ambient=new THREE.AmbientLight(0x4f6a9e,.09);scene.add(hemi,ambient);
+ const sun=new THREE.DirectionalLight(0xffe8cc,1.18);sun.position.set(45,80,35);sun.castShadow=true;sun.shadow.mapSize.set(innerWidth<900?1024:2048,innerWidth<900?1024:2048);sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;sun.shadow.bias=-.0009;sun.shadow.normalBias=.02;scene.add(sun);
+ const rim=new THREE.DirectionalLight(0x4f74ff,.34);rim.position.set(-40,30,-30);scene.add(rim);arenaLights={hemi,ambient,sun,rim};
+ if(window.CS3D_ENV)window.CS3D_ENV.configureEnvironment(renderer,scene);
+ arenaGroup=new THREE.Group();scene.add(arenaGroup);previewLight=new THREE.PointLight(0xffffff,4.4,36,1.35);previewLight.position.set(WORLD_W*S*.76,8,WORLD_H*S*.55+3);scene.add(previewLight);previewRim=new THREE.PointLight(0x7cc4ff,2.6,26,1.5);previewRim.position.set(WORLD_W*S*.88,5,WORLD_H*S*.1);scene.add(previewRim);
+ buildArena("forge");fx=makeFX();initComposer();addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(bloomPass)bloomPass.setSize(innerWidth,innerHeight)})
+}
 function initComposer(){
  if(!THREE.EffectComposer||!THREE.UnrealBloomPass){composer=null;return}
  try{
@@ -559,6 +584,7 @@ function addArena(o){(arenaGroup||scene).add(o);return o}
 function buildArena(id=selectedArenaId){
  selectedArenaId=id;const theme=arenaTheme(id);arenaGroup.userData.theme=id;
  scene.background=new THREE.Color(theme.bg);scene.fog.color.setHex(theme.fog);scene.fog.density=theme.fogDensity;
+ applyArenaLighting(theme);
  const floorTex=texGrid(theme.floor[0],theme.floor[1]);floorTex.colorSpace=THREE.SRGBColorSpace;floorTex.repeat.set(MAPW/4,MAPH/4);
  const floor=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_W*S,WORLD_H*S),new THREE.MeshStandardMaterial({map:floorTex,roughness:theme.floorRoughness,metalness:theme.floorMetalness,color:theme.floorTint,envMapIntensity:.35}));
  const outer=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_W*S*3.4,WORLD_H*S*3.6),new THREE.MeshStandardMaterial({color:theme.outer,roughness:.94,metalness:.06}));
@@ -637,6 +663,7 @@ function buildArena(id=selectedArenaId){
  buildArenaArt(theme);
  buildArenaPolish(theme);
  buildArenaThemeSet(theme);
+ if(window.CS3D_ENV)window.CS3D_ENV.apply({group:arenaGroup,theme,grid,mapWidth:MAPW,mapHeight:MAPH,tileScale:TILE*S});
 }
 function buildArenaArt(theme=arenaTheme()){
  const t=TILE*S;
