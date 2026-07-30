@@ -29,6 +29,12 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 .teamBtn:first-child{border-right:1px solid var(--line)}
 .teamBtn b{display:block;color:inherit;font-size:14px;margin-bottom:3px}
 .teamBtn.sel{background:linear-gradient(180deg,rgba(212,168,67,.18),rgba(212,168,67,.06));color:var(--text)}
+#playlistRow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.playlistBtn{padding:9px 6px;border:1px solid var(--line);border-radius:7px;background:rgba(6,10,22,.68);color:var(--muted);font:800 8px "JetBrains Mono";letter-spacing:.1em;cursor:pointer;transition:border-color .16s,background .16s,color .16s}
+.playlistBtn:hover{border-color:var(--arena-secondary);color:var(--text)}
+.playlistBtn.sel{border-color:var(--gold);background:linear-gradient(145deg,rgba(212,168,67,.18),rgba(6,10,22,.8));color:#fff;box-shadow:0 0 18px rgba(212,168,67,.18)}
+#squadLine{min-height:20px;margin:-2px 0 10px;color:var(--muted);font:700 9px "JetBrains Mono";letter-spacing:.12em;text-transform:uppercase}
+#squadLine.ready{color:#86efac}
 /* multi-arena-css */
 #arenaRow{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
 .arenaCard{padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:linear-gradient(150deg,rgba(16,25,48,.88),rgba(6,10,22,.94));cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s;min-height:72px;position:relative;overflow:hidden}
@@ -47,6 +53,8 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 .divCard:before{content:"";position:absolute;inset:0;background:radial-gradient(210px 120px at 15% 0%,color-mix(in srgb,var(--c) 22%,transparent),transparent 72%);opacity:.45}
 .divCard:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--c) 64%,transparent)}
 .divCard.sel{border-color:var(--c);box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 80%,transparent),0 18px 44px -18px var(--c)}
+.divCard.squad{border-color:var(--c);box-shadow:inset 3px 0 var(--c),0 12px 30px -20px var(--c)}
+.divCard.squad:after{content:attr(data-slot);position:absolute;right:7px;top:7px;width:19px;height:19px;display:grid;place-items:center;border-radius:50%;background:var(--c);color:#050812;font:900 9px "JetBrains Mono";box-shadow:0 0 15px color-mix(in srgb,var(--c) 70%,transparent)}
 .divCard>*{position:relative}
 .top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .swatch{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;background:linear-gradient(145deg,var(--c),#0a0d14);color:#050812;font-weight:800;font-size:10px;box-shadow:0 0 18px color-mix(in srgb,var(--c) 60%,transparent)}
@@ -85,6 +93,13 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 #endScreen{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:radial-gradient(circle at 50% 36%,color-mix(in srgb,var(--arena-secondary) 18%,transparent),transparent 36%),rgba(3,6,14,.94);text-align:center;backdrop-filter:blur(8px)}#endCard{width:min(620px,92vw);padding:42px;border-radius:18px;background:linear-gradient(145deg,rgba(15,23,42,.9),rgba(4,8,18,.96));border:1px solid rgba(212,168,67,.32);box-shadow:0 40px 120px rgba(0,0,0,.55)}#endScreen h2{font-size:54px;letter-spacing:.2em}#endSub{margin-top:9px;color:var(--muted);letter-spacing:.12em}#endRewards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px}.reward{padding:13px 8px;border-radius:9px;background:rgba(15,23,42,.7);border:1px solid var(--line)}.reward b{display:block;color:var(--gold);font:800 18px "JetBrains Mono"}.reward span{display:block;margin-top:4px;color:var(--muted);font:700 8px "JetBrains Mono";letter-spacing:.16em}#endScreen button{margin-top:26px;padding:14px 44px;border:0;border-radius:10px;background:linear-gradient(160deg,#eccb72,#bd8b2c);font-weight:800;letter-spacing:.18em;cursor:pointer}
 #minimap{position:absolute;top:16px;left:18px;padding:7px;border-radius:12px}
 #minimap canvas{display:block;border-radius:7px;opacity:.94}
+#bossHud{position:absolute;left:50%;top:82px;transform:translateX(-50%);width:min(520px,70vw);padding:10px 14px 11px;border-radius:10px;background:linear-gradient(120deg,rgba(30,8,30,.92),rgba(8,13,26,.9));border:1px solid rgba(255,103,203,.45);box-shadow:0 18px 55px rgba(0,0,0,.38),0 0 30px rgba(224,38,126,.16);display:none}
+#bossHud.on{display:block}
+#bossMeta{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:7px}
+#bossName{color:#f9a8d4;font:900 12px "JetBrains Mono";letter-spacing:.18em}
+#bossAbility{color:var(--muted);font:700 8px "JetBrains Mono";letter-spacing:.13em;text-align:right}
+#bossTrack{height:8px;border-radius:8px;background:rgba(255,255,255,.09);overflow:hidden;border:1px solid rgba(249,168,212,.2)}
+#bossBar{display:block;width:100%;height:100%;background:linear-gradient(90deg,#8b1d59,#e0267e,#f9a8d4);box-shadow:0 0 16px rgba(224,38,126,.75);transition:width .16s}
 #spikeMsg{position:absolute;left:50%;bottom:118px;transform:translateX(-50%);padding:7px 18px;border-radius:8px;background:rgba(6,10,22,.82);border:1px solid rgba(244,158,11,.5);color:#fbbf24;font:700 11px "JetBrains Mono";letter-spacing:.18em;text-transform:uppercase;display:none;text-shadow:0 2px 8px #000}
 #spikeMsg.on{display:block;animation:spikePulse 1.6s ease-in-out infinite}
 @keyframes spikePulse{0%,100%{box-shadow:0 0 0 rgba(244,158,11,0)}50%{box-shadow:0 0 26px rgba(244,158,11,.45)}}
@@ -165,6 +180,13 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
       <button class="teamBtn sel" data-team="ATK"><b>Strike Unit</b>Plant pressure</button>
       <button class="teamBtn" data-team="DEF"><b>Sentinel Unit</b>Hold the grid</button>
     </div>
+    <div class="secHead"><span>Select Playlist</span><i></i></div>
+    <div id="playlistRow">
+      <button class="playlistBtn sel" data-playlist="standard">TACTICAL</button>
+      <button class="playlistBtn" data-playlist="boss">BOSS MODE</button>
+      <button class="playlistBtn" data-playlist="wave">WAVE MODE</button>
+    </div>
+    <div id="squadLine">Controlled operator selected / squad auto-assigned</div>
     <!-- multi-arena-html -->
     <div class="secHead"><span>Select Arena</span><i></i></div>
     <div id="arenaRow"></div>
@@ -202,6 +224,7 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
   <div id="damageVignette"></div><div id="lowHp"></div>
   <div id="damageDir"></div><div id="streak"></div>
   <div id="minimap" class="glass"><canvas id="mapCanvas" width="184" height="133"></canvas></div>
+  <div id="bossHud"><div id="bossMeta"><span id="bossName">APEX BOSS</span><span id="bossAbility">ACQUIRING TARGET</span></div><div id="bossTrack"><i id="bossBar"></i></div></div>
   <div id="objectiveChip">Awaiting deployment</div>
   <div id="coachPrompt"></div>
   <div id="reloadWrap"><div id="reloadLabel"><span>RELOADING</span><span id="reloadPct">0%</span></div><div id="reloadTrack"><i></i></div></div>
@@ -350,9 +373,11 @@ const grid=[],walls=[];function rect(x,y,w,h){walls.push({x,y,w,h});for(let j=y;
 for(let y=0;y<MAPH;y++)grid.push(Array(MAPW).fill(0));rect(0,0,MAPW,1);rect(0,MAPH-1,MAPW,1);rect(0,0,1,MAPH);rect(MAPW-1,0,1,MAPH);rect(10,1,2,7);rect(24,1,2,7);rect(10,18,2,7);rect(24,18,2,7);rect(5,10,7,2);rect(24,10,7,2);rect(15,12,6,4);rect(3,21,5,2);rect(28,21,5,2);rect(15,5,2,2);rect(19,19,2,2);
 const SITE_A={x:2,y:2,w:8,h:6,label:"A"},SITE_B={x:26,y:2,w:8,h:6,label:"B"},SPAWN_ATK={x:15,y:21,w:6,h:3},SPAWN_DEF={x:15,y:2,w:6,h:3};/* multi-arena-inline */const ARENAS=window.CS3D_ARENAS||{};const ARENA_ORDER=window.CS3D_ARENA_ORDER||["forge","neon","cryo","verdant"];let selectedArenaId=window.CS3D_selectedArenaId||"forge";
 const V3=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),hex=c=>new THREE.Color(c);
+const BOSS_RUNTIME=window.CS3D_BOSS||{},BOSS_DNA=BOSS_RUNTIME.BOSS_DNA||[],BOSS_BY_ID=BOSS_RUNTIME.BOSS_BY_ID||{},PLAYLISTS=BOSS_RUNTIME.PLAYLISTS||{};
 let scene,camera,renderer,raycaster,ground,clock=new THREE.Clock(),composer=null,bloomPass=null,previewLight=null,previewRim=null,arenaGroup=null,previewPad=null;
 let previewSnap=true;
 let players=[],me=null,myTeam="ATK",myDiv=null,phase="menu",phaseT=0,round=1,scoreATK=0,scoreDEF=0,bomb={state:"carried"},aim={x:WORLD_W/2,y:WORLD_H/2},mouse={x:innerWidth/2,y:innerHeight/2,down:false,fired:false},keys={},rigs=new Map(),preview=null,previewId=null,fx,menuOrbit=0,buyOpen=false,tempMeshes=[],worldBits=[];
+let selectedPlaylist="standard",selectedSquad=[],encounterKind="standard",wavePlan=[],waveIndex=0,pendingWaveIndex=null,activeBoss=null,bossRigs=new Map(),lastBossId=null,apexComplete=false,apexWinner=null,lastPlayerAbilityId=null,matchFinalized=false,matchOutcomeOverride=null,bossOutcome="";
 const ui={hitT:0,damageT:0,killT:0,streak:0,streakT:0,lastKillT:0};
 const touchMove={x:0,y:0},padMove={x:0,y:0};
 let lastPadButtons=[],qualityScale=Math.min(devicePixelRatio,2),qualityClock=0,qualityFrames=0,qualitySum=0;
@@ -522,6 +547,7 @@ const SND=(()=>{
 })();
 function solid(tx,ty){return tx<0||ty<0||tx>=MAPW||ty>=MAPH||grid[ty][tx]===1}
 function solidWorld(x,y){return solid(Math.floor(x/TILE),Math.floor(y/TILE))}
+function blockedByBoss(x,y,p){return !!(activeBoss?.alive&&p!==activeBoss&&Math.hypot(x-activeBoss.x,y-activeBoss.y)<activeBoss.radius+PLAYER_R)}
 function spawn(team){const z=team==="ATK"?SPAWN_ATK:SPAWN_DEF;for(let i=0;i<40;i++){const p={x:(z.x+rnd(.5,z.w-.5))*TILE,y:(z.y+rnd(.5,z.h-.5))*TILE};if(!solidWorld(p.x,p.y))return p}return{x:(z.x+z.w/2)*TILE,y:(z.y+z.h/2)*TILE}}
 function rayClear(x0,y0,x1,y1){const d=Math.hypot(x1-x0,y1-y0),n=Math.ceil(d/12);for(let i=1;i<n;i++){const t=i/n;if(solidWorld(x0+(x1-x0)*t,y0+(y1-y0)*t))return false}return true}
 function canSee(a,b){return dist(a,b)<VIEW&&rayClear(a.x,a.y,b.x,b.y)}
@@ -535,6 +561,88 @@ function addAdditionalLoadout(weapons,id){for(const w of availableAdditions(id))
 function isDoctrineWeapon(w){return !!w?.special}
 function cycleAdditional(p){const ids=availableAdditions(p.div.id).map(w=>w.id).filter(id=>p.weapons[id]);if(!ids.length)return;const i=ids.indexOf(p.cur);p.cur=ids[(i+1)%ids.length];SND.uiClick(true)}
 function makePlayer(team,id,human,name){const sp=spawn(team),div=DIV_BY_ID[id],signature=doctrineWeapon(id),weapons=addAdditionalLoadout({pistol:{...WEAPONS.pistol,ammo:12,reserve:48},signature},id);const p={id:Math.random().toString(36).slice(2),team,div,human,name,x:sp.x,y:sp.y,angle:team==="ATK"?-Math.PI/2:Math.PI/2,hp:100,armor:0,alive:true,money:800,kills:0,deaths:0,cur:"signature",weapons,fireT:0,reloadT:0,abilityT:0,doctrineT:0,revealT:0,slowT:0,speedUntil:0,fireUntil:0,critUntil:0,phaseUntil:0,boostShots:0,usedWind:false,target:null,pathT:0,deadT:0};p.hp=maxHp(p);if(id==="terra")p.armor=25;return p}
+function combatTargets(p){const targets=players.filter(q=>q.alive&&q.team!==p.team);if(activeBoss?.alive&&activeBoss.team!==p.team)targets.push(activeBoss);return targets}
+function bossOccupancyCells(boss=activeBoss,x=boss?.x,y=boss?.y){if(!boss||!BOSS_RUNTIME.cellsForCircle)return[];return BOSS_RUNTIME.cellsForCircle({x,y,radius:boss.radius,tile:TILE,mapW:MAPW,mapH:MAPH})}
+function bossCanOccupy(boss,x,y){return !!BOSS_RUNTIME.canOccupyCircle&&BOSS_RUNTIME.canOccupyCircle({x,y,radius:boss.radius,tile:TILE,grid})}
+function clearBoss(){
+ if(activeBoss){const r=bossRigs.get(activeBoss.id);if(r?.root){scene.remove(r.root);disposeTree(r.root)}bossRigs.delete(activeBoss.id)}
+ activeBoss=null;document.getElementById("bossHud")?.classList.remove("on")
+}
+function makeBossEntity(dna,x,y){
+ const hpScale=selectedDifficulty==="elite"?1.18:selectedDifficulty==="rookie"?.86:1,max=Math.round(260*(dna.hpMult||4)*hpScale);
+ return{id:"boss_"+dna.id+"_"+Math.random().toString(36).slice(2),bossId:dna.id,isBoss:true,dna,name:dna.name,team:"BOSS",div:{id:"boss",n:dna.name,c:dna.accent||dna.cTop,role:"APEX",ab:dna.signature},x,y,angle:Math.PI/2,vx:0,vy:0,hp:max,maxHp:max,armor:Math.round((dna.hpMult||4)*8),alive:true,radius:Math.round(22+(dna.scale||1.8)*18),hitT:0,hitAng:0,slowT:0,abilityT:0,abilityCd:{},pendingAbility:null,nextAbility:performance.now()/1000+2.2,attackT:0,damageScale:selectedDifficulty==="elite"?1.18:selectedDifficulty==="rookie"?.82:1,lastAbilityName:"ACQUIRING TARGET"}
+}
+function startBossEncounter(team,{source="boss",bossId=null}={}){
+ clearBoss();apexWinner=source==="apex"?team:apexWinner;
+ if(source==="apex")encounterKind="apex";else if(source==="wave")encounterKind="wave";else encounterKind="boss";
+ const ids=BOSS_DNA.map(b=>b.id),chosen=bossId||BOSS_RUNTIME.chooseRandomBoss?.(ids,Math.random,lastBossId)||ids[0],dna=BOSS_BY_ID[chosen];
+ if(!dna){feed("Boss roster unavailable","#ef4444");return}
+ lastBossId=chosen;
+ const zone={x:2,y:6,w:32,h:14},radius=Math.round(22+(dna.scale||1.8)*18);
+ const point=BOSS_RUNTIME.findBossSpawn?.({zone,tile:TILE,radius,grid,players:players.filter(p=>p.alive&&p.team===team),minPlayerDistance:TILE*5,rng:Math.random})||{x:(SITE_A.x+SITE_A.w/2)*TILE,y:(SITE_A.y+SITE_A.h/2)*TILE};
+ activeBoss=makeBossEntity(dna,point.x,point.y);
+ const rig=BOSS_RUNTIME.makeBossRig(activeBoss,{THREE,scene,S});bossRigs.set(activeBoss.id,rig);
+ bomb={state:"inactive",carrier:null,x:0,y:0,timer:0};clearSpikeMesh();
+ phase="buy";phaseT=source==="smoke"?.05:3.5;
+ showBanner(`${dna.name} DESCENDS`);feed(`${dna.role} / ${bossOccupancyCells(activeBoss).length}-cell collision footprint`,dna.accent);
+ document.getElementById("bossHud")?.classList.add("on")
+}
+function startApexChallenge(winner){
+ apexWinner=winner;encounterKind="apex";
+ for(const p of players){if(p.team!==winner){p.alive=false;continue}const sp=spawn(p.team);p.x=sp.x;p.y=sp.y;p.alive=true;p.hp=maxHp(p);p.armor=Math.max(p.armor,p.div.id==="terra"?25:0);p.reloadT=0;p.abilityT=0;p.doctrineT=0}
+ startBossEncounter(winner,{source:"apex"})
+}
+function resetWaveSquad(first=false){
+ for(const p of players.filter(q=>q.team===myTeam)){const sp=spawn(p.team);p.x=sp.x;p.y=sp.y;p.alive=true;p.deadT=0;p.hp=first?maxHp(p):Math.min(maxHp(p),Math.max(p.hp,1)+maxHp(p)*.38);p.armor=Math.min(100,p.armor+20);p.reloadT=0;p.abilityT=Math.min(p.abilityT,performance.now()/1000+4);p.doctrineT=Math.min(p.doctrineT,performance.now()/1000+6);for(const w of Object.values(p.weapons)){w.ammo=w.mag;w.reserve=Math.max(w.reserve,Math.round(w.res*.45))}}
+}
+function removeEncounterEnemies(){
+ for(const p of players.filter(q=>q.team!==myTeam)){const r=rigs.get(p.id);if(r){scene.remove(r.root);disposeTree(r.root);rigs.delete(p.id)}}
+ players=players.filter(q=>q.team===myTeam);clearBoss()
+}
+function startWave(index){
+ removeEncounterEnemies();waveIndex=index;pendingWaveIndex=null;const wave=wavePlan[index];if(!wave){matchOutcomeOverride=true;bossOutcome="ALL WAVES CLEARED";return endGame()}
+ resetWaveSquad(index===0);bomb={state:"inactive",carrier:null,x:0,y:0,timer:0};
+ if(wave.kind==="boss"){startBossEncounter(myTeam,{source:"wave",bossId:wave.bossId});showBanner("FINAL WAVE / APEX");return}
+ const enemyTeam=myTeam==="ATK"?"DEF":"ATK",names=["ECHO","RIVAL","ROGUE","NULL","SHADE","VEX","CIPHER","WARDEN"];
+ for(const id of wave.operatorIds){const p=makePlayer(enemyTeam,id,false,names[players.length%names.length]);p.hp=Math.round(maxHp(p)*wave.healthScale);p.waveHp=p.hp;players.push(p);makeRig(p)}
+ phase="buy";phaseT=3.2;showBanner(`WAVE ${index+1} / ${wave.operatorIds.length} HOSTILES`);feed(`Unselected divisions inbound / health ${Math.round(wave.healthScale*100)}%`,"#f43f5e")
+}
+function applyBossAbility(result,now){
+ if(!activeBoss?.alive||!result)return;const boss=activeBoss,targets=players.filter(p=>p.alive&&p.team!==boss.team),primary=targets.sort((a,b)=>dist(a,boss)-dist(b,boss))[0];
+ if(result.id==="phase_dash"&&primary){const a=Math.atan2(primary.y-boss.y,primary.x-boss.x),nx=boss.x+Math.cos(a)*170,ny=boss.y+Math.sin(a)*170;if(bossCanOccupy(boss,nx,ny)){boss.x=nx;boss.y=ny}}
+ const radius=result.params?.radius||150;
+ for(const p of targets){if(dist(p,boss)>radius)continue;let amount=(result.params?.damage||24)*boss.damageScale;
+  if(result.tags?.includes("mark")){p.revealT=now+5;p.markUntil=now+5;p.markMul=1.22}
+  if(result.tags?.includes("tax")){p.abilityT=Math.max(p.abilityT,now+4);p.doctrineT=Math.max(p.doctrineT,now+5)}
+  if(result.tags?.some(t=>["stomp","aoe","predict","reach","storm"].includes(t)))damage(p,amount,boss,{boss:true});
+  else if(result.tags?.some(t=>["zone","trail","time_scale"].includes(t))){damage(p,amount*.45,boss,{boss:true});p.slowT=now+3.5}
+  if(result.tags?.includes("economy"))p.money=Math.max(0,p.money-80)
+ }
+ fx.ring(boss.x,boss.y,boss.dna.accent,Math.max(1,radius/100));fx.sparks(boss.x,boss.y,boss.dna.accent,34,2);addShake(.34)
+}
+function updateBoss(dt,now){
+ const boss=activeBoss;if(!boss?.alive||phase!=="live")return;const targets=players.filter(p=>p.alive&&p.team!==boss.team);
+ if(!targets.length)return encounterDefeat();
+ const target=targets.sort((a,b)=>dist(a,boss)-dist(b,boss))[0],td=dist(boss,target);boss.angle=Math.atan2(target.y-boss.y,target.x-boss.x);
+ const fast=boss.dna.loco==="storm"||boss.dna.loco==="phase",speed=(fast?132:boss.dna.loco==="colossus"?62:86)*(boss.slowT>now?.58:1),keep=boss.dna.loco==="orbital"||boss.dna.loco==="anchor"?230:120;
+ boss.vx=boss.vy=0;if(td>keep){const nx=boss.x+Math.cos(boss.angle)*speed*dt,ny=boss.y+Math.sin(boss.angle)*speed*dt;if(bossCanOccupy(boss,nx,ny)){boss.vx=(nx-boss.x)/dt;boss.vy=(ny-boss.y)/dt;boss.x=nx;boss.y=ny}}
+ if(td<210&&boss.attackT<=now){boss.attackT=now+(fast?.9:1.35);damage(target,Math.round((18+(boss.dna.hpMult||4)*2.2)*boss.damageScale),boss,{boss:true});fx.ring(target.x,target.y,boss.dna.accent,.8)}
+ if(boss.pendingAbility&&boss.pendingAbility.at<=now){applyBossAbility(boss.pendingAbility.result,now);boss.pendingAbility=null}
+ if(!boss.pendingAbility&&boss.nextAbility<=now){const slot=boss.dna.hybrid&&Math.random()<.35?"secondary":"primary",result=BOSS_RUNTIME.runBossAbility?.(boss,{players,now,fx,grid,lastPlayerAbilityId},slot);boss.nextAbility=now+3.4+rnd(0,2.4);if(result&&!result.skipped){boss.lastAbilityName=result.name;boss.pendingAbility={result,at:now+(result.params?.telegraphMs||900)/1000};showBanner(result.name);feed(result.telegraph,boss.dna.accent)}}
+}
+function damageBoss(boss,dmg,src){
+ if(!boss?.alive)return;const now=performance.now()/1000;let d=dmg;if(boss.armor>0){d*=.72;boss.armor=Math.max(0,boss.armor-dmg*.08)}boss.hp-=d;boss.hitT=now+.3;if(src){boss.hitAng=Math.atan2(boss.y-src.y,boss.x-src.x);fx.sparks(boss.x,boss.y,boss.dna.accent,16,1.5)}if(src===me){ui.hitT=now+.16;fx.dmgText(boss.x,boss.y,Math.round(d),boss.hp<=0)}if(boss.hp<=0)finishBoss(src)
+}
+function finishBoss(src){
+ const boss=activeBoss;if(!boss?.alive)return;boss.alive=false;boss.hp=0;const r=bossRigs.get(boss.id);if(r)r.root.visible=false;fx.ring(boss.x,boss.y,boss.dna.accent,4);fx.sparks(boss.x,boss.y,boss.dna.accent,70,3);showBanner("APEX NEUTRALIZED");if(src===me)awardMatchXP(180,"APEX ELIMINATION");
+ if(encounterKind==="wave"&&waveIndex<wavePlan.length-1){phase="end";phaseT=4;pendingWaveIndex=waveIndex+1;return}
+ if(encounterKind==="apex"){apexComplete=true;bossOutcome=`${apexWinner} DEFEATED ${boss.name}`;phase="end";phaseT=3;return}
+ matchOutcomeOverride=true;bossOutcome=`${boss.name} DEFEATED`;phase="end";phaseT=3
+}
+function encounterDefeat(){
+ if(matchFinalized)return;if(encounterKind==="apex"){apexComplete=true;bossOutcome=`${activeBoss?.name||"APEX"} HELD THE LATTICE`;phase="end";phaseT=3;return}
+ matchOutcomeOverride=false;bossOutcome="SQUAD ELIMINATED";phase="end";phaseT=3
+}
 function curW(p){return p.weapons[p.cur]}function giveW(p,id){const w=WEAPONS[id];p.weapons[id]={...w,ammo:w.mag,reserve:w.res};p.cur=id}
 function arenaTheme(id=selectedArenaId){return ARENAS[id]||ARENAS.forge||{id:"forge",accent:"#d4a843",secondary:"#38bdf8",accentHex:0xd4a843,secondaryHex:0x38bdf8,fog:0x060d1c,fogDensity:.0052,bg:"#030712",floor:["#111827","rgba(212,168,67,.18)"],floorTint:0xa8b4c8,floorRoughness:.68,floorMetalness:.28,wall:0x778399,wallEmissive:0x101827,outer:0x050912,trim:0xd4a843,particle:0x9fc4ff,architecture:"forge"}}
 function disposeTree(root){root.traverse(o=>{if(o.geometry&&o.geometry.dispose&&!o.geometry.userData.shared)o.geometry.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats)if(m){for(const k of["map","normalMap","roughnessMap","metalnessMap","emissiveMap","alphaMap"])if(m[k]&&m[k].dispose)m[k].dispose();if(m.dispose)m.dispose()}})}
@@ -1210,7 +1318,7 @@ function fireWeapon(p,tx,ty){
  const baseAng=Math.atan2(ty-p.y,tx-p.x);let wallD=rayWallDistance(p.x,p.y,baseAng),lock=p.human?crosshairTarget(p):null;
  const ang=lock?Math.atan2(lock.y-p.y,lock.x-p.x):baseAng+rnd(-spread,spread);wallD=rayWallDistance(p.x,p.y,ang);
  if(p.cur==="signature"&&p.phaseUntil>now)wallD=1300;
- let hit=lock,hd=lock?dist(p,lock):wallD;if(!hit){for(const q of players){if(!q.alive||q.team===p.team)continue;const dx=q.x-p.x,dy=q.y-p.y,proj=dx*Math.cos(ang)+dy*Math.sin(ang);if(proj<0||proj>wallD)continue;const perp=Math.abs(-dx*Math.sin(ang)+dy*Math.cos(ang)),hitR=PLAYER_R+8;if(perp<hitR&&proj<hd){hit=q;hd=proj}}}
+ let hit=lock,hd=lock?dist(p,lock):wallD;if(!hit){for(const q of combatTargets(p)){const dx=q.x-p.x,dy=q.y-p.y,proj=dx*Math.cos(ang)+dy*Math.sin(ang);if(proj<0||proj>wallD)continue;const perp=Math.abs(-dx*Math.sin(ang)+dy*Math.cos(ang)),hitR=(q.isBoss?q.radius:PLAYER_R)+8;if(perp<hitR&&proj<hd){hit=q;hd=proj}}}
  p.fireKick=1;
  const doctrine=isDoctrineWeapon(w),shotVoice=doctrine?(["rifle","drone","bow"].includes(w.form)?"rifle":["blade","lance","sickle","scythe","gauntlet"].includes(w.form)?"smg":"sniper"):w.id;
  if(p===me){SND.shot(shotVoice);addShake(w.id==="sniper"?.34:doctrine?.14:w.id==="rifle"?.09:w.id==="smg"?.06:.08)}
@@ -1252,7 +1360,7 @@ function applyDoctrineHit(p,q,w,now){
  else if(id==="cognara"){q.markUntil=now+4;q.markMul=1.12;q.revealT=now+4}
  else if(id==="quantum")p.armor=Math.min(100,p.armor+2)
 }
-function damage(q,dmg,src,flags={}){if(!q.alive)return;const now=performance.now()/1000;let d=dmg;
+function damage(q,dmg,src,flags={}){if(q?.isBoss)return damageBoss(q,dmg,src);if(!q.alive)return;const now=performance.now()/1000;let d=dmg;
  if(src&&q.markUntil>now)d*=q.markMul||1.25;
  if(src&&q.signalMarkUntil>now&&q.signalTeam===src.team&&rayClear(src.x,src.y,q.x,q.y))d*=1+clamp((now-(q.signalMarkStart||now))*.055,0,.38);
  if(q.resistUntil>now)d*=.82;
@@ -1316,7 +1424,7 @@ function useDoctrine(p,targetPoint=null){
  if(!isDoctrineWeapon(w)){if(p===me)feed("Equip slot 5 or 6 to fire a doctrine weapon",p.div.c);return}
  if(p===me)ui.usedDoctrine=true;
  const tp=targetPoint?{x:targetPoint.x,y:targetPoint.y}:{x:aim.x,y:aim.y};
- const allies=players.filter(q=>q.alive&&q.team===p.team),enemies=players.filter(q=>q.alive&&q.team!==p.team);
+ const allies=players.filter(q=>q.alive&&q.team===p.team),enemies=combatTargets(p);
  const near=(list,x,y,r)=>list.filter(q=>Math.hypot(q.x-x,q.y-y)<r);
  if(w.series==="03"){
   useSeries03Weapon(p,w,tp,allies,enemies,near,now);
@@ -1332,12 +1440,12 @@ function useDoctrine(p,targetPoint=null){
  else if(id==="vital"){near(allies,p.x,p.y,390).forEach(q=>{q.hp=Math.min(maxHp(q),q.hp+24);q.armor=Math.min(100,q.armor+15);q.slowT=0});near(enemies,p.x,p.y,390).forEach(q=>{damage(q,22,p,{doctrine:true});q.toxinUntil=now+6})}
  else if(id==="binary"){near(enemies,p.x,p.y,440).forEach(q=>q.slowT=now+3);p.phaseUntil=now+3;allies.forEach(q=>q.doctrineDiscount=Math.min(q.doctrineDiscount||1,.5))}
  else if(id==="gaia"){near(allies,tp.x,tp.y,300).forEach(q=>q.regenUntil=now+8);near(enemies,tp.x,tp.y,300).forEach(q=>{q.rootBurnUntil=now+8;q.slowT=now+8})}
- else if(id==="vector"){near(enemies,p.x,p.y,410).forEach(q=>{const a=Math.atan2(p.y-q.y,p.x-q.x);q.x+=Math.cos(a)*55;q.y+=Math.sin(a)*55;damage(q,16,p,{doctrine:true})});allies.forEach(q=>q.teamSpeedUntil=now+7)}
+ else if(id==="vector"){near(enemies,p.x,p.y,410).forEach(q=>{const a=Math.atan2(p.y-q.y,p.x-q.x),nx=q.x+Math.cos(a)*55,ny=q.y+Math.sin(a)*55;if(q.isBoss?bossCanOccupy(q,nx,ny):!solidWorld(nx,ny)){q.x=nx;q.y=ny}damage(q,16,p,{doctrine:true})});allies.forEach(q=>q.teamSpeedUntil=now+7)}
  else if(id==="animus"){enemies.sort((a,b)=>dist(p,a)-dist(p,b)).slice(0,6).forEach((q,i)=>setTimeout(()=>{if(q.alive){damage(q,18,p,{doctrine:true});fx.sparks(q.x,q.y,c,12,1.5)}},i*85));p.critUntil=now+5}
  else if(id==="aether"){enemies.forEach(q=>q.revealT=now+8);allies.forEach(q=>q.linkRegenUntil=now+8)}
  else if(id==="obsidian"){near(enemies,tp.x,tp.y,245).forEach(q=>{q.lockUntil=now+5;q.slowT=now+5;q.rootBurnUntil=now+5});p.statusShields=2}
  else if(id==="kinetic"){dashPlayer(p,230);near(enemies,p.x,p.y,125).forEach(q=>damage(q,42,p,{doctrine:true}));p.speedUntil=now+6;p.boostShots=3}
- else if(id==="civic"){near(allies,p.x,p.y,360).forEach(q=>{q.hp=Math.min(maxHp(q),q.hp+28);q.regenUntil=now+10;q.slowT=0});near(enemies,p.x,p.y,360).forEach(q=>{const a=Math.atan2(q.y-p.y,q.x-p.x),nx=q.x+Math.cos(a)*70,ny=q.y+Math.sin(a)*70;if(!solidWorld(nx,ny)){q.x=nx;q.y=ny}})}
+ else if(id==="civic"){near(allies,p.x,p.y,360).forEach(q=>{q.hp=Math.min(maxHp(q),q.hp+28);q.regenUntil=now+10;q.slowT=0});near(enemies,p.x,p.y,360).forEach(q=>{const a=Math.atan2(q.y-p.y,q.x-p.x),nx=q.x+Math.cos(a)*70,ny=q.y+Math.sin(a)*70;if(q.isBoss?bossCanOccupy(q,nx,ny):!solidWorld(nx,ny)){q.x=nx;q.y=ny}})}
  else if(id==="quantum"){allies.forEach(q=>{q.refundUntil=now+6;q.refundPool=0;q.armor=Math.min(100,q.armor+20)})}
  else if(id==="juris"){const q=enemies.sort((a,b)=>dist(a,tp)-dist(b,tp))[0];if(q){for(let i=0;i<7;i++)setTimeout(()=>{if(q.alive){damage(q,9,p,{doctrine:true});fx.sparks(q.x,q.y,c,5,1.1)}},i*65);q.markUntil=now+8;q.markMul=1.25;q.slowT=now+8}}
  else if(id==="signal"){near(enemies,tp.x,tp.y,380).forEach(q=>{q.signalMarkUntil=now+8;q.signalMarkStart=now;q.signalTeam=p.team;q.revealT=now+8});allies.forEach(q=>{q.damageUntil=now+7;q.damageBuff=Math.min(.3,(q.damageBuff||0)+.08)})}
@@ -1351,7 +1459,7 @@ function kill(q,src){const now=performance.now()/1000;q.alive=false;q.deadT=now;
  if(bomb.carrier===q&&bomb.state==="carried"){bomb.state="dropped";bomb.x=q.x;bomb.y=q.y;setSpikeWorld(q.x,q.y,false);feed("Spike dropped!","#f59e0b")}
  if(q.seedOnDeathUntil>now)players.filter(a=>a.alive&&a.team===q.seedTeam&&dist(a,q)<260).forEach(a=>{a.hp=Math.min(maxHp(a),a.hp+18);fx.ring(a.x,a.y,"#F0D08C",.55)});
  if(q===me){SND.hurt();addShake(.5)}
- if(src&&src.team!==q.team){src.kills++;const base=src.div.id==="collective"?450:300,tithe=q.titheUntil>now&&q.titheTeam===src.team?Math.round(base*.15):0;src.money=Math.min(9000,src.money+base+tithe);feed(`${src.name} eliminated ${q.name}${tithe?` / TITHE +$${tithe}`:""}`,src.div.c);if(src===me){ui.streak=now-ui.lastKillT<7?ui.streak+1:1;me.bestStreak=Math.max(me.bestStreak||0,ui.streak);ui.lastKillT=now;ui.streakT=now+2.2;SND.hit(true);ui.killT=now+.4;awardMatchXP(28);showBanner(ui.streak>=3?`${ui.streak}X ELIMINATION`:"ELIMINATED")}}
+ if(src&&src.team!==q.team){src.kills=(src.kills||0)+1;if(src.isBoss)feed(`${src.name} eliminated ${q.name}`,src.div.c);else{const base=src.div.id==="collective"?450:300,tithe=q.titheUntil>now&&q.titheTeam===src.team?Math.round(base*.15):0;src.money=Math.min(9000,src.money+base+tithe);feed(`${src.name} eliminated ${q.name}${tithe?` / TITHE +$${tithe}`:""}`,src.div.c);if(src===me){ui.streak=now-ui.lastKillT<7?ui.streak+1:1;me.bestStreak=Math.max(me.bestStreak||0,ui.streak);ui.lastKillT=now;ui.streakT=now+2.2;SND.hit(true);ui.killT=now+.4;awardMatchXP(28);showBanner(ui.streak>=3?`${ui.streak}X ELIMINATION`:"ELIMINATED")}}}
  checkRound()}
 function reload(p){const w=curW(p);if(p.reloadT>0||w.ammo===w.mag||w.reserve<=0)return;p.reloadT=(w.id==="sniper"?2.05:isDoctrineWeapon(w)?clamp(2.05-(w.stats?.[1]||60)/100,1.05,1.65):1.45)*(p.div.id==="binary"?.65:1)*(p.controlUntil>performance.now()/1000 ? .78 : 1);p.reloadMax=p.reloadT;if(p===me)SND.reload(w.id)}
 function abilityFx(id,p,tp){
@@ -1367,7 +1475,8 @@ function useAbility(p,targetPoint=null){
  const now=performance.now()/1000;if(p.abilityT>now||p.div.id==="eon"||p.silencedUntil>now)return;
  if(p===me)ui.usedAbility=true;
  let id=p.div.id;if(id==="cognara")id=DIVS[Math.floor(Math.random()*(DIVS.length-1))].id;
- const enemies=players.filter(q=>q.alive&&q.team!==p.team),tp=targetPoint?{x:targetPoint.x,y:targetPoint.y}:{x:aim.x,y:aim.y};
+ if(p===me)lastPlayerAbilityId=id;
+ const enemies=combatTargets(p),tp=targetPoint?{x:targetPoint.x,y:targetPoint.y}:{x:aim.x,y:aim.y};
  if(id==="zenflow")enemies.forEach(q=>q.revealT=now+4);
  else if(id==="collective")p.money=Math.min(9000,p.money+500);
  else if(id==="hybrid")p.hp=Math.min(maxHp(p),p.hp+22);
@@ -1433,6 +1542,8 @@ function endRoundWin(team,reason){
  if(team==="ATK")scoreATK++;else scoreDEF++;round++;
  if(team===myTeam)awardMatchXP(42,"ROUND WIN");
  SND.stinger(team===myTeam);
+ const winner=BOSS_RUNTIME.shouldStartApexChallenge?.({playlistId:selectedPlaylist,scoreATK,scoreDEF,firstTo:FIRST_TO,apexComplete});
+ if(winner){showBanner(reason);return startApexChallenge(winner)}
  if(scoreATK>=FIRST_TO||scoreDEF>=FIRST_TO)return endGame();
  phase="end";phaseT=4;showBanner(reason);
 }
@@ -1465,7 +1576,7 @@ function botMoveTo(p,target,dt){
  const node=p.path[0]||target;move(p,node.x-p.x,node.y-p.y,dt)
 }
 function botThink(p,dt){const now=performance.now()/1000,skill=difficulty();let target=null,td=1e9;
- for(const e of players)if(e.alive&&e.team!==p.team&&(canSee(p,e)||e.revealT>now)){const d=dist(p,e);if(d<td){td=d;target=e}}
+ for(const e of combatTargets(p))if(canSee(p,e)||e.revealT>now){const d=dist(p,e);if(d<td){td=d;target=e}}
  if(target!==p.target){p.target=target;p.reactUntil=now+skill.reaction*rnd(.72,1.25);p.strafeDir=Math.random()<.5?-1:1}
  p.botChan=false;
  if(phase==="live"&&p.team==="ATK"&&bomb.state==="carried"&&bomb.carrier===p){
@@ -1494,9 +1605,24 @@ function botThink(p,dt){const now=performance.now()/1000,skill=difficulty();let 
  let goal=p.goal;
  if(!goal||dist(p,goal)<60||Math.random()<dt*.06){const z=Math.random()<.5?SITE_A:SITE_B;goal={x:(z.x+rnd(1,z.w-1))*TILE,y:(z.y+rnd(1,z.h-1))*TILE};p.goal=goal}
  botMoveTo(p,goal,dt)}
-function dashPlayer(p,distance){const step=12,ox=p.x,oy=p.y;for(let d=step;d<=distance;d+=step){const nx=ox+Math.cos(p.angle)*d,ny=oy+Math.sin(p.angle)*d;if(solidWorld(nx,ny))break;p.x=clamp(nx,TILE,WORLD_W-TILE);p.y=clamp(ny,TILE,WORLD_H-TILE)}}
-function move(p,dx,dy,dt){const l=Math.hypot(dx,dy);if(!l){p.vx=p.vy=0;return}let sp=220*speedMul(p);if(p.slowT>performance.now()/1000)sp*=.55;if(p.cur==="sniper"&&p.div.id!=="nomad")sp*=.86;const nx=p.x+dx/l*sp*dt,ny=p.y+dy/l*sp*dt;p.vx=(nx-p.x)/dt;p.vy=(ny-p.y)/dt;if(!solidWorld(nx,p.y))p.x=clamp(nx,TILE,WORLD_W-TILE);if(!solidWorld(p.x,ny))p.y=clamp(ny,TILE,WORLD_H-TILE)}
-function startMatch(){const arenaId=window.CS3D_selectedArenaId||selectedArenaId||"forge";if(window.buildArenaFor)window.buildArenaFor(arenaId);players=[];if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;const names=["DENZEL","KENZA","STANLEY","JUSTIN","JOSEPH","AHMAD","DEVON","ANDREA","JERRIAN","DANTE","KAY","ORACLE","SENTRY","APEX","CIPHER","RELAY"].sort(()=>Math.random()-.5);const pool=DIVS.map(d=>d.id).filter(id=>id!==myDiv.id).sort(()=>Math.random()-.5);me=makePlayer(myTeam,myDiv.id,true,"HATAALII");me.matchXp=0;players.push(me);for(let i=0;i<4;i++)players.push(makePlayer(myTeam,pool.pop(),false,names.pop()));const en=myTeam==="ATK"?"DEF":"ATK";for(let i=0;i<5;i++)players.push(makePlayer(en,pool.pop(),false,names.pop()));document.getElementById("menu").style.display="none";document.getElementById("hud").style.display="block";document.getElementById("crosshair").style.display="block";document.getElementById("touchControls").classList.add("active");for(const r of rigs.values())scene.remove(r.root);rigs.clear();players.forEach(p=>makeRig(p));SND.setMusic(false);SND.setAmb(true);feed(`${arenaTheme(arenaId).name||"ARENA"} / ${difficulty().n} INTENSITY`,arenaTheme(arenaId).accent);startRound()}
+function dashPlayer(p,distance){const step=12,ox=p.x,oy=p.y;for(let d=step;d<=distance;d+=step){const nx=ox+Math.cos(p.angle)*d,ny=oy+Math.sin(p.angle)*d;if(solidWorld(nx,ny)||blockedByBoss(nx,ny,p))break;p.x=clamp(nx,TILE,WORLD_W-TILE);p.y=clamp(ny,TILE,WORLD_H-TILE)}}
+function move(p,dx,dy,dt){const l=Math.hypot(dx,dy);if(!l){p.vx=p.vy=0;return}let sp=220*speedMul(p);if(p.slowT>performance.now()/1000)sp*=.55;if(p.cur==="sniper"&&p.div.id!=="nomad")sp*=.86;const nx=p.x+dx/l*sp*dt,ny=p.y+dy/l*sp*dt;p.vx=(nx-p.x)/dt;p.vy=(ny-p.y)/dt;if(!solidWorld(nx,p.y)&&!blockedByBoss(nx,p.y,p))p.x=clamp(nx,TILE,WORLD_W-TILE);if(!solidWorld(p.x,ny)&&!blockedByBoss(p.x,ny,p))p.y=clamp(ny,TILE,WORLD_H-TILE)}
+function startMatch(){
+ const arenaId=window.CS3D_selectedArenaId||selectedArenaId||"forge";if(window.buildArenaFor)window.buildArenaFor(arenaId);players=[];clearBoss();matchFinalized=false;matchOutcomeOverride=null;bossOutcome="";apexComplete=false;apexWinner=null;scoreATK=scoreDEF=0;round=1;
+ if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;
+ const names=["DENZEL","KENZA","STANLEY","JUSTIN","JOSEPH","AHMAD","DEVON","ANDREA","JERRIAN","DANTE","KAY","ORACLE","SENTRY","APEX","CIPHER","RELAY"].sort(()=>Math.random()-.5),allIds=DIVS.map(d=>d.id);
+ let squadIds=selectedPlaylist==="standard"?[myDiv.id]:BOSS_RUNTIME.normalizeSquad?.(selectedSquad,allIds,myDiv.id)||selectedSquad;
+ const pool=allIds.filter(id=>!squadIds.includes(id)).sort(()=>Math.random()-.5);
+ while(squadIds.length<5)squadIds.push(pool.pop());
+ myDiv=DIV_BY_ID[squadIds[0]];me=makePlayer(myTeam,myDiv.id,true,"HATAALII");me.matchXp=0;players.push(me);
+ for(const id of squadIds.slice(1,5))players.push(makePlayer(myTeam,id,false,names.pop()));
+ if(selectedPlaylist==="standard"){encounterKind="standard";const en=myTeam==="ATK"?"DEF":"ATK";for(let i=0;i<5;i++)players.push(makePlayer(en,pool.pop(),false,names.pop()))}
+ document.getElementById("menu").style.display="none";document.getElementById("hud").style.display="block";document.getElementById("crosshair").style.display="block";document.getElementById("touchControls").classList.add("active");
+ for(const r of rigs.values())scene.remove(r.root);rigs.clear();players.forEach(p=>makeRig(p));SND.setMusic(false);SND.setAmb(true);feed(`${arenaTheme(arenaId).name||"ARENA"} / ${PLAYLISTS[selectedPlaylist]?.name||"TACTICAL"} / ${difficulty().n}`,arenaTheme(arenaId).accent);
+ if(selectedPlaylist==="boss"){encounterKind="boss";startBossEncounter(myTeam,{source:"boss"})}
+ else if(selectedPlaylist==="wave"){encounterKind="wave";const bossId=BOSS_RUNTIME.chooseRandomBoss?.(BOSS_DNA.map(b=>b.id),Math.random,lastBossId);wavePlan=BOSS_RUNTIME.buildWavePlan?.({operatorIds:allIds,squadIds,bossId,rng:Math.random})||[];startWave(0)}
+ else startRound()
+}
 function startRound(){for(const p of players){const sp=spawn(p.team);p.x=sp.x;p.y=sp.y;p.alive=true;p.deadT=0;p.hp=maxHp(p);p.armor=p.div.id==="terra"?25:0;p.reloadT=0;p.fireT=0;p.doctrineT=0;p.abilityT=0;p.slowT=0;p.speedUntil=0;p.teamSpeedUntil=0;p.fireUntil=0;p.critUntil=0;p.phaseUntil=0;p.regenUntil=0;p.linkRegenUntil=0;p.rootBurnUntil=0;p.refundUntil=0;p.refundPool=0;p.silencedUntil=0;p.controlUntil=0;p.controlDebuffUntil=0;p.markUntil=0;p.signalMarkUntil=0;p.damageUntil=0;p.resistUntil=0;p.slowFireUntil=0;p.titheUntil=0;p.seedOnDeathUntil=0;p.viralStacks=0;p.edgeHits=0;p.boostShots=0;p.usedWind=false;p.goal=null;p.path=null;p.pathGoal=null;p.target=null;p.reactUntil=0;p.chan=0;p.botChan=false;p.siteGoal=null;for(const k in p.weapons){p.weapons[k].ammo=p.weapons[k].mag;p.weapons[k].reserve=p.weapons[k].res}}
  clearSpikeMesh();
  const atk=players.filter(p=>p.team==="ATK");
@@ -1504,18 +1630,29 @@ function startRound(){for(const p of players){const sp=spawn(p.team);p.x=sp.x;p.
  phase="buy";phaseT=BUY_TIME;showBanner("BUY PHASE");
  feed(bomb.carrier===me?"You carry the spike. Plant on a site.":"Spike carried by "+bomb.carrier.name,"#f59e0b");
  feed("Slot 5 equips your doctrine weapon. Slot 6 cycles Series 03. Q unleashes the equipped special.","#d4a843")}
-function checkRound(){if(phase!=="live")return;const a=players.some(p=>p.alive&&p.team==="ATK"),d=players.some(p=>p.alive&&p.team==="DEF");
+function checkRound(){
+ if(phase!=="live")return;
+ if(encounterKind!=="standard"){
+  const encounterTeam=encounterKind==="apex"?apexWinner:myTeam,squadAlive=players.some(p=>p.alive&&p.team===encounterTeam);if(!squadAlive)return encounterDefeat();
+  if(activeBoss?.alive)return;
+  if(encounterKind==="wave"){
+   const hostiles=players.some(p=>p.alive&&p.team!==myTeam);if(!hostiles){phase="end";phaseT=3.5;pendingWaveIndex=waveIndex+1;showBanner(`WAVE ${waveIndex+1} CLEARED`)}
+  }
+  return
+ }
+ const a=players.some(p=>p.alive&&p.team==="ATK"),d=players.some(p=>p.alive&&p.team==="DEF");
  if(!d)return endRoundWin("ATK",bomb.state==="planted"?"SITE SECURED":"STRIKE ROUND");
- if(!a&&bomb.state!=="planted")return endRoundWin("DEF","SENTINEL ROUND")}
-function endGame(){document.getElementById("endScreen").style.display="grid";const won=(myTeam==="ATK"?scoreATK:scoreDEF)>=(myTeam==="ATK"?scoreDEF:scoreATK),before=careerLevel(),completion=Math.round((won?180:90)*difficulty().xp);me.matchXp=(me.matchXp||0)+completion;document.getElementById("endTitle").textContent=won?"VICTORY":"DEFEAT";document.getElementById("endSub").textContent=`Final ${scoreATK} - ${scoreDEF} / ${me.kills} eliminations as ${me.div.n} / ${difficulty().n}`;
+ if(!a&&bomb.state!=="planted")return endRoundWin("DEF","SENTINEL ROUND")
+}
+function endGame(){if(matchFinalized)return;matchFinalized=true;phase="gameover";document.getElementById("endScreen").style.display="grid";const scoreWon=(myTeam==="ATK"?scoreATK:scoreDEF)>=(myTeam==="ATK"?scoreDEF:scoreATK),won=matchOutcomeOverride===null?scoreWon:matchOutcomeOverride,before=careerLevel(),completion=Math.round((won?180:90)*difficulty().xp);me.matchXp=(me.matchXp||0)+completion;document.getElementById("endTitle").textContent=won?"VICTORY":"DEFEAT";const resultLine=selectedPlaylist==="standard"?`Final ${scoreATK} - ${scoreDEF}`:`${PLAYLISTS[selectedPlaylist]?.name||"ENCOUNTER"} / ${bossOutcome||`WAVE ${waveIndex+1}`}`;document.getElementById("endSub").textContent=`${resultLine} / ${me.kills} eliminations as ${me.div.n} / ${difficulty().n}`;
  CAREER.matches++;if(won)CAREER.wins++;CAREER.kills+=me.kills;CAREER.deaths+=me.deaths;CAREER.xp=(CAREER.xp||0)+me.matchXp;CAREER.bestStreak=Math.max(CAREER.bestStreak||0,me.bestStreak||0);CAREER.mastery=CAREER.mastery||{};CAREER.mastery[me.div.id]=(CAREER.mastery[me.div.id]||0)+me.matchXp;const arenaId=window.CS3D_selectedArenaId||selectedArenaId;CAREER.arenaWins=CAREER.arenaWins||{};if(won)CAREER.arenaWins[arenaId]=(CAREER.arenaWins[arenaId]||0)+1;const after=careerLevel();saveCareer();
  document.getElementById("endRewards").innerHTML=`<div class="reward"><b>+${me.matchXp}</b><span>MATCH XP</span></div><div class="reward"><b>${me.kills}</b><span>ELIMINATIONS</span></div><div class="reward"><b>LV ${after}</b><span>${after>before?"LEVEL UP":"CAREER LEVEL"}</span></div>`;
  SND.setAmb(false);SND.jingle(won)}
-function updateSim(dt){if(phase==="menu")return;const now=performance.now()/1000;
+function updateSim(dt){if(phase==="menu"||phase==="gameover")return;const now=performance.now()/1000;
  if(!(phase==="live"&&bomb.state==="planted"))phaseT-=dt;
- if(phase==="buy"&&phaseT<=0){phase="live";phaseT=ROUND_TIME;showBanner("LIVE")}
- if(phase==="live"&&phaseT<=0&&bomb.state!=="planted")endRoundWin("DEF","TIME EXPIRED");
- if(phase==="end"&&phaseT<=0)startRound();
+ if(phase==="buy"&&phaseT<=0){phase="live";phaseT=encounterKind==="wave"&& !activeBoss?75:ROUND_TIME;showBanner(activeBoss?"APEX LIVE":encounterKind==="wave"?`WAVE ${waveIndex+1} LIVE`:"LIVE")}
+ if(phase==="live"&&phaseT<=0&&bomb.state!=="planted"){if(encounterKind==="standard")endRoundWin("DEF","TIME EXPIRED");else encounterDefeat()}
+ if(phase==="end"&&phaseT<=0){if(pendingWaveIndex!==null)startWave(pendingWaveIndex);else if(encounterKind==="standard")startRound();else endGame();return}
  if(phase==="live"&&bomb.state==="planted"){
   bomb.timer-=dt;bomb.beepT-=dt;
   if(bomb.beepT<=0){const urg=clamp(1-bomb.timer/SPIKE_TIMER,0,1);bomb.beepT=bomb.timer>12?(.95-urg*.5):.24;SND.plantBeep(urg);fx.ring(bomb.x,bomb.y,"#f59e0b",.7+urg*.9)}
@@ -1544,15 +1681,16 @@ function updateSim(dt){if(phase==="menu")return;const now=performance.now()/1000
   if(p.refundPool>0&&p.refundUntil<=now){p.hp=Math.min(maxHp(p),p.hp+p.refundPool);p.refundPool=0;fx.ring(p.x,p.y,"#DDD6FE",.8)}
   if(p.div.id==="vital"&&p.toxinUntil<=now&&now-(p.lastDmg||0)>4)p.hp=Math.min(maxHp(p),p.hp+2*dt);
   if(!p.human){botThink(p,dt);updateChannel(p,dt,p.botChan)}
- }}
+ }
+ updateBoss(dt,now)
+}
 function updateAim(){const ndc=new THREE.Vector2(mouse.x/innerWidth*2-1,-(mouse.y/innerHeight)*2+1),v=new THREE.Vector3();raycaster.setFromCamera(ndc,camera);if(raycaster.ray.intersectPlane(ground,v)){aim.x=v.x/S;aim.y=v.z/S}}
 function rayWallDistance(x,y,ang,max=1300){for(let d=12;d<max;d+=12){if(solidWorld(x+Math.cos(ang)*d,y+Math.sin(ang)*d))return d}return max}
 function bestShotTarget(p,ang,wallD,assist=false){
  let best=null,score=1e9;
- for(const q of players){
-  if(!q.alive||q.team===p.team)continue;
+ for(const q of combatTargets(p)){
   const dx=q.x-p.x,dy=q.y-p.y,proj=dx*Math.cos(ang)+dy*Math.sin(ang);if(proj<0||proj>wallD)continue;
-  const perp=Math.abs(-dx*Math.sin(ang)+dy*Math.cos(ang)),cone=assist?Math.max(PLAYER_R+34,proj*.1):PLAYER_R+8;
+  const hitR=q.isBoss?q.radius:PLAYER_R,perp=Math.abs(-dx*Math.sin(ang)+dy*Math.cos(ang)),cone=assist?Math.max(hitR+34,proj*.1):hitR+8;
   if(perp>cone||!rayClear(p.x,p.y,q.x,q.y))continue;
   const s=perp+proj*.015;if(s<score){score=s;best=q}
  }
@@ -1572,8 +1710,7 @@ function screenDistToPlayer(q){
 function crosshairTarget(p){
  if(!p||!p.alive)return null;
  let best=null,score=1e9;
- for(const q of players){
-  if(!q.alive||q.team===p.team)continue;
+ for(const q of combatTargets(p)){
   if(!rayClear(p.x,p.y,q.x,q.y))continue;
   const d=screenDistToPlayer(q);
   if(d>27)continue;
@@ -1611,8 +1748,8 @@ function ensurePreviewPad(){
  const column=new THREE.PointLight(0x8bd7ff,2.2,14,1.5);column.position.set(0,3,0);previewPad.add(column);
  return previewPad
 }
-function updateRender(dt){if(phase==="menu"){if(arenaGroup)arenaGroup.visible=false;updateWorld(dt);updatePreview(dt);drawScene();return}if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;players.forEach(p=>updateRig(p,dt));fx.step(dt);updateWorld(dt);for(let i=tempMeshes.length-1;i>=0;i--){const o=tempMeshes[i];o.t-=dt;if(o.m.material)o.m.material.opacity=Math.min(.72,Math.max(0,o.t*.8));if(o.t<=0){scene.remove(o.m);if(o.m.material)o.m.material.dispose();tempMeshes.splice(i,1)}}let followP=me;
-if(!me.alive){const mate=players.find(q=>q.alive&&q.team===myTeam);if(mate)followP=mate;else if(bomb.state==="planted")followP=bomb}
+function updateRender(dt){if(phase==="menu"){if(arenaGroup)arenaGroup.visible=false;updateWorld(dt);updatePreview(dt);drawScene();return}if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;players.forEach(p=>updateRig(p,dt));if(activeBoss){const br=bossRigs.get(activeBoss.id),now=performance.now()/1000;if(br){br.root.visible=activeBoss.alive;br.root.position.set(activeBoss.x*S,0,activeBoss.y*S);BOSS_RUNTIME.updateBossRig?.(br,dt,now,{speed:Math.hypot(activeBoss.vx||0,activeBoss.vy||0),angle:activeBoss.angle,phase,hit:clamp(((activeBoss.hitT||0)-now)/.3,0,1),telegraph:!!activeBoss.pendingAbility})}}fx.step(dt);updateWorld(dt);for(let i=tempMeshes.length-1;i>=0;i--){const o=tempMeshes[i];o.t-=dt;if(o.m.material)o.m.material.opacity=Math.min(.72,Math.max(0,o.t*.8));if(o.t<=0){scene.remove(o.m);if(o.m.material)o.m.material.dispose();tempMeshes.splice(i,1)}}let followP=me;
+if(!me.alive){const mate=players.find(q=>q.alive&&q.team===myTeam);if(mate)followP=mate;else if(activeBoss?.alive)followP=activeBoss;else if(bomb.state==="planted")followP=bomb}
 const lead=(followP===me&&me.alive)?{x:(aim.x-me.x)*.08,y:(aim.y-me.y)*.08}:{x:0,y:0};
 const tx=(followP.x+lead.x)*S,tz=(followP.y+lead.y)*S;
 camera.position.lerp(V3(tx,44,tz+28),Math.min(1,dt*7));
@@ -1624,7 +1761,9 @@ scene.traverse(o=>{if(o.userData.spin)o.rotation.z+=dt*.5});drawScene()}
 function updatePreview(dt){if(!preview)return;menuOrbit+=dt*.45;preview.angle=Math.PI/2-menuOrbit;updateRig(preview,dt);const px=WORLD_W*S*.82,pz=WORLD_H*S*.24,pad=ensurePreviewPad();pad.visible=true;pad.position.set(px,0,pz);pad.children.forEach(o=>{if(o.userData.previewSpin)o.rotation.z+=dt*o.userData.previewSpin});const r=rigs.get(preview.id);let eye=2.6,mid=1.6;if(r){const fit=clamp(1.55/Math.max(.5,r.fitR),.45,2.4);r.root.scale.setScalar(fit);r.root.visible=true;r.mark.visible=false;eye=r.fitR*fit;mid=r.fitY*fit;preview.greetT=(preview.greetT===undefined?2.2:preview.greetT)-dt;if(preview.greetT<=0){r.greet=1.2;preview.greetT=6.5}}const target=V3(px,mid,pz);const orbit=eye*4.1;if(previewLight){previewLight.position.set(target.x+2,mid+eye*2.8,target.z+4);previewLight.color.set(hex(preview.div.c)).lerp(hex("#ffffff"),.45)}if(previewRim)previewRim.position.set(target.x-Math.sin(menuOrbit)*eye*3,mid+eye*1.1,target.z-Math.cos(menuOrbit)*eye*3);const want=V3(target.x+Math.sin(menuOrbit)*orbit,mid+eye*1.5,target.z+Math.cos(menuOrbit)*orbit);if(previewSnap){camera.position.copy(want);previewSnap=false}else camera.position.lerp(want,Math.min(1,dt*4));camera.lookAt(target)}
 function renderTacticalHUD(nowS,w){
  const objective=document.getElementById("objectiveChip");let text="HOLD THE LINE",hot=false;
- if(phase==="buy")text=`ARMORY OPEN - ROUND ${round}`;
+ if(activeBoss?.alive){text=`APEX TARGET / ${activeBoss.name}`;hot=true}
+ else if(encounterKind==="wave"){text=`WAVE ${waveIndex+1} / CLEAR ALL HOSTILES`;hot=true}
+ else if(phase==="buy")text=`ARMORY OPEN - ROUND ${round}`;
  else if(phase==="end")text="ROUND RESOLVED";
  else if(!me.alive)text="SPECTATING ALLIED SIGNAL";
  else if(bomb.state==="planted"){text=myTeam==="DEF"?"DEFUSE THE SPIKE":"PROTECT THE SPIKE";hot=true}
@@ -1648,10 +1787,11 @@ function renderTacticalHUD(nowS,w){
 }
 function renderHUD(){if(!me)return;const nowS=performance.now()/1000;document.getElementById("atkScore").textContent=scoreATK;document.getElementById("defScore").textContent=scoreDEF;
  const clockEl=document.getElementById("clock"),planted=phase==="live"&&bomb.state==="planted";
- document.getElementById("phase").textContent=planted?"SPIKE LIVE":(phase==="buy"?"Buy ":"Round ")+round;
+ document.getElementById("phase").textContent=activeBoss?.alive?"APEX":encounterKind==="wave"?`WAVE ${waveIndex+1}`:planted?"SPIKE LIVE":(phase==="buy"?"Buy ":"Round ")+round;
  const showT=planted?Math.max(0,bomb.timer):Math.max(0,phaseT);
  clockEl.textContent=`${Math.floor(showT/60)}:${String(Math.floor(showT%60)).padStart(2,"0")}`;
  clockEl.style.color=planted?(bomb.timer<10?"#ef4444":"#f59e0b"):"";
+ const bossHud=document.getElementById("bossHud"),bossLive=!!activeBoss?.alive;bossHud.classList.toggle("on",bossLive);if(bossLive){document.getElementById("bossName").textContent=activeBoss.name;document.getElementById("bossAbility").textContent=activeBoss.pendingAbility?`TELEGRAPH / ${activeBoss.lastAbilityName}`:activeBoss.lastAbilityName;document.getElementById("bossBar").style.width=clamp(activeBoss.hp/activeBoss.maxHp*100,0,100)+"%"}
  const sm=document.getElementById("spikeMsg");let smTxt="";
  if(phase==="live"&&me.alive){
   if(bomb.state==="carried"&&bomb.carrier===me)smTxt=inSite(me)?"HOLD F TO PLANT THE SPIKE":"YOU HAVE THE SPIKE - GET TO SITE A OR B";
@@ -1697,6 +1837,9 @@ function drawMinimap(){
   mmG.fillStyle=p===me?"#f8fafc":(enemy?"#ef4444":"#38bdf8");mmG.fill();
   if(p===me){mmG.strokeStyle="rgba(248,250,252,.85)";mmG.lineWidth=1.4;mmG.beginPath();mmG.moveTo(p.x*sx,p.y*sy);mmG.lineTo(p.x*sx+Math.cos(p.angle)*7,p.y*sy+Math.sin(p.angle)*7);mmG.stroke()}
  }
+ if(activeBoss?.alive){
+  const bx=activeBoss.x*sx,by=activeBoss.y*sy,pulse=1+.18*Math.sin(now*7);mmG.save();mmG.translate(bx,by);mmG.rotate(Math.PI/4);mmG.fillStyle=activeBoss.dna.accent||"#f9a8d4";mmG.shadowColor=activeBoss.dna.accent||"#f9a8d4";mmG.shadowBlur=8;mmG.fillRect(-4.6*pulse,-4.6*pulse,9.2*pulse,9.2*pulse);mmG.rotate(-Math.PI/4);mmG.fillStyle="#160817";mmG.font="900 8px 'JetBrains Mono',monospace";mmG.textAlign="center";mmG.textBaseline="middle";mmG.fillText("B",0,.5);mmG.restore()
+ }
  if(bomb&&(bomb.state==="planted"||bomb.state==="dropped")){
   const bl=.5+.5*Math.sin(now*(bomb.state==="planted"?8:3));
   mmG.beginPath();mmG.arc(bomb.x*sx,bomb.y*sy,3+bl*1.6,0,7);
@@ -1740,15 +1883,29 @@ function initSettings(){
  document.getElementById("resumeBtn").onclick=togglePause;
  document.getElementById("quitBtn").onclick=()=>location.reload();
 }
-function initMenu(){/* multi-arena-init */if(window.initArenaSelect)window.initArenaSelect();const grid=document.getElementById("divGrid");DIVS.forEach(d=>{const c=document.createElement("div");c.className="divCard";c.style.setProperty("--c",d.c);c.innerHTML=`<div class="top"><div class="swatch">${d.n.split(" ").map(w=>w[0]).join("").slice(0,2)}</div><div><div class="nm">${d.n}</div><div class="role">${d.role}</div></div></div><div class="kit"><span class="keycap">E</span><span>${d.ab}</span></div><div class="ds">${d.d}</div><div class="pv"><b>PASSIVE</b> / ${d.pv}</div>`;c.onclick=()=>{SND.uiClick();selectDiv(d,c)};c.onmouseenter=()=>SND.uiClick(true);grid.appendChild(c)});
+function initMenu(){/* multi-arena-init */if(window.initArenaSelect)window.initArenaSelect();const grid=document.getElementById("divGrid");DIVS.forEach(d=>{const c=document.createElement("div");c.className="divCard";c.dataset.division=d.id;c.style.setProperty("--c",d.c);c.innerHTML=`<div class="top"><div class="swatch">${d.n.split(" ").map(w=>w[0]).join("").slice(0,2)}</div><div><div class="nm">${d.n}</div><div class="role">${d.role}</div></div></div><div class="kit"><span class="keycap">E</span><span>${d.ab}</span></div><div class="ds">${d.d}</div><div class="pv"><b>PASSIVE</b> / ${d.pv}</div>`;c.onclick=()=>{SND.uiClick();selectDiv(d,c)};c.onmouseenter=()=>SND.uiClick(true);grid.appendChild(c)});
  const cl=document.getElementById("careerLine");
  const level=careerLevel(),floor=levelFloor(level),ceil=levelCeil(level);
  if(cl)cl.innerHTML=CAREER.matches>0?`LEVEL <b>${level}</b> / <b>${CAREER.wins}</b> WINS / <b>${CAREER.kills}</b> ELIMS / <b>${CAREER.xp}</b> XP`:`LEVEL <b>1</b> / FIRST DEPLOYMENT`;
  document.getElementById("careerProgress").style.width=clamp(((CAREER.xp||0)-floor)/(ceil-floor)*100,0,100)+"%";
  document.querySelectorAll(".difficultyBtn").forEach(b=>{b.classList.toggle("sel",b.dataset.difficulty===selectedDifficulty);b.onclick=()=>{selectedDifficulty=b.dataset.difficulty;try{localStorage.setItem("cs3d_difficulty",selectedDifficulty)}catch(e){}document.querySelectorAll(".difficultyBtn").forEach(x=>x.classList.toggle("sel",x===b));document.getElementById("difficultyDesc").textContent=difficulty().desc;SND.uiClick()}});
  document.getElementById("difficultyDesc").textContent=difficulty().desc;
- initSettings();animateIf(".divCard",{opacity:[0,1],translateY:[18,0],delay:window.anime&&anime.stagger?anime.stagger(24):0,duration:520,easing:"easeOutExpo"});document.querySelectorAll(".teamBtn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".teamBtn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");myTeam=b.dataset.team;if(preview)preview.team=myTeam;animateIf(b,{scale:[.98,1.02,1],duration:360,easing:"easeOutQuad"})});document.getElementById("deployBtn").onclick=()=>{if(myDiv){SND.uiClick();startMatch()}};selectDiv(DIVS[0],grid.firstChild)}
-function selectDiv(d,card){document.querySelectorAll(".divCard").forEach(x=>x.classList.remove("sel"));card.classList.add("sel");myDiv=d;const sig=SIGNATURES[d.id];document.getElementById("deployBtn").classList.add("ready");document.getElementById("previewName").textContent=d.n.toUpperCase();document.getElementById("previewName").style.color=d.c;document.getElementById("previewRole").textContent=`${d.role} / ${d.ab}`;document.getElementById("previewActive").textContent=d.d;document.getElementById("previewPassive").textContent=d.pv;document.getElementById("previewClass").textContent=d.role;document.getElementById("previewWeapon").textContent=`${sig.n} / ${sig.type}`;document.getElementById("previewDoctrine").textContent=`${sig.special.n} — ${sig.special.eff}`;animateIf("#previewCopy .statPill, #previewName, #previewRole",{opacity:[0,1],translateY:[10,0],delay:window.anime&&anime.stagger?anime.stagger(35):0,duration:420,easing:"easeOutExpo"});if(preview){const r=rigs.get(preview.id);if(r){r.root.traverse(o=>{if(o.material&&o.material.dispose)o.material.dispose()});scene.remove(r.root)}rigs.delete(preview.id)}preview={id:"preview_"+d.id,team:myTeam,div:d,x:WORLD_W*.82,y:WORLD_H*.24,angle:0,alive:true,cur:"signature",weapons:{signature:doctrineWeapon(d.id)},fireKick:0};makeRig(preview,true)}
+ document.querySelectorAll(".playlistBtn").forEach(b=>b.onclick=()=>setPlaylist(b.dataset.playlist));
+ initSettings();animateIf(".divCard",{opacity:[0,1],translateY:[18,0],delay:window.anime&&anime.stagger?anime.stagger(24):0,duration:520,easing:"easeOutExpo"});document.querySelectorAll(".teamBtn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".teamBtn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");myTeam=b.dataset.team;if(preview)preview.team=myTeam;animateIf(b,{scale:[.98,1.02,1],duration:360,easing:"easeOutQuad"})});document.getElementById("deployBtn").onclick=()=>{if(myDiv&&document.getElementById("deployBtn").classList.contains("ready")){SND.uiClick();startMatch()}};selectDiv(DIVS[0],grid.firstChild)}
+function setPlaylist(id){
+ if(!PLAYLISTS[id])return;selectedPlaylist=id;document.querySelectorAll(".playlistBtn").forEach(b=>b.classList.toggle("sel",b.dataset.playlist===id));selectedSquad=myDiv?[myDiv.id]:[];document.querySelector(".tag").textContent=PLAYLISTS[id].description;document.getElementById("deployBtn").textContent=id==="wave"?"DEPLOY WAVE SQUAD":id==="boss"?"HUNT APEX":"DEPLOY";renderSquadSelection();SND.uiClick()
+}
+function renderSquadSelection(){
+ const squadMode=selectedPlaylist!=="standard",needed=PLAYLISTS[selectedPlaylist]?.squadSize||5;
+ document.querySelectorAll(".divCard").forEach(card=>{const slot=selectedSquad.indexOf(card.dataset.division);card.classList.toggle("squad",squadMode&&slot>=0);card.classList.toggle("sel",slot===0);if(slot>=0)card.dataset.slot=slot+1;else delete card.dataset.slot});
+ const ready=selectedPlaylist==="standard"?!!myDiv:selectedSquad.length===needed,line=document.getElementById("squadLine"),btn=document.getElementById("deployBtn");
+ line.textContent=selectedPlaylist==="standard"?"CONTROLLED OPERATOR SELECTED / SQUAD AUTO-ASSIGNED":`${selectedSquad.length} / ${needed} OPERATORS SELECTED / SLOT 1 IS PLAYER CONTROLLED`;line.classList.toggle("ready",ready);btn.classList.toggle("ready",ready)
+}
+function selectDiv(d,card){
+ if(selectedPlaylist==="standard"){selectedSquad=[d.id];myDiv=d}
+ else{const at=selectedSquad.indexOf(d.id);if(at>=0&&selectedSquad.length>1)selectedSquad.splice(at,1);else if(at<0&&selectedSquad.length<5)selectedSquad.push(d.id);else if(at<0){const line=document.getElementById("squadLine");line.textContent="SQUAD FULL / DESELECT AN OPERATOR TO CHANGE THE TEAM"}myDiv=DIV_BY_ID[selectedSquad[0]]||d}
+ renderSquadSelection();const sig=SIGNATURES[d.id];document.getElementById("previewName").textContent=d.n.toUpperCase();document.getElementById("previewName").style.color=d.c;document.getElementById("previewRole").textContent=`${d.role} / ${d.ab}`;document.getElementById("previewActive").textContent=d.d;document.getElementById("previewPassive").textContent=d.pv;document.getElementById("previewClass").textContent=d.role;document.getElementById("previewWeapon").textContent=`${sig.n} / ${sig.type}`;document.getElementById("previewDoctrine").textContent=`${sig.special.n} — ${sig.special.eff}`;animateIf("#previewCopy .statPill, #previewName, #previewRole",{opacity:[0,1],translateY:[10,0],delay:window.anime&&anime.stagger?anime.stagger(35):0,duration:420,easing:"easeOutExpo"});if(preview){const r=rigs.get(preview.id);if(r){r.root.traverse(o=>{if(o.material&&o.material.dispose)o.material.dispose()});scene.remove(r.root)}rigs.delete(preview.id)}preview={id:"preview_"+d.id,team:myTeam,div:d,x:WORLD_W*.82,y:WORLD_H*.24,angle:0,alive:true,cur:"signature",weapons:{signature:doctrineWeapon(d.id)},fireKick:0};makeRig(preview,true)
+}
 function bindStick(el,out,aimStick=false){
  const nub=el.querySelector(".touchNub");let active=null;
  const reset=()=>{active=null;out.x=out.y=0;nub.style.transform="translate(-50%,-50%)"};

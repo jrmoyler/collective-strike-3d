@@ -2,7 +2,7 @@
  * Collective Strike 3D — Procedural Boss Abilities
  *
  * Data-driven ability definitions for every apex boss. Parameters are derived
- * from DNA (scale, segments, accent, hpMult) so a future ability runner can
+ * from DNA (scale, segments, accent, hpMult) so the live encounter runner can
  * spawn zones / segments / trails without per-boss hard-coding.
  *
  * Differentiation note (Cognara):
@@ -260,8 +260,8 @@ export function assertAllBossesHaveAbilities() {
 }
 
 /**
- * Skeleton ability runner. Call from game loop when a boss is live.
- * Does not touch the 5v5 operator loop; only mutates boss state + FX hooks.
+ * Ability scheduler called by the live encounter loop. It owns cooldown and
+ * Cognara-copy semantics; the browser runtime resolves telegraphs and effects.
  *
  * @param {object} boss   live boss instance { id, dna, x, y, … }
  * @param {object} ctx    { players, now, fx, grid, lastPlayerAbilityId }
