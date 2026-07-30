@@ -203,6 +203,40 @@ try {
   if (stats.difficultyProfiles !== 3) problems.push(`expected 3 difficulty profiles, found ${stats.difficultyProfiles}`);
   if (!stats.pathfinderReady) problems.push("bot pathfinding did not produce a route");
   if (!stats.careerProgressionReady) problems.push("career progression contract is not callable");
+
+  console.log("smoke: validating boss runtime");
+  const bossStats = await page.evaluate(() => {
+    const playlistButtons = document.querySelectorAll(".playlistBtn").length;
+    if (typeof startBossEncounter !== "function") {
+      return { playlistButtons, runtimeReady: false };
+    }
+    startBossEncounter(myTeam, { source: "smoke", bossId: "loom_hydra" });
+    phase = "live";
+    phaseT = 30;
+    updateSim(0.016);
+    updateRender(0.016);
+    renderHUD();
+    drawMinimap();
+    const bossRig = activeBoss ? bossRigs.get(activeBoss.id) : null;
+    return {
+      playlistButtons,
+      runtimeReady: Boolean(window.CS3D_BOSS?.PLAYLISTS),
+      bossAlive: Boolean(activeBoss?.alive),
+      bossId: activeBoss?.bossId,
+      fullRig: Boolean(bossRig && !bossRig.stub && bossRig.parts?.length >= 10),
+      hybridSegments: bossRig?.segments?.length || 0,
+      occupancyCells: activeBoss ? bossOccupancyCells(activeBoss).length : 0,
+      hudVisible: document.getElementById("bossHud")?.classList.contains("on") || false,
+      hudName: document.getElementById("bossName")?.textContent || "",
+    };
+  });
+  console.log("boss runtime:", JSON.stringify(bossStats));
+  if (bossStats.playlistButtons !== 3) problems.push(`expected 3 playlist choices, found ${bossStats.playlistButtons}`);
+  if (!bossStats.runtimeReady) problems.push("boss runtime bundle is unavailable");
+  if (!bossStats.bossAlive || bossStats.bossId !== "loom_hydra") problems.push("live boss encounter did not spawn LOOM HYDRA");
+  if (!bossStats.fullRig || bossStats.hybridSegments !== 3) problems.push("boss mesh locomotion rig is incomplete");
+  if (!(bossStats.occupancyCells > 1)) problems.push("boss collision does not occupy multiple cells");
+  if (!bossStats.hudVisible || !/LOOM HYDRA/i.test(bossStats.hudName)) problems.push("boss HUD did not render the live boss");
 } catch (error) {
   problems.push(`flow: ${error.message}`);
   await page.screenshot({ path: path.join(outDir, "99-failure.png") }).catch(() => {});

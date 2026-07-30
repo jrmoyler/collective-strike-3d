@@ -131,25 +131,33 @@ These three must remain distinct. The boss ability runner refuses to fall back t
 **Combat identity:** Local time dilation field — projectiles and movement slow inside the field, boss actions remain normal speed.  
 **Why different:** Time-scale zone is unique; no operator manipulates global or local time.
 
-## Suggested encounter hooks (future work)
+## Live encounter hooks
 
-- **Apex Spike** — after a team reaches 4 rounds, a random boss can spawn near the contested site for one round.
-- **Boss Mode** — separate playlist: 5 operators vs 1–2 bosses + minion bots.
-- **Career Challenge** — post-match optional duel against a boss for bonus XP / mastery.
+- **Apex Challenge** — the winning squad from a completed Tactical match
+  immediately battles a no-repeat random boss before the results screen.
+- **Boss Mode** — a separate five-operator-vs-Apex playlist.
+- **Wave Mode** — four escalating waves containing all 15 unselected operators,
+  followed by a random boss in wave five.
 
 ## Implementation notes for the engine
 
 - Boss DNA lives in `src/boss-dna.js` (exported array + lookup map + `resolveBossLocos`).
-- Procedural abilities live in `src/boss-abilities.js` (full table for all 12 + runner skeleton).
-- Visual construction: `src/boss-rig.js` → `makeBossRig` / `updateBossRig` (stub with hybrid support).
-- Collision: bosses occupy multiple grid cells or use a larger capsule; stomps and fields must respect the existing 36×26 collision grid.
+- Procedural abilities live in `src/boss-abilities.js` (full table and live
+  runner for all 12).
+- Visual construction lives in `src/boss-rig.js`: every locomotion class has a
+  distinct full-mesh build and update path; hybrid rigs combine both paths.
+- Encounter planning, squad selection, safe spawns, and circular multi-cell
+  occupancy live in `src/boss-mode.js`.
+- The browser build exposes these first-party modules through the vendored
+  offline runtime as `window.CS3D_BOSS`.
 - Keep the offline / vendored contract: no network asset loads.
 - Performance budget: a single boss + its drones should stay under the cost of ~3–4 normal operators.
 
 ## Status
 
-- Design + data: complete (all 12 bosses).
-- Hybrid LOOM HYDRA representation: explicit `loco` + `hybrid` (this PR).
-- Procedural ability schema + runner skeleton: complete for all 12 (this PR).
-- Cognara Mirror vs Cognitive Surge vs Cognitive Brand: differentiated (this PR).
-- Runtime spawn rules, HUD, minimap icons, full mesh loco animation: **not yet** — intentional so the data layer can be reviewed before deeper engine work.
+- Design + data: complete for all 12 bosses.
+- Tactical Apex Challenge, Boss Mode, and five-stage Wave Mode: live.
+- Safe spawn rules and multi-cell collision occupancy: live.
+- Full-mesh locomotion, hybrid LOOM HYDRA animation, boss HUD, and minimap
+  iconography: live.
+- Cognara Mirror vs Cognitive Surge vs Cognitive Brand: differentiated.

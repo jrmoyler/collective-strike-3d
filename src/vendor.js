@@ -12,6 +12,19 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { animate, stagger, utils } from "animejs";
+import { BOSS_DNA, BOSS_BY_ID, BOSS_LOCO_CLASSES, resolveBossLocos } from "./boss-dna.js";
+import { BOSS_ABILITIES, runBossAbility } from "./boss-abilities.js";
+import { makeBossRig, updateBossRig } from "./boss-rig.js";
+import {
+  PLAYLISTS,
+  buildWavePlan,
+  canOccupyCircle,
+  cellsForCircle,
+  chooseRandomBoss,
+  findBossSpawn,
+  normalizeSquad,
+  shouldStartApexChallenge
+} from "./boss-mode.js";
 
 /* v3-compatible surface used by the existing HUD/menu animations */
 function animeCompat(params) {
@@ -43,3 +56,21 @@ window.CS3D_VENDOR = {
   three: THREE.REVISION,
   anime: "4.5.0"
 };
+window.CS3D_BOSS = Object.freeze({
+  BOSS_DNA,
+  BOSS_BY_ID,
+  BOSS_LOCO_CLASSES,
+  BOSS_ABILITIES,
+  PLAYLISTS,
+  resolveBossLocos,
+  runBossAbility,
+  makeBossRig,
+  updateBossRig,
+  buildWavePlan,
+  canOccupyCircle,
+  cellsForCircle,
+  chooseRandomBoss,
+  findBossSpawn,
+  normalizeSquad,
+  shouldStartApexChallenge
+});

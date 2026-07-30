@@ -75,6 +75,23 @@ Touch and standard dual-stick gamepads are supported.
 Career XP and mastery are stored locally in the browser. Nothing is uploaded,
 and clearing browser storage resets progression.
 
+## Playlists
+
+- **Tactical** keeps the first-to-six spike match. When the match is decided,
+  the winning five-operator squad enters a post-match Apex Challenge against a
+  random boss from the 12-boss roster.
+- **Boss Mode** lets you choose a full five-operator squad and deploy directly
+  into a live Apex hunt.
+- **Wave Mode** lets you choose five operators, then distributes all 15
+  unselected divisions across four escalating waves. A random Apex boss is the
+  fifth and final wave.
+
+Bosses use arena-safe spawn checks, circular multi-cell collision occupancy,
+distinct procedural locomotion rigs, telegraphed roster abilities, persistent
+boss health/ability HUD, and a dedicated pulsing minimap icon. The playlist,
+boss AI, mesh, and ability runtime are bundled into `vendor/cs3d-runtime.js`, so
+all three modes preserve the offline-first contract.
+
 ## Deployment
 
 Vercel uses the checked-in `vercel.json`: `npm run build` into `dist/`, with
