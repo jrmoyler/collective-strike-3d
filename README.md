@@ -2,11 +2,17 @@
 
 A browser-native 5v5 tactical arena built with Three.js. Choose one of 20 Collective AI division operators, buy weapons, use operator abilities and team doctrines, plant or defuse the spike, and fight first-to-six matches against adaptive bot squads.
 
-Four fully realized combat spaces ship in the offline build: the molten Iron
-Forge, rain-soaked Neon District, frozen Cryo Lab, and bioluminescent Verdant
-Ruins. Each arena has its own architecture, materials, atmosphere, landmarks,
-lighting, and ambient effects while preserving the same learnable competitive
-layout.
+Ten fully realized combat spaces ship in the offline build: Forge Lattice,
+Neon Canopy, Cryo Relay, Verdant Core, Solar Bastion, Abyssal Vault, Tempest
+Spire, Lunar Excavation, Ember Caldera, and Mirage Terminal. Each arena has its
+own procedural textures, PBR material response, architecture, atmosphere,
+landmarks, lighting, and animated environmental effects while preserving the
+same learnable competitive layout.
+
+After choosing an operator or squad, deployment advances to a dedicated live
+map-selection screen. The selected arena is rendered as an isometric tactical
+miniature with Site A/B and team-spawn markers, biome and mode guidance,
+keyboard/click navigation, and an explicit deployment confirmation.
 
 Three difficulty profiles make the game welcoming for a first-time player and
 still demanding for tactical-game veterans. Persistent career XP, operator

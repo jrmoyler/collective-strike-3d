@@ -1,33 +1,32 @@
-# Multi-Arena + VFX Upgrade (v1.1)
+# Ten-Arena Deployment System (v1.3)
 
 ## Arenas (connected tactical lattice)
 
-All four arenas share the same 36×26 collision grid, Site A/B, and spawn zones so bots, spike objective, minimap, and round flow remain identical. Only art direction, lighting, particles, and prop sets change — this is intentional so the simulation stays rock-solid while presentation becomes four distinct worlds.
+All ten arenas share the same 36×26 collision grid, Site A/B, and spawn zones so bots, spike objective, minimap, and round flow remain identical. Art direction, procedural textures, PBR material response, architecture kits, lighting, particles, and animated environmental systems change per arena.
 
-| ID | Name | Mood | Key visual language |
-|----|------|------|---------------------|
-| `forge` | Forge Lattice | Industrial facility | Gold hazard, blue conduits, gantry lamps, dust motes (legacy polished) |
-| `neon` | Neon Canopy | Cyber rooftops | Magenta/cyan neon, sky bridges, holographic rails, rain particles |
-| `cryo` | Cryo Relay | Frozen outpost | Ice blue, reflective floor, crystalline cover, cold fog, frost particles |
-| `verdant` | Verdant Core | Overgrown bio-lab | Emerald/amber, living walls, spore volumes, organic soft cover |
+| ID | Name | Biome | Key visual language |
+|----|------|-------|---------------------|
+| `forge` | Forge Lattice | Molten industrial basin | Hazard panels, pressure stacks, turbines, gantries, dust |
+| `neon` | Neon Canopy | Megacity cloud layer | Wet cyber rooftops, holographic rails, towers, rain |
+| `cryo` | Cryo Relay | Polar ice shelf | Fractured ice textures, translucent crystals, coolant tanks, frost |
+| `verdant` | Verdant Core | Post-human rainforest | Wet stone, root textures, luminous trees, vines, spores |
+| `solar` | Solar Bastion | Sunscorched mesa | Sandstone tessellation, brass heliostats, collectors, heat dust |
+| `abyss` | Abyssal Vault | Hadopelagic trench | Ribbed bulkheads, pressure glass, sonar rings, bubbles |
+| `tempest` | Tempest Spire | Thunderhead archipelago | Hex alloy, cloud banks, conductor spires, rain, lightning |
+| `lunar` | Lunar Excavation | Lunar terminator | Cratered regolith, drills, satellite dishes, moon dust |
+| `caldera` | Ember Caldera | Basalt caldera | Volcanic fractures, magma flows, obsidian arches, embers |
+| `mirage` | Mirage Terminal | Glass-dune trade route | Mosaic stone, textile canopies, prisms, lanterns, sand |
 
-## Dependency upgrades
+## Post-operator map selection
 
-- `three` 0.149.0 → **0.185.1** (r185)
-- `animejs` 3.2.2 → **4.5.0** (with Three adapter + v3-compat shim)
-- Vendor bundle still offline-first; `window.anime` shim preserves existing UI animations
-- Modern API available as `window.animejs.animate / stagger / createTimeline`
+Character/squad selection now advances to a dedicated deployment stage:
 
-## Gameplay / UI / UX / VFX upgrades in this pass
+- The actual arena scene graph is framed by a slowly moving isometric camera.
+- Site A/B and both team spawns are identified by animated 3D markers.
+- The roster supports click selection, previous/next buttons, Left/Right keys, Enter confirmation, and Escape/Back.
+- Each selection exposes the map name, biome, recommended playlist, and tactical summary.
+- The confirmed arena is rebuilt before match entities spawn.
 
-- Arena select screen (cards + live theme preview, keyboard/gamepad)
-- Per-arena lighting, fog, emissive language, particle fields
-- Stronger muzzle / impact / ability / spike VFX
-- anime.js 4 driven menu transitions (staggered cards, banner scale)
-- Clearer objective chip states per arena flavour
-- Adaptive quality + bloom still driven by pause settings
-- Career line + pause settings preserved
+## Offline contract
 
-## R3F note
-
-Full migration to `@react-three/fiber` remains the correct next architectural step (see HANDOFF). This PR keeps the production single-file + vendored contract intact while delivering the multi-arena content and library upgrades.
+The scene uses only vendored Three.js and runtime-generated Canvas textures. No map image, model, font, shader, or material requires a network request.
