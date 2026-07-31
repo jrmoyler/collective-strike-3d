@@ -55,16 +55,24 @@ const seriesCount = seriesBlock ? [...seriesBlock[1].matchAll(/^\sseries03_[a-z]
 assert(seriesCount === 21, `exactly 21 Series 03 weapons are registered (found ${seriesCount})`);
 assert(signatureCount + seriesCount === 41, `complete additive arsenal contains 41 weapons (found ${signatureCount + seriesCount})`);
 
-// Multi-arena contracts (v1.1) — satisfied by src/arena-runtime.js and/or injected HTML
+// Ten-arena deployment contracts (v1.3)
 assert(/ARENAS\s*=/.test(corpus), "ARENAS registry is present");
-for (const id of ["forge", "neon", "cryo", "verdant"]) {
+const arenaIds = ["forge", "neon", "cryo", "verdant", "solar", "abyss", "tempest", "lunar", "caldera", "mirage"];
+for (const id of arenaIds) {
   assert(corpus.includes(`"${id}"`) || corpus.includes(`'${id}'`) || corpus.includes(`${id}:`), `arena id '${id}' is registered`);
 }
 assert(/selectArena|initArenaSelect|buildArenaFor|arenaCard|arenaRow/.test(corpus), "arena select / build wiring is present");
 assert(/function rebuildArena\(/.test(html) && /CS3D_rebuildArena/.test(corpus), "selected arenas rebuild their scene graph");
 assert(/function buildArenaThemeSet\(/.test(html), "arena-specific architecture sets are present");
-for (const architecture of ["forge", "neon", "cryo", "verdant"]) {
+for (const architecture of arenaIds) {
   assert(corpus.includes(`architecture: "${architecture}"`) || corpus.includes(`architecture:"${architecture}"`), `${architecture} architecture profile is registered`);
+}
+assert(/id="arenaSelectScreen"/.test(html) && /id="arenaDeployBtn"/.test(html), "post-operator arena deployment screen is present");
+assert(/function updateMapSelect\(/.test(html) && /function showArenaDiorama\(/.test(html), "selected arena renders as a live isometric miniature");
+assert(/function ensureMapSelectMarkers\(/.test(html) && /SITE A/.test(html) && /STRIKE SPAWN/.test(html) && /SENTINEL SPAWN/.test(html), "3D site and team-spawn markers are present");
+assert(/ArrowLeft/.test(arenaRuntime) && /ArrowRight/.test(arenaRuntime) && /confirmArenaSelection/.test(arenaRuntime), "keyboard navigation and deployment confirmation are wired");
+for (const field of ["arenaName", "arenaBiome", "arenaMode", "arenaSummary"]) {
+  assert(html.includes(`id="${field}"`), `${field} map intelligence field is present`);
 }
 assert(!/for\(let i=0;i<14;i\+\+\)\{\s*const x=1\.6\+rndP/.test(html), "decorative cover no longer spawns through walkable collision lanes");
 

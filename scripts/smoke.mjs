@@ -87,17 +87,75 @@ try {
   await page.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
   await page.waitForTimeout(1200);
 
-  console.log(`smoke: selecting ${arenaId}`);
-  const arena = page.locator(`[data-arena="${arenaId}"]`);
-  if (await arena.count() !== 1) throw new Error(`arena card not found: ${arenaId}`);
-  await arena.click();
-
   const cards = page.locator(".divCard");
   await cards.nth(divisionIndex).click();
   await page.waitForTimeout(2500);
   await page.screenshot({ path: path.join(outDir, "01-operator-select.png") });
 
-  console.log("smoke: deploying operator");
+  console.log("smoke: opening live arena selection");
+  await page.locator("#deployBtn").click();
+  await page.waitForFunction(() => document.getElementById("arenaSelectScreen")?.classList.contains("open") && phase === "mapselect", { timeout: 20_000 });
+  const arenaCoverage = await page.evaluate((restoreId) => {
+    const profiles = [];
+    for (const id of window.CS3D_ARENA_ORDER) {
+      window.selectArena(id);
+      updateRender(0.016);
+      let texturedMeshes = 0;
+      const materialKinds = new Set();
+      arenaGroup.traverse((object) => {
+        if (!object.material) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        for (const material of materials) {
+          materialKinds.add(material.type);
+          if (material.map) texturedMeshes++;
+        }
+      });
+      profiles.push({
+        id,
+        architecture: window.CS3D_ARENAS[id]?.architecture,
+        children: arenaGroup.children.length,
+        animatedBits: worldBits.length,
+        texturedMeshes,
+        materialKinds: [...materialKinds]
+      });
+    }
+    window.selectArena(restoreId);
+    return profiles;
+  }, arenaId);
+  console.log("arena coverage:", JSON.stringify(arenaCoverage));
+  if (arenaCoverage.length !== 10) problems.push(`expected 10 materialized arena profiles, found ${arenaCoverage.length}`);
+  if (new Set(arenaCoverage.map(profile => profile.architecture)).size !== 10) problems.push("arena architecture profiles are not unique");
+  for (const profile of arenaCoverage) {
+    if (profile.children < 100) problems.push(`${profile.id} arena scene is under-materialized (${profile.children} root objects)`);
+    if (profile.animatedBits < 20) problems.push(`${profile.id} arena has insufficient environmental animation (${profile.animatedBits} tracks)`);
+    if (profile.texturedMeshes < 10 || profile.materialKinds.length < 3) problems.push(`${profile.id} arena is missing textured/PBR material variety`);
+  }
+  const arena = page.locator(`[data-arena="${arenaId}"]`);
+  if (await arena.count() !== 1) throw new Error(`arena card not found: ${arenaId}`);
+  await arena.click();
+  await page.waitForFunction((id) => window.CS3D_selectedArenaId === id && arenaGroup?.userData?.theme === id, arenaId);
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowLeft");
+  const deploymentStats = await page.evaluate(() => ({
+    phase,
+    selectedArena: window.CS3D_selectedArenaId,
+    builtArena: arenaGroup?.userData?.theme,
+    arenaCards: document.querySelectorAll(".arenaCard").length,
+    markerCount: mapSelectMarkers?.children.length || 0,
+    markersVisible: Boolean(mapSelectMarkers?.visible),
+    arenaVisible: Boolean(arenaGroup?.visible),
+    metadataReady: ["arenaName", "arenaBiome", "arenaMode", "arenaSummary"].every(id => document.getElementById(id)?.textContent.trim()),
+    deployVisible: document.getElementById("arenaDeployBtn")?.offsetParent !== null
+  }));
+  console.log("deployment:", JSON.stringify(deploymentStats));
+  if (deploymentStats.phase !== "mapselect") problems.push(`expected mapselect phase, found ${deploymentStats.phase}`);
+  if (deploymentStats.selectedArena !== arenaId || deploymentStats.builtArena !== arenaId) problems.push(`diorama mismatch: selected ${deploymentStats.selectedArena}, built ${deploymentStats.builtArena}, expected ${arenaId}`);
+  if (deploymentStats.arenaCards !== 10) problems.push(`expected 10 arena cards, found ${deploymentStats.arenaCards}`);
+  if (deploymentStats.markerCount !== 4 || !deploymentStats.markersVisible) problems.push("live diorama is missing site/spawn markers");
+  if (!deploymentStats.arenaVisible || !deploymentStats.metadataReady || !deploymentStats.deployVisible) problems.push("arena deployment screen is incomplete");
+  await page.screenshot({ path: path.join(outDir, "02-arena-select.png") });
+
+  console.log("smoke: confirming arena deployment");
   // SwiftShader has a much tighter framebuffer budget than a player GPU.
   // Preserve composer construction for validation while using direct rendering
   // and a conservative pixel ratio for the automated combat capture.
@@ -107,7 +165,7 @@ try {
     renderer.setPixelRatio(qualityScale);
     if (composer) composer.setPixelRatio(qualityScale);
   });
-  await page.getByRole("button", { name: /deploy/i }).click();
+  await page.locator("#arenaDeployBtn").click();
   await page.waitForFunction(() => document.getElementById("hud")?.style.display === "block", { timeout: 20_000 });
   await page.waitForTimeout(2500);
   if (compactSmoke) {
@@ -123,7 +181,7 @@ try {
     });
   }
   console.log("smoke: round booted");
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "02-round-start.png") });
+  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "03-round-start.png") });
 
   // Software-rendered frames are slow, so burn the remaining buy timer rather
   // than waiting out eight seconds of clamped delta time.
@@ -141,15 +199,15 @@ try {
   await page.keyboard.up("w");
   await page.mouse.down();
   await page.waitForTimeout(1200);
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "03-firing.png") });
+  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "04-firing.png") });
   await page.mouse.up();
 
   await page.keyboard.press("r");
   await page.waitForTimeout(500);
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "04-reload.png") });
+  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "05-reload.png") });
 
   await page.waitForTimeout(captureGameplay ? 7000 : 3200);
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "05-combat.png") });
+  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "06-combat.png") });
   console.log("smoke: combat capture complete");
   await page.evaluate(() => {
     const now = performance.now() / 1000;
@@ -199,7 +257,7 @@ try {
   if (!stats.doctrineTriggered) problems.push("Series 03 special did not trigger");
   if (!(stats.maxSocketError < 0.04)) problems.push(`weapon hand socket error too high: ${stats.maxSocketError}`);
   if (stats.selectedArena !== arenaId || stats.builtArena !== arenaId) problems.push(`arena mismatch: selected ${stats.selectedArena}, built ${stats.builtArena}, expected ${arenaId}`);
-  if (stats.arenaArchitectureProfiles !== 4) problems.push(`expected 4 arena cards, found ${stats.arenaArchitectureProfiles}`);
+  if (stats.arenaArchitectureProfiles !== 10) problems.push(`expected 10 arena cards, found ${stats.arenaArchitectureProfiles}`);
   if (stats.difficultyProfiles !== 3) problems.push(`expected 3 difficulty profiles, found ${stats.difficultyProfiles}`);
   if (!stats.pathfinderReady) problems.push("bot pathfinding did not produce a route");
   if (!stats.careerProgressionReady) problems.push("career progression contract is not callable");
