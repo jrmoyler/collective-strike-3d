@@ -6,13 +6,15 @@ import vm from "node:vm";
 const root = path.resolve(import.meta.dirname, "..");
 const sourcePath = path.join(root, "COLLECTIVE_STRIKE_3D.html");
 const arenaRuntimePath = path.join(root, "src", "arena-runtime.js");
+const arenaCorePath = path.join(root, "src", "arena-core.js");
 const soundtrackManifestPath = path.join(root, "src", "soundtrack-manifest.js");
 const audioManagerPath = path.join(root, "src", "audio-manager.js");
 const html = fs.readFileSync(sourcePath, "utf8");
 const arenaRuntime = fs.existsSync(arenaRuntimePath) ? fs.readFileSync(arenaRuntimePath, "utf8") : "";
+const arenaCoreSource = fs.existsSync(arenaCorePath) ? fs.readFileSync(arenaCorePath, "utf8") : "";
 const soundtrackManifestSource = fs.existsSync(soundtrackManifestPath) ? fs.readFileSync(soundtrackManifestPath, "utf8") : "";
 const audioManagerSource = fs.existsSync(audioManagerPath) ? fs.readFileSync(audioManagerPath, "utf8") : "";
-const corpus = html + "\n" + arenaRuntime + "\n" + soundtrackManifestSource + "\n" + audioManagerSource;
+const corpus = html + "\n" + arenaRuntime + "\n" + arenaCoreSource + "\n" + soundtrackManifestSource + "\n" + audioManagerSource;
 const failures = [];
 const pass = message => console.log(`✓ ${message}`);
 const assert = (condition, message) => {
@@ -68,10 +70,11 @@ for (const id of arenaIds) {
 }
 assert(/selectArena|initArenaSelect|buildArenaFor|arenaCard|arenaRow/.test(corpus), "arena select / build wiring is present");
 assert(/function rebuildArena\(/.test(html) && /CS3D_rebuildArena/.test(corpus), "selected arenas rebuild their scene graph");
-assert(/function buildArenaThemeSet\(/.test(html), "arena-specific architecture sets are present");
-for (const architecture of arenaIds) {
-  assert(corpus.includes(`architecture: "${architecture}"`) || corpus.includes(`architecture:"${architecture}"`), `${architecture} architecture profile is registered`);
-}
+assert(/ARENA_DEFINITIONS/.test(arenaCoreSource) && /function buildArenaIdentity\(/.test(html), "data-driven arena definitions and single identity factory are present");
+for (const architecture of arenaIds) assert(new RegExp(`\\b${architecture}: Object\\.freeze`).test(arenaCoreSource), `${architecture} identity definition is registered`);
+for (const name of ["NEON FOUNDRY", "SUNKEN ARCHIVE", "SKYGRAVE BASTION", "VERDANT OVERRUN", "CRYO RIFT", "NULL CATHEDRAL"]) assert(arenaCoreSource.includes(name), `${name} is authored`);
+for (const section of ["identity", "topology", "traversal", "combat", "hazards", "interactables", "visuals", "audio", "runtimeModifiers", "bossCompatibility"]) assert(arenaCoreSource.includes(`${section}:`), `arena definitions expose ${section}`);
+assert(/function teardownArena\(/.test(html) && /disposeTree/.test(html) && /dynamicCells/.test(html), "arena teardown releases render and runtime artifacts");
 assert(/id="arenaSelectScreen"/.test(html) && /id="arenaDeployBtn"/.test(html), "post-operator arena deployment screen is present");
 assert(/function updateMapSelect\(/.test(html) && /function showArenaDiorama\(/.test(html), "selected arena renders as a live isometric miniature");
 assert(/function ensureMapSelectMarkers\(/.test(html) && /SITE A/.test(html) && /STRIKE SPAWN/.test(html) && /SENTINEL SPAWN/.test(html), "3D site and team-spawn markers are present");

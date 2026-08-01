@@ -25,6 +25,18 @@ import {
   normalizeSquad,
   shouldStartApexChallenge
 } from "./boss-mode.js";
+import {
+  ARENA_DEFINITIONS,
+  ARENA_ORDER,
+  ARENA_SIZE,
+  arenaElevationAt,
+  createArenaGrid,
+  createSeededRandom,
+  pointInZone,
+  topologySignature,
+  validateArenaDefinition,
+  validateArenaRegistry
+} from "./arena-core.js";
 
 /* v3-compatible surface used by the existing HUD/menu animations */
 function animeCompat(params) {
@@ -73,4 +85,16 @@ window.CS3D_BOSS = Object.freeze({
   findBossSpawn,
   normalizeSquad,
   shouldStartApexChallenge
+});
+window.CS3D_ARENA_SYSTEM = Object.freeze({
+  ARENA_DEFINITIONS,
+  ARENA_ORDER,
+  ARENA_SIZE,
+  arenaElevationAt,
+  createArenaGrid,
+  createSeededRandom,
+  pointInZone,
+  topologySignature,
+  validateArenaDefinition,
+  validateArenaRegistry
 });
