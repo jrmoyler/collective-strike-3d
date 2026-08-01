@@ -150,6 +150,9 @@ These three must remain distinct. The boss ability runner refuses to fall back t
   occupancy live in `src/boss-mode.js`.
 - The browser build exposes these first-party modules through the vendored
   offline runtime as `window.CS3D_BOSS`.
+- Boss soundtrack routing is keyed directly by these DNA ids in
+  `src/soundtrack-manifest.js`; lifecycle playback is isolated in
+  `src/audio-manager.js` and documented in `docs/SOUNDTRACK.md`.
 - Keep the offline / vendored contract: no network asset loads.
 - Performance budget: a single boss + its drones should stay under the cost of ~3–4 normal operators.
 

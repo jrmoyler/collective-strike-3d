@@ -1,13 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import vm from "node:vm";
 
 const root = path.resolve(import.meta.dirname, "..");
 const sourcePath = path.join(root, "COLLECTIVE_STRIKE_3D.html");
 const arenaRuntimePath = path.join(root, "src", "arena-runtime.js");
+const soundtrackManifestPath = path.join(root, "src", "soundtrack-manifest.js");
+const audioManagerPath = path.join(root, "src", "audio-manager.js");
 const html = fs.readFileSync(sourcePath, "utf8");
 const arenaRuntime = fs.existsSync(arenaRuntimePath) ? fs.readFileSync(arenaRuntimePath, "utf8") : "";
-const corpus = html + "\n" + arenaRuntime;
+const soundtrackManifestSource = fs.existsSync(soundtrackManifestPath) ? fs.readFileSync(soundtrackManifestPath, "utf8") : "";
+const audioManagerSource = fs.existsSync(audioManagerPath) ? fs.readFileSync(audioManagerPath, "utf8") : "";
+const corpus = html + "\n" + arenaRuntime + "\n" + soundtrackManifestSource + "\n" + audioManagerSource;
 const failures = [];
 const pass = message => console.log(`✓ ${message}`);
 const assert = (condition, message) => {
@@ -75,6 +80,47 @@ for (const field of ["arenaName", "arenaBiome", "arenaMode", "arenaSummary"]) {
   assert(html.includes(`id="${field}"`), `${field} map intelligence field is present`);
 }
 assert(!/for\(let i=0;i<14;i\+\+\)\{\s*const x=1\.6\+rndP/.test(html), "decorative cover no longer spawns through walkable collision lanes");
+
+// Production soundtrack contracts
+assert(Boolean(soundtrackManifestSource), "soundtrack manifest is present");
+assert(Boolean(audioManagerSource), "dedicated audio manager is present");
+for (const [label, source] of [["soundtrack manifest", soundtrackManifestSource], ["audio manager", audioManagerSource]]) {
+  try {
+    new Function(source);
+    pass(`${label} parses without syntax errors`);
+  } catch (error) {
+    failures.push(`${label} syntax error: ${error.message}`);
+  }
+}
+const soundtrackSandbox = {};
+try {
+  vm.runInNewContext(soundtrackManifestSource, soundtrackSandbox);
+} catch (error) {
+  failures.push(`soundtrack manifest evaluation error: ${error.message}`);
+}
+const soundtrack = soundtrackSandbox.CS3D_SOUNDTRACK || { TRACKS: {}, BOSS_TRACKS: {}, ARENA_TRACKS: {} };
+const manifestPaths = Object.values(soundtrack.TRACKS).map(track => track.path).filter(Boolean);
+for (const assetPath of manifestPaths) {
+  assert(fs.existsSync(path.join(root, assetPath)), `soundtrack asset exists: ${assetPath}`);
+}
+const audioFiles = fs.existsSync(path.join(root, "assets", "audio"))
+  ? fs.readdirSync(path.join(root, "assets", "audio")).filter(name => name.toLowerCase().endsWith(".mp3"))
+  : [];
+assert(new Set(manifestPaths).size === manifestPaths.length, "soundtrack manifest paths are unique");
+assert(audioFiles.length === manifestPaths.length, `every supplied MP3 is manifested (found ${audioFiles.length})`);
+const { BOSS_DNA } = await import(path.join(root, "src", "boss-dna.js"));
+const bossIds = BOSS_DNA.map(boss => boss.id);
+const missingBossMusic = bossIds.filter(id => !soundtrack.BOSS_TRACKS[id]);
+assert(missingBossMusic.length === 0, `every BOSS_DNA id has boss music${missingBossMusic.length ? `: missing ${missingBossMusic.join(", ")}` : ""}`);
+assert(soundtrack.TRACKS.final_boss?.path === null && soundtrack.TRACKS.final_boss?.fallbackKey === "standard_boss", "missing final-boss asset has a non-throwing standard-boss fallback");
+for (const arenaId of arenaIds) assert(Boolean(soundtrack.ARENA_TRACKS[arenaId]), `arena '${arenaId}' has a combat music tier`);
+for (const method of ["initAudio", "unlockAudioFromUserGesture", "playMusic", "playBossMusic", "playStinger", "stopMusic", "setMusicVolume", "setMuted", "toggleMuted", "disposeAudio"]) {
+  assert(audioManagerSource.includes(method), `audio manager exposes ${method}`);
+}
+assert(/AUDIO\.playMusic\("selection"\)/.test(html) && /AUDIO\.playArenaMusic\(arenaId\)/.test(html), "selection and arena state music hooks are live");
+assert(/AUDIO\.playBossMusic\(chosen\)/.test(html) && /AUDIO\.playMusic\("final_boss"\)/.test(html), "boss and final-wave music hooks are live");
+assert(/AUDIO\.setPaused\(paused\)/.test(html) && /visibilitychange/.test(audioManagerSource), "pause and document visibility audio handling are live");
+assert(/id="soundtrackToggle"/.test(html) && /cs3d\.audio\.muted/.test(audioManagerSource), "persistent mute control is present");
 
 for (const contract of [
   ["startMatch", /function startMatch\(/],

@@ -186,6 +186,11 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 #streak{position:absolute;left:50%;top:31%;transform:translate(-50%,10px);opacity:0;color:#fde68a;font:800 11px "JetBrains Mono";letter-spacing:.3em;text-shadow:0 0 20px rgba(245,158,11,.8);transition:opacity .16s,transform .16s}
 #streak.on{opacity:1;transform:translate(-50%,0)}
 #touchControls{display:none}
+#soundtrackToggle{position:fixed;top:max(14px,env(safe-area-inset-top));right:16px;z-index:240;min-width:112px;padding:9px 12px;border:1px solid rgba(212,168,67,.38);border-radius:999px;background:rgba(5,8,18,.78);color:#f5f5f5;font:800 8px "JetBrains Mono";letter-spacing:.15em;cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(0,0,0,.28),inset 0 0 18px rgba(212,168,67,.05);transition:border-color .18s,background .18s,color .18s}
+#soundtrackToggle:before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 10px rgba(74,222,128,.8)}
+#soundtrackToggle.muted{color:var(--muted);border-color:rgba(148,163,184,.2);background:rgba(5,8,18,.62)}
+#soundtrackToggle.muted:before{background:#64748b;box-shadow:none}
+#soundtrackToggle:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 #movePad,#aimPad{position:fixed;bottom:max(18px,env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;pointer-events:auto;touch-action:none;border:1px solid rgba(148,163,184,.2);background:radial-gradient(circle,rgba(56,189,248,.08),rgba(5,8,18,.54) 62%,rgba(5,8,18,.12));box-shadow:inset 0 0 30px rgba(56,189,248,.08)}
 #movePad{left:18px}#aimPad{right:18px;border-color:rgba(212,168,67,.24);background:radial-gradient(circle,rgba(212,168,67,.08),rgba(5,8,18,.54) 62%,rgba(5,8,18,.12))}
 .touchNub{position:absolute;left:50%;top:50%;width:48px;height:48px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(226,232,240,.12);border:1px solid rgba(226,232,240,.3);box-shadow:0 0 24px rgba(56,189,248,.12)}
@@ -201,6 +206,7 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 <body>
 <div id="stage"></div>
 <div id="loading">Initializing Collective Strike 3D</div>
+<button type="button" id="soundtrackToggle" aria-label="Mute soundtrack" aria-pressed="false">MUSIC ON</button>
 <div id="menu">
   <section id="menuPanel">
     <div class="eyebrow">Collective AI Inc. / ZenFlow combat lattice</div>
@@ -322,6 +328,8 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 <script src="vendor/cs3d-runtime.js"></script>
 <!-- multi-arena-script -->
 <script src="src/arena-runtime.js"></script>
+<script src="src/soundtrack-manifest.js"></script>
+<script src="src/audio-manager.js"></script>
 <script>
 "use strict";
 const TILE=40,MAPW=36,MAPH=26,WORLD_W=MAPW*TILE,WORLD_H=MAPH*TILE,S=.1,FIRST_TO=6,BUY_TIME=8,ROUND_TIME=95,PLAYER_R=15,VIEW=560;
@@ -441,15 +449,16 @@ for(let y=0;y<MAPH;y++)grid.push(Array(MAPW).fill(0));rect(0,0,MAPW,1);rect(0,MA
 const SITE_A={x:2,y:2,w:8,h:6,label:"A"},SITE_B={x:26,y:2,w:8,h:6,label:"B"},SPAWN_ATK={x:15,y:21,w:6,h:3},SPAWN_DEF={x:15,y:2,w:6,h:3};/* multi-arena-inline */const ARENAS=window.CS3D_ARENAS||{};const ARENA_ORDER=window.CS3D_ARENA_ORDER||["forge","neon","cryo","verdant","solar","abyss","tempest","lunar","caldera","mirage"];let selectedArenaId=window.CS3D_selectedArenaId||"forge";
 const V3=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),hex=c=>new THREE.Color(c);
 const BOSS_RUNTIME=window.CS3D_BOSS||{},BOSS_DNA=BOSS_RUNTIME.BOSS_DNA||[],BOSS_BY_ID=BOSS_RUNTIME.BOSS_BY_ID||{},PLAYLISTS=BOSS_RUNTIME.PLAYLISTS||{};
+const AUDIO=window.CS3D_AUDIO;
 let scene,camera,renderer,raycaster,ground,clock=new THREE.Clock(),composer=null,bloomPass=null,previewLight=null,previewRim=null,arenaGroup=null,previewPad=null,mapSelectMarkers=null;
 let previewSnap=true;
 let players=[],me=null,myTeam="ATK",myDiv=null,phase="menu",phaseT=0,round=1,scoreATK=0,scoreDEF=0,bomb={state:"carried"},aim={x:WORLD_W/2,y:WORLD_H/2},mouse={x:innerWidth/2,y:innerHeight/2,down:false,fired:false},keys={},rigs=new Map(),preview=null,previewId=null,fx,menuOrbit=0,dioramaOrbit=0,buyOpen=false,tempMeshes=[],worldBits=[];
-let selectedPlaylist="standard",selectedSquad=[],encounterKind="standard",wavePlan=[],waveIndex=0,pendingWaveIndex=null,activeBoss=null,bossRigs=new Map(),lastBossId=null,apexComplete=false,apexWinner=null,lastPlayerAbilityId=null,matchFinalized=false,matchOutcomeOverride=null,bossOutcome="";
+let selectedPlaylist="standard",selectedSquad=[],encounterKind="standard",wavePlan=[],waveIndex=0,pendingWaveIndex=null,activeBoss=null,bossRigs=new Map(),lastBossId=null,apexComplete=false,apexWinner=null,lastPlayerAbilityId=null,matchFinalized=false,matchOutcomeOverride=null,bossOutcome="",resultCueQueued=false;
 const ui={hitT:0,damageT:0,killT:0,streak:0,streakT:0,lastKillT:0};
 const touchMove={x:0,y:0},padMove={x:0,y:0};
 let lastPadButtons=[],qualityScale=Math.min(devicePixelRatio,2),qualityClock=0,qualityFrames=0,qualitySum=0;
 /* ---------- settings + persistence ---------- */
-const CFG=(()=>{try{return Object.assign({master:.8,music:.65,sfx:1,shake:1,bloom:1},JSON.parse(localStorage.getItem("cs3d_cfg")||"{}"))}catch(e){return{master:.8,music:.65,sfx:1,shake:1,bloom:1}}})();
+const CFG=(()=>{try{return Object.assign({master:.8,music:.42,sfx:1,shake:1,bloom:1},JSON.parse(localStorage.getItem("cs3d_cfg")||"{}"))}catch(e){return{master:.8,music:.42,sfx:1,shake:1,bloom:1}}})();
 function saveCfg(){try{localStorage.setItem("cs3d_cfg",JSON.stringify(CFG))}catch(e){}}
 const CAREER=(()=>{try{return Object.assign({matches:0,wins:0,kills:0,deaths:0,xp:0,bestStreak:0,mastery:{},arenaWins:{}},JSON.parse(localStorage.getItem("cs3d_career")||"{}"))}catch(e){return{matches:0,wins:0,kills:0,deaths:0,xp:0,bestStreak:0,mastery:{},arenaWins:{}}}})();
 function saveCareer(){try{localStorage.setItem("cs3d_career",JSON.stringify(CAREER))}catch(e){}}
@@ -648,6 +657,7 @@ function startBossEncounter(team,{source="boss",bossId=null}={}){
  const zone={x:2,y:6,w:32,h:14},radius=Math.round(22+(dna.scale||1.8)*18);
  const point=BOSS_RUNTIME.findBossSpawn?.({zone,tile:TILE,radius,grid,players:players.filter(p=>p.alive&&p.team===team),minPlayerDistance:TILE*5,rng:Math.random})||{x:(SITE_A.x+SITE_A.w/2)*TILE,y:(SITE_A.y+SITE_A.h/2)*TILE};
  activeBoss=makeBossEntity(dna,point.x,point.y);
+ if(source==="wave")AUDIO.playMusic("final_boss");else AUDIO.playBossMusic(chosen);
  const rig=BOSS_RUNTIME.makeBossRig(activeBoss,{THREE,scene,S});bossRigs.set(activeBoss.id,rig);
  bomb={state:"inactive",carrier:null,x:0,y:0,timer:0};clearSpikeMesh();
  phase="buy";phaseT=source==="smoke"?.05:3.5;
@@ -702,6 +712,7 @@ function damageBoss(boss,dmg,src){
 }
 function finishBoss(src){
  const boss=activeBoss;if(!boss?.alive)return;boss.alive=false;boss.hp=0;const r=bossRigs.get(boss.id);if(r)r.root.visible=false;fx.ring(boss.x,boss.y,boss.dna.accent,4);fx.sparks(boss.x,boss.y,boss.dna.accent,70,3);showBanner("APEX NEUTRALIZED");if(src===me)awardMatchXP(180,"APEX ELIMINATION");
+ resultCueQueued=true;AUDIO.playStinger("boss_defeat",{nextTrackKey:"results"});
  if(encounterKind==="wave"&&waveIndex<wavePlan.length-1){phase="end";phaseT=4;pendingWaveIndex=waveIndex+1;return}
  if(encounterKind==="apex"){apexComplete=true;bossOutcome=`${apexWinner} DEFEATED ${boss.name}`;phase="end";phaseT=3;return}
  matchOutcomeOverride=true;bossOutcome=`${boss.name} DEFEATED`;phase="end";phaseT=3
@@ -744,10 +755,12 @@ function showArenaDiorama(id){
 }
 function enterMapSelect(){
  phase="mapselect";document.getElementById("menu").style.display="none";document.getElementById("hud").style.display="none";document.getElementById("crosshair").style.display="none";
+ AUDIO.playMusic("selection");
  showArenaDiorama(window.CS3D_selectedArenaId||selectedArenaId||"forge")
 }
 function exitMapSelect(){
  phase="menu";if(mapSelectMarkers)mapSelectMarkers.visible=false;if(arenaGroup)arenaGroup.visible=false;previewSnap=true;
+ AUDIO.playMusic("main_menu");
  document.getElementById("menu").style.display="grid"
 }
 function confirmArenaSelection(id){
@@ -1833,7 +1846,8 @@ function botThink(p,dt){const now=performance.now()/1000,skill=difficulty();let 
 function dashPlayer(p,distance){const step=12,ox=p.x,oy=p.y;for(let d=step;d<=distance;d+=step){const nx=ox+Math.cos(p.angle)*d,ny=oy+Math.sin(p.angle)*d;if(solidWorld(nx,ny)||blockedByBoss(nx,ny,p))break;p.x=clamp(nx,TILE,WORLD_W-TILE);p.y=clamp(ny,TILE,WORLD_H-TILE)}}
 function move(p,dx,dy,dt){const l=Math.hypot(dx,dy);if(!l){p.vx=p.vy=0;return}let sp=220*speedMul(p);if(p.slowT>performance.now()/1000)sp*=.55;if(p.cur==="sniper"&&p.div.id!=="nomad")sp*=.86;const nx=p.x+dx/l*sp*dt,ny=p.y+dy/l*sp*dt;p.vx=(nx-p.x)/dt;p.vy=(ny-p.y)/dt;if(!solidWorld(nx,p.y)&&!blockedByBoss(nx,p.y,p))p.x=clamp(nx,TILE,WORLD_W-TILE);if(!solidWorld(p.x,ny)&&!blockedByBoss(p.x,ny,p))p.y=clamp(ny,TILE,WORLD_H-TILE)}
 function startMatch(){
- const arenaId=window.CS3D_selectedArenaId||selectedArenaId||"forge";if(window.buildArenaFor)window.buildArenaFor(arenaId);players=[];clearBoss();matchFinalized=false;matchOutcomeOverride=null;bossOutcome="";apexComplete=false;apexWinner=null;scoreATK=scoreDEF=0;round=1;
+ const arenaId=window.CS3D_selectedArenaId||selectedArenaId||"forge";if(window.buildArenaFor)window.buildArenaFor(arenaId);players=[];clearBoss();matchFinalized=false;matchOutcomeOverride=null;bossOutcome="";resultCueQueued=false;apexComplete=false;apexWinner=null;scoreATK=scoreDEF=0;round=1;
+ AUDIO.playArenaMusic(arenaId);
  if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;
  const names=["DENZEL","KENZA","STANLEY","JUSTIN","JOSEPH","AHMAD","DEVON","ANDREA","JERRIAN","DANTE","KAY","ORACLE","SENTRY","APEX","CIPHER","RELAY"].sort(()=>Math.random()-.5),allIds=DIVS.map(d=>d.id);
  let squadIds=selectedPlaylist==="standard"?[myDiv.id]:BOSS_RUNTIME.normalizeSquad?.(selectedSquad,allIds,myDiv.id)||selectedSquad;
@@ -1843,7 +1857,7 @@ function startMatch(){
  for(const id of squadIds.slice(1,5))players.push(makePlayer(myTeam,id,false,names.pop()));
  if(selectedPlaylist==="standard"){encounterKind="standard";const en=myTeam==="ATK"?"DEF":"ATK";for(let i=0;i<5;i++)players.push(makePlayer(en,pool.pop(),false,names.pop()))}
  document.getElementById("menu").style.display="none";document.getElementById("hud").style.display="block";document.getElementById("crosshair").style.display="block";document.getElementById("touchControls").classList.add("active");
- for(const r of rigs.values())scene.remove(r.root);rigs.clear();players.forEach(p=>makeRig(p));SND.setMusic(false);SND.setAmb(true);feed(`${arenaTheme(arenaId).name||"ARENA"} / ${PLAYLISTS[selectedPlaylist]?.name||"TACTICAL"} / ${difficulty().n}`,arenaTheme(arenaId).accent);
+ for(const r of rigs.values())scene.remove(r.root);rigs.clear();players.forEach(p=>makeRig(p));SND.setMusic(false);SND.setAmb(false);feed(`${arenaTheme(arenaId).name||"ARENA"} / ${PLAYLISTS[selectedPlaylist]?.name||"TACTICAL"} / ${difficulty().n}`,arenaTheme(arenaId).accent);
  if(selectedPlaylist==="boss"){encounterKind="boss";startBossEncounter(myTeam,{source:"boss"})}
  else if(selectedPlaylist==="wave"){encounterKind="wave";const bossId=BOSS_RUNTIME.chooseRandomBoss?.(BOSS_DNA.map(b=>b.id),Math.random,lastBossId);wavePlan=BOSS_RUNTIME.buildWavePlan?.({operatorIds:allIds,squadIds,bossId,rng:Math.random})||[];startWave(0)}
  else startRound()
@@ -1872,7 +1886,7 @@ function checkRound(){
 function endGame(){if(matchFinalized)return;matchFinalized=true;phase="gameover";document.getElementById("endScreen").style.display="grid";const scoreWon=(myTeam==="ATK"?scoreATK:scoreDEF)>=(myTeam==="ATK"?scoreDEF:scoreATK),won=matchOutcomeOverride===null?scoreWon:matchOutcomeOverride,before=careerLevel(),completion=Math.round((won?180:90)*difficulty().xp);me.matchXp=(me.matchXp||0)+completion;document.getElementById("endTitle").textContent=won?"VICTORY":"DEFEAT";const resultLine=selectedPlaylist==="standard"?`Final ${scoreATK} - ${scoreDEF}`:`${PLAYLISTS[selectedPlaylist]?.name||"ENCOUNTER"} / ${bossOutcome||`WAVE ${waveIndex+1}`}`;document.getElementById("endSub").textContent=`${resultLine} / ${me.kills} eliminations as ${me.div.n} / ${difficulty().n}`;
  CAREER.matches++;if(won)CAREER.wins++;CAREER.kills+=me.kills;CAREER.deaths+=me.deaths;CAREER.xp=(CAREER.xp||0)+me.matchXp;CAREER.bestStreak=Math.max(CAREER.bestStreak||0,me.bestStreak||0);CAREER.mastery=CAREER.mastery||{};CAREER.mastery[me.div.id]=(CAREER.mastery[me.div.id]||0)+me.matchXp;const arenaId=window.CS3D_selectedArenaId||selectedArenaId;CAREER.arenaWins=CAREER.arenaWins||{};if(won)CAREER.arenaWins[arenaId]=(CAREER.arenaWins[arenaId]||0)+1;const after=careerLevel();saveCareer();
  document.getElementById("endRewards").innerHTML=`<div class="reward"><b>+${me.matchXp}</b><span>MATCH XP</span></div><div class="reward"><b>${me.kills}</b><span>ELIMINATIONS</span></div><div class="reward"><b>LV ${after}</b><span>${after>before?"LEVEL UP":"CAREER LEVEL"}</span></div>`;
- SND.setAmb(false);SND.jingle(won)}
+ SND.setAmb(false);if(!won){resultCueQueued=true;AUDIO.playStinger("player_defeat",{nextTrackKey:"results"})}else if(!resultCueQueued){resultCueQueued=true;AUDIO.playStinger("boss_defeat",{nextTrackKey:"results"})}}
 function updateSim(dt){if(phase==="menu"||phase==="mapselect"||phase==="gameover")return;const now=performance.now()/1000;
  if(!(phase==="live"&&bomb.state==="planted"))phaseT-=dt;
  if(phase==="buy"&&phaseT<=0){phase="live";phaseT=encounterKind==="wave"&& !activeBoss?75:ROUND_TIME;showBanner(activeBoss?"APEX LIVE":encounterKind==="wave"?`WAVE ${waveIndex+1} LIVE`:"LIVE")}
@@ -2102,6 +2116,7 @@ function togglePause(){
  if(phase==="menu"||phase==="mapselect")return;
  mouse.down=false;mouse.fired=false;
  paused=!paused;SND.uiClick();
+ AUDIO.setPaused(paused);
  document.getElementById("pause").classList.toggle("on",paused);
 }
 function initSettings(){
@@ -2110,10 +2125,18 @@ function initSettings(){
   const el=document.getElementById(id),lab=document.getElementById(id+"Val");
   if(!el)continue;
   el.value=Math.round(CFG[key]*100);lab.textContent=Math.round(CFG[key]*100)+"%";
-  el.oninput=()=>{CFG[key]=el.value/100;lab.textContent=el.value+"%";SND.vol();saveCfg()};
+  el.oninput=()=>{CFG[key]=el.value/100;lab.textContent=el.value+"%";SND.vol();if(key==="music")AUDIO.setMusicVolume(CFG.music);if(key==="master")AUDIO.setMasterVolume(CFG.master);saveCfg()};
  }
  document.getElementById("resumeBtn").onclick=togglePause;
  document.getElementById("quitBtn").onclick=()=>location.reload();
+}
+function syncSoundtrackControl(){const button=document.getElementById("soundtrackToggle"),state=AUDIO.getState();if(!button)return;button.classList.toggle("muted",state.muted);button.textContent=state.muted?"MUSIC OFF":"MUSIC ON";button.setAttribute("aria-pressed",String(state.muted));button.setAttribute("aria-label",state.muted?"Unmute soundtrack":"Mute soundtrack")}
+function initSoundtrack(){
+ AUDIO.initAudio();const state=AUDIO.getState();CFG.music=state.volume;AUDIO.setMasterVolume(CFG.master);syncSoundtrackControl();
+ addEventListener("cs3d:audiochange",syncSoundtrackControl);
+ document.getElementById("soundtrackToggle").onclick=()=>{AUDIO.unlockAudioFromUserGesture();AUDIO.toggleMuted()};
+ AUDIO.playMusic("main_title",{nextTrackKey:"main_menu"});
+ window.CS3D_showCreditsMusic=()=>AUDIO.playMusic("credits");
 }
 function initMenu(){/* multi-arena-init */if(window.initArenaSelect)window.initArenaSelect();const grid=document.getElementById("divGrid");DIVS.forEach(d=>{const c=document.createElement("div");c.className="divCard";c.dataset.division=d.id;c.style.setProperty("--c",d.c);c.innerHTML=`<div class="top"><div class="swatch">${d.n.split(" ").map(w=>w[0]).join("").slice(0,2)}</div><div><div class="nm">${d.n}</div><div class="role">${d.role}</div></div></div><div class="kit"><span class="keycap">E</span><span>${d.ab}</span></div><div class="ds">${d.d}</div><div class="pv"><b>PASSIVE</b> / ${d.pv}</div>`;c.onclick=()=>{SND.uiClick();selectDiv(d,c)};c.onmouseenter=()=>SND.uiClick(true);grid.appendChild(c)});
  const cl=document.getElementById("careerLine");
@@ -2192,8 +2215,9 @@ function loop(){requestAnimationFrame(loop);const dt=Math.min(.05,clock.getDelta
 function showBootFailure(message){
  const loading=document.getElementById("loading");loading.className="loadFail";loading.innerHTML=`<div><b>RENDERING LATTICE OFFLINE</b><small>${message}</small><button type="button" onclick="location.reload()">RETRY INITIALIZATION</button></div>`;
 }
-window.addEventListener("load",()=>{if(!window.THREE){showBootFailure("The 3D engine could not be loaded. Check your network connection and try again.");return}try{init3D();initMenu();initTouch();document.getElementById("loading").style.display="none";document.getElementById("menu").style.display="grid";loop()}catch(error){showBootFailure("WebGL could not start on this browser or GPU. Enable hardware acceleration, update your graphics driver, or open the game in a current Chrome, Edge, Firefox, or Safari build.")}});
-addEventListener("pointerdown",function bootAudio(){SND.resume();if(phase==="menu")SND.setMusic(true);removeEventListener("pointerdown",bootAudio)});
+window.addEventListener("load",()=>{if(!window.THREE){showBootFailure("The 3D engine could not be loaded. Check your network connection and try again.");return}try{initSoundtrack();init3D();initMenu();initTouch();document.getElementById("loading").style.display="none";document.getElementById("menu").style.display="grid";loop()}catch(error){showBootFailure("WebGL could not start on this browser or GPU. Enable hardware acceleration, update your graphics driver, or open the game in a current Chrome, Edge, Firefox, or Safari build.")}});
+async function bootAudio(){SND.resume();if(await AUDIO.unlockAudioFromUserGesture()){removeEventListener("pointerdown",bootAudio,true);removeEventListener("keydown",bootAudio,true)}}
+addEventListener("pointerdown",bootAudio,true);addEventListener("keydown",bootAudio,true);addEventListener("beforeunload",()=>AUDIO.disposeAudio());
 </script>
 </body>
 </html>
