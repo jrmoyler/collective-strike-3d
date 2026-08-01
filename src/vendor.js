@@ -37,6 +37,13 @@ import {
   validateArenaDefinition,
   validateArenaRegistry
 } from "./arena-core.js";
+import {
+  arenaActorHeight,
+  arenaBlockHeight,
+  arenaLineClear,
+  arenaObstacleAt,
+  traceArenaSegment
+} from "./arena-ballistics.js";
 
 /* v3-compatible surface used by the existing HUD/menu animations */
 function animeCompat(params) {
@@ -90,11 +97,16 @@ window.CS3D_ARENA_SYSTEM = Object.freeze({
   ARENA_DEFINITIONS,
   ARENA_ORDER,
   ARENA_SIZE,
+  arenaActorHeight,
+  arenaBlockHeight,
   arenaElevationAt,
+  arenaLineClear,
+  arenaObstacleAt,
   createArenaGrid,
   createSeededRandom,
   pointInZone,
   topologySignature,
+  traceArenaSegment,
   validateArenaDefinition,
   validateArenaRegistry
 });
