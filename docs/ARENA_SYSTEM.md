@@ -1,6 +1,6 @@
 # Arena Identity System
 
-Collective Strike 3D no longer uses one collision grid with ten visual skins. The canonical arena registry is `src/arena-core.js`; it is bundled into the offline runtime and adapted to the existing map-select UI by `src/arena-runtime.js`.
+Collective Strike 3D no longer uses one collision grid with ten visual skins. The canonical arena registry is `src/arena-core.js`; `src/arena-ballistics.js` converts its surfaces and cover into a deterministic height field. Both are bundled into the offline runtime and adapted to the existing map-select UI by `src/arena-runtime.js`.
 
 ## Definition anatomy
 
@@ -43,6 +43,20 @@ Topology primitives are rectangles expressed in collision-grid units. The browse
 
 Implemented gameplay volumes include `steam`, `heat`, `surge`, `mist`, `wind`, `bramble`, `spores`, `cracking-ice`, `null-pulse`, `dust` and `transit-wake`. Interactables include `conveyor`, `water`, `ice-slide`, `covered-route`, `recovery-field`, `proximity-pulse` and `phase-barrier`.
 
+## Elevation, cover and projectiles
+
+`traceArenaSegment()` is the single height-aware obstruction path for weapons, bot vision, crosshair acquisition, doctrine lanes and boss melee reach. It samples the authored platform/ramp surface, deterministic block heights, dynamic barriers and arena boundaries. Voids remain non-walkable but no longer behave like invisible projectile walls.
+
+- `arenaBlockHeight()` must remain consistent with rendered cover. Set `collisionHeight` on a block when a specific low/high cover profile is required.
+- Actor muzzle and target heights are sampled from their current surface, including ramps and platforms.
+- Platform lips can block shallow uphill shots; readable ledge positions can shoot down when the trajectory clears the deck.
+- Phase shots explicitly opt out of obstruction while ordinary shots, bots and bosses share the same trace.
+- Keep collision-critical heights declarative and deterministic. Never derive them from frame-time animation or unseeded decoration.
+
+## Water and local atmosphere
+
+Water interactables render with a bounded procedural shader using two low-amplitude wave functions, view-dependent Fresnel color and no texture downloads. Visibility hazards create 24-point local fog volumes whose opacity follows the existing telegraph/active/cooldown state. Both effects live under the arena group, share the main render loop, and are disposed during rebuild.
+
 ## Lifecycle and teardown
 
 `rebuildArena()` always calls `teardownArena()` before construction—even when restarting the same ID. Teardown:
@@ -62,6 +76,7 @@ Arena behavior runs inside the existing simulation tick. It does not create time
 - Reuse the shared primitive geometry cache. Mark shared geometry with `userData.shared` so teardown does not dispose it.
 - Prefer a few composed meshes over large external models and unique textures.
 - Keep ambient particle systems bounded (currently 240–420 points per map).
+- Keep local fog volumes at or below 24 points per hazard and water surfaces at 18×18 subdivisions unless profiling justifies an increase.
 - Place decorative geometry inside blocked cells or outside the playable footprint so render meshes never imply false collision.
 - Use deterministic seeded variation only for non-critical background composition.
 - Avoid runtime `setTimeout`, document listeners or extra render loops in arena code.
