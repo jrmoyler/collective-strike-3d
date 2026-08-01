@@ -75,6 +75,11 @@ const browser = await chromium.launch({
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
 });
 const page = await browser.newPage({ viewport: { width: 800, height: 500 } });
+const requestedUrls = new Set();
+
+await page.addInitScript(() => {
+  window.addEventListener("unhandledrejection", event => console.error(`unhandled rejection: ${event.reason?.message || event.reason}`));
+});
 
 page.on("console", msg => {
   if (msg.type() === "error") problems.push(`console: ${msg.text()}`);
@@ -86,12 +91,55 @@ page.on("requestfailed", request => {
   if (request.resourceType() === "media" && /ERR_ABORTED/i.test(request.failure()?.errorText || "")) return;
   problems.push(`request failed: ${request.url()} (${request.failure()?.errorText || "unknown"})`);
 });
+page.on("request", request => requestedUrls.add(request.url()));
 
 try {
   console.log("smoke: loading game");
   await page.goto(`${origin}/index.html`, { waitUntil: "load" });
   await page.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
   await page.waitForTimeout(1200);
+
+  console.log("smoke: first-launch onboarding and responsive menu");
+  const firstLaunch = await page.evaluate(() => ({
+    open: document.getElementById("onboarding")?.classList.contains("on"),
+    pages: TUTORIAL_PAGES.length,
+    state: gameState.state,
+    focus: document.activeElement?.id,
+  }));
+  if (!firstLaunch.open || firstLaunch.pages !== 4 || firstLaunch.state !== "operator-select") problems.push(`first-launch onboarding is incomplete: ${JSON.stringify(firstLaunch)}`);
+  await page.keyboard.press("Tab");
+  const focusedTag = await page.evaluate(() => document.activeElement?.tagName);
+  if (focusedTag !== "BUTTON") problems.push(`keyboard navigation did not reach a button (focused ${focusedTag})`);
+  await page.locator("#tutorialSkip").click();
+  const tutorialSaved = await page.evaluate(() => JSON.parse(localStorage.getItem("cs3d.settings.v2") || "{}").tutorialCompleted === true);
+  if (!tutorialSaved) problems.push("tutorial completion did not persist");
+
+  const viewportProfiles = [];
+  for (const [width, height] of [[360, 800], [390, 844], [768, 1024], [1366, 768], [1920, 1080], [2560, 1080]]) {
+    await page.setViewportSize({ width, height });
+    await page.waitForTimeout(80);
+    viewportProfiles.push(await page.evaluate(({ width, height }) => {
+      const deployButton = document.getElementById("deployBtn"), menu = document.getElementById("menu");
+      deployButton?.scrollIntoView({ block: "center" });
+      const deploy = deployButton?.getBoundingClientRect();
+      const cards = [...document.querySelectorAll(".divCard")].map(card => card.getBoundingClientRect());
+      const result = {
+        width, height,
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        deployReachable: Boolean(deploy && deploy.width > 40 && deploy.height >= 36 && deploy.top >= -1 && deploy.bottom <= height + 1),
+        minCardWidth: Math.min(...cards.map(card => card.width)),
+        focusVisibleStyle: getComputedStyle(document.querySelector(".divCard")).outlineStyle,
+      };
+      menu.scrollTop = 0;
+      return result;
+    }, { width, height }));
+  }
+  console.log("responsive menu:", JSON.stringify(viewportProfiles));
+  for (const profile of viewportProfiles) {
+    if (profile.horizontalOverflow > 1) problems.push(`${profile.width}x${profile.height} menu has ${profile.horizontalOverflow}px horizontal overflow`);
+    if (!profile.deployReachable || profile.minCardWidth < 120) problems.push(`${profile.width}x${profile.height} menu controls are clipped or unreadable`);
+  }
+  await page.setViewportSize({ width: 800, height: 500 });
 
   const cards = page.locator(".divCard");
   await cards.nth(divisionIndex).click();
@@ -168,6 +216,7 @@ try {
   const lifecycle = await page.evaluate((restoreId) => {
     window.selectArena("mirage");
     const barrier = window.CS3D_ARENA_DEFINITIONS.mirage.interactables.find(value => value.type === "phase-barrier");
+    gameState.recover(RUNTIME.GAME_STATES.LIVE, "smoke-hazard");
     phase = "live";
     arenaRuntimeState.elapsed = barrier.telegraph + 0.05;
     applyArenaVolumes(0.016, performance.now() / 1000);
@@ -178,6 +227,7 @@ try {
     window.CS3D_rebuildArena("mirage");
     const restartRestoresCollision = grid[cell.y][cell.x] === arenaBaseGrid[cell.y][cell.x] && grid[cell.y][cell.x] === 0;
     const sameMapReplaced = oldGroup !== arenaGroup && oldGroup.parent === null && oldToken !== arenaRuntimeState.token;
+    gameState.recover(RUNTIME.GAME_STATES.ARENA_SELECT, "smoke-map-select");
     phase = "mapselect";
     window.selectArena(restoreId);
     return { closesCollision, restartRestoresCollision, sameMapReplaced, runtimeId: arenaRuntimeState.id };
@@ -262,6 +312,44 @@ try {
   await page.waitForTimeout(500);
   if (captureGameplay) await page.screenshot({ path: path.join(outDir, "05-reload.png") });
 
+  console.log("smoke: pause freeze, reduced motion, and gamepad hot-plug");
+  const beforePause = await page.evaluate(() => ({ elapsed: arenaRuntimeState?.elapsed, phaseT, jobs: gameScheduler.size }));
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => paused && gameState.state === "paused");
+  await page.waitForTimeout(350);
+  const duringPause = await page.evaluate(() => ({ elapsed: arenaRuntimeState?.elapsed, phaseT, jobs: gameScheduler.size, audioPaused: window.CS3D_AUDIO.getState().paused }));
+  if (Math.abs(duringPause.elapsed - beforePause.elapsed) > 0.001 || Math.abs(duringPause.phaseT - beforePause.phaseT) > 0.001) problems.push("pause did not freeze hazards and objective timers");
+  if (!duringPause.audioPaused) problems.push("pause did not suspend soundtrack playback");
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !paused && gameState.state === "live");
+
+  const inputChecks = await page.evaluate(() => {
+    SETTINGS.reducedMotion = true;
+    shakeAmt = 0;
+    addShake(1);
+    const reducedMotionStopsShake = shakeAmt === 0;
+    SETTINGS.reducedMotion = false;
+    const buttons = Array.from({ length: 16 }, () => ({ pressed: false, value: 0 }));
+    const gamepad = { index: 0, id: "Smoke Standard Gamepad", mapping: "standard", axes: [0, 0, 0.5, 0], buttons };
+    Object.defineProperty(navigator, "getGamepads", { configurable: true, value: () => [gamepad] });
+    const connected = new Event("gamepadconnected");
+    Object.defineProperty(connected, "gamepad", { value: gamepad });
+    window.dispatchEvent(connected);
+    curW(me).ammo = Math.max(0, curW(me).mag - 2);
+    me.reloadT = 0;
+    buttons[3].pressed = true;
+    pollGamepad(0.016);
+    const reloadMapped = me.reloadT > 0;
+    buttons[3].pressed = false;
+    pollGamepad(0.016);
+    const disconnected = new Event("gamepaddisconnected");
+    Object.defineProperty(disconnected, "gamepad", { value: gamepad });
+    window.dispatchEvent(disconnected);
+    return { reducedMotionStopsShake, reloadMapped, trackedAfterDisconnect: actionInput.gamepads.length, mode: actionInput.mode };
+  });
+  console.log("input checks:", JSON.stringify(inputChecks));
+  if (!inputChecks.reducedMotionStopsShake || !inputChecks.reloadMapped || inputChecks.trackedAfterDisconnect !== 0) problems.push(`input/accessibility validation failed: ${JSON.stringify(inputChecks)}`);
+
   await page.waitForTimeout(captureGameplay ? 7000 : 3200);
   if (captureGameplay) await page.screenshot({ path: path.join(outDir, "06-combat.png") });
   console.log("smoke: combat capture complete");
@@ -321,6 +409,31 @@ try {
   if (!stats.pathfinderReady) problems.push("bot pathfinding did not produce a route");
   if (!stats.careerProgressionReady) problems.push("career progression contract is not callable");
 
+  console.log("smoke: planting and defusing objective");
+  const objectiveState = await page.evaluate(() => {
+    // The live-combat sampling above may legitimately resolve a round. Rebuild
+    // through the public restart path so this scenario always begins with the
+    // full deterministic roster and exercises the real restart cleanup.
+    window.CS3D_restartMatch();
+    const attacker = me.team === "ATK" ? me : players.find(player => player.team === "ATK");
+    const defender = players.find(player => player.team === "DEF");
+    if (!attacker || !defender) return { planted: false, defused: false, missingRoster: true, state: gameState.state, phase };
+    gameState.recover(RUNTIME.GAME_STATES.LIVE, "smoke-objective");
+    phase = "live";
+    attacker.alive = true;
+    defender.alive = true;
+    attacker.x = (SITE_A.x + SITE_A.w / 2) * TILE;
+    attacker.y = (SITE_A.y + SITE_A.h / 2) * TILE;
+    bomb = { state: "carried", carrier: attacker, x: 0, y: 0, timer: 0, beepT: 0 };
+    updateChannel(attacker, chanTime(attacker, true) + 0.01, true);
+    const planted = bomb.state === "planted" && Boolean(spikeMesh);
+    defender.x = bomb.x;
+    defender.y = bomb.y;
+    updateChannel(defender, chanTime(defender, false) + 0.01, true);
+    return { planted, defused: bomb.state === "defused", state: gameState.state, phase };
+  });
+  if (!objectiveState.planted || !objectiveState.defused || objectiveState.state !== "round-end") problems.push(`plant/defuse flow failed: ${JSON.stringify(objectiveState)}`);
+
   console.log("smoke: validating boss runtime");
   const bossStats = await page.evaluate(() => {
     const playlistButtons = document.querySelectorAll(".playlistBtn").length;
@@ -328,7 +441,8 @@ try {
       return { playlistButtons, runtimeReady: false };
     }
     startBossEncounter(myTeam, { source: "smoke", bossId: "loom_hydra" });
-    phase = "live";
+    phaseT = 0;
+    updateSim(0.016);
     phaseT = 30;
     updateSim(0.016);
     updateRender(0.016);
@@ -345,6 +459,7 @@ try {
       occupancyCells: activeBoss ? bossOccupancyCells(activeBoss).length : 0,
       hudVisible: document.getElementById("bossHud")?.classList.contains("on") || false,
       hudName: document.getElementById("bossName")?.textContent || "",
+      spawnValid: Boolean(activeBoss && bossCanOccupy(activeBoss, activeBoss.x, activeBoss.y)),
     };
   });
   console.log("boss runtime:", JSON.stringify(bossStats));
@@ -354,6 +469,109 @@ try {
   if (!bossStats.fullRig || bossStats.hybridSegments !== 3) problems.push("boss mesh locomotion rig is incomplete");
   if (!(bossStats.occupancyCells > 1)) problems.push("boss collision does not occupy multiple cells");
   if (!bossStats.hudVisible || !/LOOM HYDRA/i.test(bossStats.hudName)) problems.push("boss HUD did not render the live boss");
+  if (!bossStats.spawnValid) problems.push("boss spawned at an invalid collision position");
+
+  console.log("smoke: restart stability and WebGL recovery");
+  const restartProfiles = [];
+  for (let restart = 0; restart < 3; restart++) {
+    restartProfiles.push(await page.evaluate(() => {
+      window.CS3D_restartMatch();
+      fx.clear();
+      updateRender(0.016);
+      return window.CS3D_runtimeMetrics();
+    }));
+    await page.waitForTimeout(80);
+  }
+  console.log("restart metrics:", JSON.stringify(restartProfiles));
+  const stableFields = ["renderLoops", "schedulerJobs", "inputListeners", "players", "rigs", "bossRigs", "tempMeshes", "arenaChildren", "hazards", "audioMediaElements"];
+  for (const field of stableFields) if (new Set(restartProfiles.map(profile => profile[field])).size !== 1) problems.push(`${field} changed across three restarts: ${restartProfiles.map(profile => profile[field]).join(", ")}`);
+  for (const field of ["drawCalls", "triangles"]) {
+    const values = restartProfiles.map(profile => profile[field]);
+    const tolerance = Math.max(3, Math.ceil(values[0] * 0.02));
+    if (Math.max(...values) - Math.min(...values) > tolerance) problems.push(`${field} exceeded the 2% culling tolerance across three restarts: ${values.join(", ")}`);
+  }
+  if (restartProfiles.some(profile => profile.renderLoops !== 1 || profile.tempMeshes !== 0)) problems.push("restart left duplicate loops or temporary meshes");
+  if (new Set(restartProfiles.map(profile => profile.arenaToken)).size !== 3) problems.push("restart did not reconstruct the selected arena exactly once per attempt");
+  const lateGeometry = restartProfiles.slice(1).map(profile => profile.geometries);
+  const lateTextures = restartProfiles.slice(1).map(profile => profile.textures);
+  if (Math.max(...lateGeometry) - Math.min(...lateGeometry) > 2 || Math.max(...lateTextures) - Math.min(...lateTextures) > 2) problems.push("GPU object counts grew after restart stabilization");
+
+  const contextLost = await page.evaluate(() => {
+    const event = new Event("webglcontextlost", { cancelable: true });
+    renderer.domElement.dispatchEvent(event);
+    renderer.domElement.dispatchEvent(new Event("webglcontextrestored"));
+    return { prevented: event.defaultPrevented, state: gameState.state, open: document.getElementById("contextRecovery").classList.contains("on") };
+  });
+  if (!contextLost.prevented || contextLost.state !== "context-lost" || !contextLost.open) problems.push(`WebGL recovery path failed: ${JSON.stringify(contextLost)}`);
+  await page.locator("#contextRestartBtn").click();
+  await page.waitForFunction(() => document.getElementById("hud")?.style.display === "block" && gameState.state === "buy");
+
+  console.log("smoke: death, spectating, results, rematch, and menu cleanup");
+  await page.evaluate(() => { phaseT = 0; updateSim(0.016); const enemy = players.find(player => player.alive && player.team !== me.team); damage(me, 9999, enemy); updateRender(0.016); renderHUD(); });
+  const deathState = await page.evaluate(() => ({ alive: me.alive, state: gameState.state, spectateVisible: document.getElementById("spectate").style.display === "block", selected: ui.spectateId }));
+  if (deathState.alive || deathState.state !== "spectating" || !deathState.spectateVisible || !deathState.selected) problems.push(`death/spectating flow failed: ${JSON.stringify(deathState)}`);
+  await page.evaluate(() => { window.CS3D_restartMatch(); phaseT = 0; updateSim(0.016); scoreATK = myTeam === "ATK" ? FIRST_TO : 0; scoreDEF = myTeam === "DEF" ? FIRST_TO : 0; endGame(); });
+  await page.waitForFunction(() => document.getElementById("endScreen")?.style.display === "grid" && gameState.state === "results");
+  await page.locator("#rematchBtn").click();
+  await page.waitForFunction(() => document.getElementById("hud")?.style.display === "block" && gameState.state === "buy");
+  const rematchState = await page.evaluate(() => ({ arena: window.CS3D_selectedArenaId, playlist: selectedPlaylist, division: myDiv.id, scoreATK, scoreDEF, players: players.length }));
+  if (rematchState.arena !== arenaId || rematchState.playlist !== "standard" || rematchState.scoreATK !== 0 || rematchState.scoreDEF !== 0 || rematchState.players !== 10) problems.push(`rematch did not preserve intended selections: ${JSON.stringify(rematchState)}`);
+  await page.locator("#quitBtn").evaluate(button => button.click()).catch(() => page.evaluate(() => window.CS3D_returnToMenu()));
+  const menuCleanup = await page.evaluate(() => { if (phase !== "menu") window.CS3D_returnToMenu(); return window.CS3D_runtimeMetrics(); });
+  if (menuCleanup.players !== 0 || menuCleanup.rigs !== 1 || menuCleanup.tempMeshes !== 0 || menuCleanup.schedulerJobs !== 0 || menuCleanup.state !== "operator-select") problems.push(`return-to-menu cleanup failed: ${JSON.stringify(menuCleanup)}`);
+
+  console.log("smoke: wave mode transition");
+  const waveState = await page.evaluate(() => {
+    setPlaylist("wave");
+    selectedSquad = DIVS.slice(0, 5).map(division => division.id);
+    myDiv = DIVS[0];
+    gameState.recover(RUNTIME.GAME_STATES.DEPLOYMENT, "smoke-wave-deploy");
+    phase = "deployment";
+    startMatch();
+    phaseT = 0;
+    updateSim(0.016);
+    const firstWave = waveIndex;
+    for (const enemy of [...players.filter(player => player.alive && player.team !== myTeam)]) kill(enemy, me);
+    const transitionState = gameState.state;
+    phaseT = 0;
+    updateSim(0.016);
+    return { planLength: wavePlan.length, firstWave, nextWave: waveIndex, transitionState, phase, state: gameState.state };
+  });
+  console.log("wave transition:", JSON.stringify(waveState));
+  if (waveState.planLength < 2 || waveState.firstWave !== 0 || waveState.nextWave !== 1 || waveState.transitionState !== "round-end" || waveState.state !== "buy") problems.push(`wave transition failed: ${JSON.stringify(waveState)}`);
+  await page.evaluate(() => window.CS3D_returnToMenu());
+
+  console.log("smoke: touch-only mobile gameplay");
+  const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  mobilePage.on("console", msg => { if (msg.type() === "error") problems.push(`mobile console: ${msg.text()}`); });
+  mobilePage.on("pageerror", error => problems.push(`mobile pageerror: ${error.message}`));
+  await mobilePage.addInitScript(() => localStorage.setItem("cs3d.settings.v2", JSON.stringify({ version: 2, tutorialCompleted: true, quality: "low" })));
+  await mobilePage.goto(`${origin}/index.html`, { waitUntil: "load" });
+  await mobilePage.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
+  await mobilePage.evaluate(() => { gameState.recover(RUNTIME.GAME_STATES.DEPLOYMENT, "smoke-touch-deploy"); phase = "deployment"; startMatch(); phaseT = 0; updateSim(0.016); curW(me).ammo = Math.max(0, curW(me).mag - 2); me.reloadT = 0; });
+  await mobilePage.locator('[data-action="reload"]').tap();
+  const touchState = await mobilePage.evaluate(() => {
+    const move = document.getElementById("movePad").getBoundingClientRect(), aim = document.getElementById("aimPad").getBoundingClientRect();
+    const buttons = [...document.querySelectorAll(".touchBtn")].map(button => button.getBoundingClientRect());
+    const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    SETTINGS.touchLeftHanded = true; applyUserSettings();
+    return {
+      mode: actionInput.mode,
+      reloadStarted: me.reloadT > 0,
+      controlsVisible: getComputedStyle(document.getElementById("touchControls")).display !== "none",
+      horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      minTarget: Math.min(...buttons.map(button => Math.min(button.width, button.height))),
+      overlapsPads: buttons.some(button => overlaps(button, move) || overlaps(button, aim)),
+      leftHanded: document.body.classList.contains("touch-left"),
+      orientationVisible: getComputedStyle(document.getElementById("orientationGuide")).display !== "none",
+    };
+  });
+  console.log("mobile touch:", JSON.stringify(touchState));
+  if (touchState.mode !== "touch" || !touchState.reloadStarted || !touchState.controlsVisible || touchState.horizontalOverflow > 1 || touchState.minTarget < 44 || touchState.overlapsPads || !touchState.leftHanded || !touchState.orientationVisible) problems.push(`touch-only layout/input failed: ${JSON.stringify(touchState)}`);
+  await mobilePage.close();
+
+  const remoteRequests = [...requestedUrls].filter(url => !url.startsWith(origin) && !url.startsWith("data:") && !url.startsWith("blob:"));
+  if (remoteRequests.length) problems.push(`remote runtime requests detected: ${remoteRequests.join(", ")}`);
 } catch (error) {
   problems.push(`flow: ${error.message}`);
   await page.screenshot({ path: path.join(outDir, "99-failure.png") }).catch(() => {});

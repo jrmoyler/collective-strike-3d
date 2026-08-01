@@ -34,6 +34,7 @@
   let duckMultiplier = 1;
   let transitionSerial = 0;
   const warned = new Set();
+  const timerIds = new Set();
 
   const clamp01 = value => Math.max(0, Math.min(1, Number(value) || 0));
   const readStored = (key, fallback) => {
@@ -56,6 +57,12 @@
     try {
       root.dispatchEvent?.(new root.CustomEvent("cs3d:audiochange", { detail: getState() }));
     } catch (_) {}
+  };
+  const later = (callback, delayMs) => {
+    let id;
+    id = root.setTimeout(() => { timerIds.delete(id); callback(); }, delayMs);
+    timerIds.add(id);
+    return id;
   };
   const targetMusicGain = () => muted ? 0 : musicVolume * masterVolume * duckMultiplier;
   const ramp = (param, value, durationMs) => {
@@ -192,7 +199,7 @@
       previous.gain.gain.cancelScheduledValues(now);
       previous.gain.gain.setValueAtTime(previous.gain.gain.value, now);
       previous.gain.gain.linearRampToValueAtTime(0, now + CROSSFADE_MS / 1000);
-      root.setTimeout(() => {
+      later(() => {
         if (activeDeck === nextIndex) {
           previous.audio.pause();
           previous.audio.currentTime = 0;
@@ -284,7 +291,7 @@
     for (const deck of decks) {
       if (!deck?.audio) continue;
       if (context && fadeMs > 0) ramp(deck.gain.gain, 0, fadeMs);
-      root.setTimeout(() => {
+      later(() => {
         deck.audio.pause();
         if (options.reset !== false) deck.audio.currentTime = 0;
         deck.trackKey = null;
@@ -338,11 +345,13 @@
     return Object.freeze({
       initialized, unlocked, muted, volume: musicVolume, masterVolume,
       currentTrackKey, requestedTrackKey, pendingTrackKey, stingerKey,
-      paused: gameplayPaused, visibilityPaused
+      paused: gameplayPaused, visibilityPaused, mediaElements: decks.length + (stinger ? 1 : 0), pendingTimers: timerIds.size
     });
   }
   function disposeAudio() {
     transitionSerial++;
+    for (const id of timerIds) root.clearTimeout?.(id);
+    timerIds.clear();
     root.document?.removeEventListener?.("visibilitychange", handleVisibilityChange);
     for (const deck of decks) {
       deck.audio.pause();

@@ -44,6 +44,29 @@ import {
   arenaObstacleAt,
   traceArenaSegment
 } from "./arena-ballistics.js";
+import {
+  GAME_STATES,
+  GameScheduler,
+  LifecycleRegistry,
+  QUALITY_PROFILES,
+  QualityController,
+  createGameStateMachine,
+  recoverNavigationPath
+} from "./game-runtime.js";
+import { ACTIONS, DEFAULT_KEY_BINDINGS, GAMEPAD_BINDINGS, createActionInput, normalizeAxis } from "./input-actions.js";
+import {
+  CAREER_KEY,
+  DEFAULT_CAREER,
+  DEFAULT_SETTINGS,
+  SAVE_VERSION,
+  SETTINGS_KEY,
+  loadCareer,
+  loadSettings,
+  resetCareer,
+  resetSettings,
+  saveCareer,
+  saveSettings
+} from "./persistence.js";
 
 /* v3-compatible surface used by the existing HUD/menu animations */
 function animeCompat(params) {
@@ -109,4 +132,27 @@ window.CS3D_ARENA_SYSTEM = Object.freeze({
   traceArenaSegment,
   validateArenaDefinition,
   validateArenaRegistry
+});
+window.CS3D_RUNTIME = Object.freeze({
+  GAME_STATES,
+  GameScheduler,
+  LifecycleRegistry,
+  QUALITY_PROFILES,
+  QualityController,
+  createGameStateMachine,
+  recoverNavigationPath
+});
+window.CS3D_INPUT = Object.freeze({ ACTIONS, DEFAULT_KEY_BINDINGS, GAMEPAD_BINDINGS, createActionInput, normalizeAxis });
+window.CS3D_PERSISTENCE = Object.freeze({
+  CAREER_KEY,
+  DEFAULT_CAREER,
+  DEFAULT_SETTINGS,
+  SAVE_VERSION,
+  SETTINGS_KEY,
+  loadCareer,
+  loadSettings,
+  resetCareer,
+  resetSettings,
+  saveCareer,
+  saveSettings
 });
