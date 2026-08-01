@@ -28,7 +28,8 @@ const TYPES = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".woff2": "font/woff2",
-  ".png": "image/png"
+  ".png": "image/png",
+  ".mp3": "audio/mpeg"
 };
 
 const server = http.createServer((req, res) => {
