@@ -1,7 +1,7 @@
 /*
- * Boots the built game in headless Chromium, walks it from the operator select
- * screen into a live round, and captures screenshots. Fails on any console
- * error, page error, or failed network request.
+ * Boots the built game in headless Chromium, walks it from the title briefing
+ * through operator select into a live round, and captures screenshots. Fails on
+ * any console error, page error, or failed network request.
  *
  *   node scripts/smoke.mjs [--out <dir>] [--division <id>]
  */
@@ -96,6 +96,55 @@ page.on("request", request => requestedUrls.add(request.url()));
 try {
   console.log("smoke: loading game");
   await page.goto(`${origin}/index.html`, { waitUntil: "load" });
+
+  console.log("smoke: title screen and landing brief");
+  await page.waitForFunction(() => document.getElementById("titleScreen")?.classList.contains("on"), { timeout: 30_000 });
+  await page.waitForTimeout(900);
+  const brief = await page.evaluate(() => ({
+    state: gameState.state,
+    menuHidden: document.getElementById("menu").style.display === "none",
+    railSections: document.querySelectorAll(".tRailBtn").length,
+    stats: document.querySelectorAll("#titleStats .tStat").length,
+    spectrum: document.querySelectorAll("#titleSpectrum i").length,
+    operators: document.querySelectorAll("#tOperatorCards .tCard").length,
+    playlists: document.querySelectorAll("#tPlaylistCards .tCard").length,
+    arenas: document.querySelectorAll("#tArenaCards .tCard").length,
+    bosses: document.querySelectorAll("#tBossCards .tCard").length,
+    difficulties: document.querySelectorAll("#tDifficultyCards .tCard").length,
+    controls: document.querySelectorAll("#tControlKeys .tKey").length,
+    doctrineRows: document.querySelectorAll("#tDoctrineTables .tTable tr").length - document.querySelectorAll("#tDoctrineTables .tTable").length,
+    seriesRows: document.querySelectorAll("#tSeriesTables .tTable tr").length - document.querySelectorAll("#tSeriesTables .tTable").length,
+    baseWeapons: document.querySelectorAll("#tWeaponCards .tCard").length,
+    survivalPanels: document.querySelectorAll("#tSurvival .tStep").length,
+    horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  }));
+  console.log("title brief:", JSON.stringify(brief));
+  if (brief.state !== "menu" || !brief.menuHidden) problems.push(`title screen did not hold the menu state: ${JSON.stringify(brief)}`);
+  if (brief.railSections !== 9) problems.push(`expected 9 briefing sections, found ${brief.railSections}`);
+  if (brief.stats !== 5 || brief.spectrum !== 20) problems.push(`title hero data is incomplete: ${JSON.stringify(brief)}`);
+  if (brief.operators !== 20 || brief.arenas !== 10 || brief.bosses !== 12 || brief.playlists !== 3) problems.push(`landing roster panels are incomplete: ${JSON.stringify(brief)}`);
+  if (brief.difficulties !== 3 || brief.controls < 10 || brief.doctrineRows !== 20) problems.push(`landing reference panels are incomplete: ${JSON.stringify(brief)}`);
+  if (brief.seriesRows !== 21 || brief.baseWeapons !== 4 || brief.survivalPanels !== 4) problems.push(`landing arsenal or survivability panels are incomplete: ${JSON.stringify(brief)}`);
+  if (brief.horizontalOverflow > 1) problems.push(`title screen has ${brief.horizontalOverflow}px horizontal overflow`);
+  await page.screenshot({ path: path.join(outDir, "00-title.png") });
+
+  for (const [width, height] of [[360, 800], [768, 1024], [1920, 1080]]) {
+    await page.setViewportSize({ width, height });
+    await page.waitForTimeout(90);
+    const layout = await page.evaluate(height => {
+      const cta = document.getElementById("titleEnterBtn").getBoundingClientRect();
+      return {
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        ctaReachable: cta.width > 40 && cta.height >= 36 && cta.top >= -1 && cta.bottom <= height + 1,
+      };
+    }, height);
+    if (layout.overflow > 1) problems.push(`${width}x${height} title has ${layout.overflow}px horizontal overflow`);
+    if (!layout.ctaReachable) problems.push(`${width}x${height} title call to action is clipped`);
+  }
+  await page.setViewportSize({ width: 800, height: 500 });
+  await page.waitForTimeout(90);
+
+  await page.locator("#titleEnterBtn").click();
   await page.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
   await page.waitForTimeout(1200);
 
@@ -507,7 +556,36 @@ try {
   await page.waitForFunction(() => document.getElementById("hud")?.style.display === "block" && gameState.state === "buy");
 
   console.log("smoke: death, spectating, results, rematch, and menu cleanup");
-  await page.evaluate(() => { phaseT = 0; updateSim(0.016); const enemy = players.find(player => player.alive && player.team !== me.team); damage(me, 9999, enemy); updateRender(0.016); renderHUD(); });
+  console.log("smoke: survivability baseline");
+  const survivability = await page.evaluate(() => {
+    phaseT = 0;
+    updateSim(0.016);
+    const enemy = players.find(player => player.alive && player.team !== me.team);
+    const guardActive = me.spawnGuardUntil > performance.now() / 1000;
+    me.hp = maxHp(me);
+    me.armor = 0;
+    damage(me, 9999, enemy);
+    const shielded = me.hp === maxHp(me) && me.alive;
+    /* One real hit through damage() gives the true post-resilience figure; the shot
+       counts are derived from it so the probe never actually kills the player. */
+    me.spawnGuardUntil = 0;
+    const before = me.hp;
+    damage(me, WEAPONS.rifle.dmg, enemy);
+    const perRifleShot = before - me.hp;
+    me.hp = maxHp(me);
+    const perRailgunShot = perRifleShot / WEAPONS.rifle.dmg * WEAPONS.sniper.dmg;
+    return {
+      guardActive, shielded, maxHp: maxHp(me), resilience: playerResilience(),
+      rifleShots: Math.ceil(maxHp(me) / perRifleShot),
+      railgunShots: Math.ceil(maxHp(me) / perRailgunShot),
+    };
+  });
+  console.log("survivability:", JSON.stringify(survivability));
+  if (!survivability.guardActive || !survivability.shielded) problems.push(`deployment shield did not cover the opening seconds: ${JSON.stringify(survivability)}`);
+  if (survivability.rifleShots < 7) problems.push(`player still dies in ${survivability.rifleShots} rifle shots`);
+  if (survivability.railgunShots < 2) problems.push("a single Railgun hit still eliminates the player");
+
+  await page.evaluate(() => { me.alive = true; me.hp = 1; me.armor = 0; me.spawnGuardUntil = 0; const enemy = players.find(player => player.alive && player.team !== me.team); damage(me, 9999, enemy); updateRender(0.016); renderHUD(); });
   const deathState = await page.evaluate(() => ({ alive: me.alive, state: gameState.state, spectateVisible: document.getElementById("spectate").style.display === "block", selected: ui.spectateId }));
   if (deathState.alive || deathState.state !== "spectating" || !deathState.spectateVisible || !deathState.selected) problems.push(`death/spectating flow failed: ${JSON.stringify(deathState)}`);
   await page.evaluate(() => { window.CS3D_restartMatch(); phaseT = 0; updateSim(0.016); scoreATK = myTeam === "ATK" ? FIRST_TO : 0; scoreDEF = myTeam === "DEF" ? FIRST_TO : 0; endGame(); });
@@ -547,6 +625,14 @@ try {
   mobilePage.on("pageerror", error => problems.push(`mobile pageerror: ${error.message}`));
   await mobilePage.addInitScript(() => localStorage.setItem("cs3d.settings.v2", JSON.stringify({ version: 2, tutorialCompleted: true, quality: "low" })));
   await mobilePage.goto(`${origin}/index.html`, { waitUntil: "load" });
+  await mobilePage.waitForFunction(() => document.getElementById("titleScreen")?.classList.contains("on"), { timeout: 30_000 });
+  const mobileTitle = await mobilePage.evaluate(() => ({
+    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    railHidden: getComputedStyle(document.getElementById("titleRail")).display === "none",
+    ctaHeight: document.getElementById("titleEnterBtn").getBoundingClientRect().height,
+  }));
+  if (mobileTitle.overflow > 1 || !mobileTitle.railHidden || mobileTitle.ctaHeight < 44) problems.push(`mobile title layout failed: ${JSON.stringify(mobileTitle)}`);
+  await mobilePage.locator("#titleEnterBtn").tap();
   await mobilePage.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
   await mobilePage.evaluate(() => { gameState.recover(RUNTIME.GAME_STATES.DEPLOYMENT, "smoke-touch-deploy"); phase = "deployment"; startMatch(); phaseT = 0; updateSim(0.016); curW(me).ammo = Math.max(0, curW(me).mag - 2); me.reloadT = 0; });
   await mobilePage.locator('[data-action="reload"]').tap();
