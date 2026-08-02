@@ -21,13 +21,30 @@ body.reduced-motion *,body.reduced-motion *:before,body.reduced-motion *:after{a
 
 /* Title + landing brief: first screen after boot, sitting over a live arena orbit.
    Hands off to operator select through the band wipe at the bottom of this block. */
-#titleScreen{position:fixed;inset:0;z-index:150;display:none;color:var(--text)}
+#titleScreen{position:fixed;inset:0;z-index:150;display:none;overflow:hidden;color:var(--text)}
 #titleScreen.on{display:block}
 .tShade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(3,6,14,.93),rgba(3,6,14,.66) 40%,rgba(3,6,14,.08) 74%,rgba(3,6,14,.42)),linear-gradient(0deg,rgba(2,4,10,.94),rgba(3,6,14,0) 46%,rgba(3,6,14,.5)),radial-gradient(ellipse at 52% 46%,rgba(3,6,14,0) 34%,rgba(2,4,10,.5) 86%)}
-.tGrid{position:absolute;inset:0;pointer-events:none;opacity:.42;background:linear-gradient(90deg,rgba(212,168,67,.1) 1px,transparent 1px),linear-gradient(0deg,rgba(56,189,248,.06) 1px,transparent 1px);background-size:92px 92px;mask-image:radial-gradient(ellipse at 52% 44%,#000,transparent 76%)}
+.tGrid{position:absolute;inset:-92px 0 0 -92px;pointer-events:none;opacity:.42;background:linear-gradient(90deg,rgba(212,168,67,.1) 1px,transparent 1px),linear-gradient(0deg,rgba(56,189,248,.06) 1px,transparent 1px);background-size:92px 92px;mask-image:radial-gradient(ellipse at 52% 44%,#000,transparent 76%);animation:tGridDrift 52s linear infinite}
+@keyframes tGridDrift{to{transform:translate(92px,92px)}}
+.tMotion{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.tMotion i{position:absolute;top:0;width:1px;height:24vh;background:linear-gradient(180deg,transparent,var(--sc,rgba(212,168,67,.6)) 46%,transparent);animation:tStream var(--sd,9s) linear infinite;animation-delay:var(--sl,0s);opacity:0}
+.tMotion i:nth-child(1){left:9%;--sd:10.5s;--sl:-2s}
+.tMotion i:nth-child(2){left:23%;--sd:13s;--sl:-7s;--sc:rgba(56,189,248,.45)}
+.tMotion i:nth-child(3){left:38%;--sd:8.5s;--sl:-4.4s}
+.tMotion i:nth-child(4){left:55%;--sd:14.5s;--sl:-.8s;--sc:rgba(56,189,248,.38)}
+.tMotion i:nth-child(5){left:68%;--sd:9.6s;--sl:-6.2s;--sc:rgba(228,213,166,.5)}
+.tMotion i:nth-child(6){left:81%;--sd:12.2s;--sl:-9.4s}
+.tMotion i:nth-child(7){left:93%;--sd:11s;--sl:-3.1s;--sc:rgba(56,189,248,.42)}
+@keyframes tStream{0%{transform:translateY(-26vh);opacity:0}10%{opacity:.55}80%{opacity:.4}100%{transform:translateY(126vh);opacity:0}}
+.tScan{position:absolute;left:0;right:0;top:-140px;height:120px;background:linear-gradient(180deg,transparent,rgba(212,168,67,.06) 42%,rgba(56,189,248,.05) 58%,transparent);animation:tScanSweep 12s cubic-bezier(.45,.08,.55,.92) infinite}
+@keyframes tScanSweep{0%,7%{transform:translateY(0)}93%,100%{transform:translateY(calc(100vh + 280px))}}
 #titleScroll{position:absolute;inset:0;overflow:hidden auto;scroll-behavior:smooth;scrollbar-color:rgba(212,168,67,.42) transparent}
-#titleScroll>*{background:rgba(4,7,16,.88)}
-#tHero{background:linear-gradient(180deg,rgba(4,7,16,.06),rgba(4,7,16,.3) 62%,rgba(4,7,16,.88))}
+#titleScroll>*{background:linear-gradient(180deg,rgba(4,7,16,.78),rgba(6,10,21,.68) 50%,rgba(4,7,16,.78))}
+#tHero{background:linear-gradient(180deg,rgba(4,7,16,.06),rgba(4,7,16,.3) 62%,rgba(4,7,16,.78))}
+.tSec:not(#tHero):before{content:"";position:absolute;left:clamp(22px,5vw,68px);right:clamp(22px,5vw,68px);top:0;height:1px;background:linear-gradient(90deg,rgba(212,168,67,.3),rgba(56,189,248,.14) 55%,transparent)}
+#titleScreen.on #tHero>*{animation:tRise .55s cubic-bezier(.2,.72,.3,1) both}
+#titleScreen.on #tHero>*:nth-child(2){animation-delay:.05s}#titleScreen.on #tHero>*:nth-child(3){animation-delay:.1s}#titleScreen.on #tHero>*:nth-child(4){animation-delay:.16s}#titleScreen.on #tHero>*:nth-child(5){animation-delay:.21s}#titleScreen.on #tHero>*:nth-child(6){animation-delay:.26s}#titleScreen.on #tHero>*:nth-child(7){animation-delay:.3s}#titleScreen.on #tHero>*:nth-child(8){animation-delay:.34s}
+@keyframes tRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 .tSec{position:relative;max-width:1250px;margin:0 auto;padding:92px clamp(22px,5vw,68px) 92px clamp(22px,5vw,68px)}
 #tHero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding-top:76px;padding-bottom:52px}
 #titleRail{position:absolute;left:clamp(10px,1.8vw,26px);top:50%;z-index:3;transform:translateY(-50%);display:flex;flex-direction:column;gap:1px}
@@ -39,11 +56,13 @@ body.reduced-motion *,body.reduced-motion *:before,body.reduced-motion *:after{a
 .tRailBtn.on i{width:28px;box-shadow:0 0 12px var(--gold)}
 .tRailBtn:hover span,.tRailBtn.on span{max-width:180px;opacity:1}
 #titleSpectrum{display:flex;gap:1px;height:5px;width:min(560px,74vw);border-radius:3px;overflow:hidden;box-shadow:0 0 30px rgba(56,189,248,.26)}
-#titleSpectrum i{flex:1;background:var(--c)}
+#titleSpectrum i{flex:1;background:var(--c);transform-origin:bottom;animation:tEq 3.4s ease-in-out infinite;animation-delay:calc(var(--i,0)*-.27s)}
+@keyframes tEq{0%,100%{transform:scaleY(.42);filter:brightness(.85)}50%{transform:scaleY(1);filter:brightness(1.25)}}
 .tEyebrow{margin-top:20px;color:var(--gold);font:800 10px "JetBrains Mono";letter-spacing:.34em;text-transform:uppercase}
 #titleWord{margin-top:14px;font-size:clamp(48px,10vw,146px);font-weight:800;line-height:.82;letter-spacing:.015em;text-transform:uppercase}
 #titleWord em{display:block;font-style:normal;color:transparent;-webkit-text-stroke:1.6px rgba(139,196,255,.78)}
-#titleWord b{display:inline-block;background:linear-gradient(178deg,#fdf0c6,#d4a843 54%,#8f6516);-webkit-background-clip:text;background-clip:text;color:transparent}
+#titleWord b{display:inline-block;background:linear-gradient(115deg,#8f6516 0%,#d4a843 32%,#fdf0c6 50%,#d4a843 68%,#8f6516 100%);background-size:230% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:tShine 6.5s ease-in-out infinite}
+@keyframes tShine{0%,18%{background-position:0% 0}62%,100%{background-position:100% 0}}
 #titleWord sup{margin-left:.22em;padding:.28em .5em;border:1px solid rgba(212,168,67,.5);border-radius:7px;vertical-align:super;background:rgba(212,168,67,.1);color:var(--gold);font:800 .13em "JetBrains Mono";letter-spacing:.2em;-webkit-text-stroke:0}
 #titleLede{max-width:56ch;margin-top:26px;color:#c8d4e5;font-size:clamp(13px,1.25vw,16px);line-height:1.72}
 #titleStats{display:flex;flex-wrap:wrap;gap:9px;margin-top:30px}
@@ -52,7 +71,9 @@ body.reduced-motion *,body.reduced-motion *:before,body.reduced-motion *:after{a
 .tStat span{display:block;margin-top:5px;color:var(--muted);font:700 8px "JetBrains Mono";letter-spacing:.18em}
 #titleActions{display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-top:32px}
 .tCta{padding:17px 42px;border:0;border-radius:9px;background:linear-gradient(158deg,#f2d68d,#bd8b2c);color:#0a0d16;font:900 11px "JetBrains Mono";letter-spacing:.22em;cursor:pointer;box-shadow:0 0 48px rgba(212,168,67,.36);transition:transform .16s,box-shadow .16s}
-.tCta:hover{transform:translateY(-2px);box-shadow:0 0 70px rgba(212,168,67,.56)}
+.tCta{animation:tCtaBreath 3.6s ease-in-out infinite}
+@keyframes tCtaBreath{0%,100%{box-shadow:0 0 34px rgba(212,168,67,.28)}50%{box-shadow:0 0 62px rgba(212,168,67,.5)}}
+.tCta:hover{transform:translateY(-2px);box-shadow:0 0 70px rgba(212,168,67,.56);animation:none}
 .tGhost{padding:17px 26px;border:1px solid rgba(148,163,184,.3);border-radius:9px;background:rgba(8,13,26,.7);color:#dbe7f6;font:800 10px "JetBrains Mono";letter-spacing:.2em;cursor:pointer;transition:border-color .16s,color .16s,transform .16s}
 .tGhost:hover{border-color:var(--arena-secondary);color:#fff;transform:translateY(-2px)}
 #titleCareer{margin-top:22px;color:var(--muted);font:700 9px "JetBrains Mono";letter-spacing:.16em;text-transform:uppercase}
@@ -332,7 +353,7 @@ body[data-colorblind=deuteranopia]{--red:#f97316;--green:#60a5fa}body[data-color
 <div id="loading">Initializing Collective Strike 3D</div>
 <button type="button" id="soundtrackToggle" aria-label="Mute soundtrack" aria-pressed="false">MUSIC ON</button>
 <div id="titleScreen" aria-label="Collective Strike 3D title and field briefing">
-  <div class="tShade" aria-hidden="true"></div><div class="tGrid" aria-hidden="true"></div>
+  <div class="tShade" aria-hidden="true"></div><div class="tGrid" aria-hidden="true"></div><div class="tMotion" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><span class="tScan"></span></div>
   <nav id="titleRail" aria-label="Briefing sections"></nav>
   <div id="titleScroll">
     <section class="tSec" id="tHero" data-brief="00" data-title="TITLE">
@@ -2135,7 +2156,7 @@ function renderTitleCareer(){
  node.innerHTML=CAREER.matches>0?`Welcome back / career level <b>${careerLevel()}</b> / <b>${CAREER.wins}</b> wins across <b>${CAREER.matches}</b> matches / best streak <b>${CAREER.bestStreak||0}</b>`:"No saved career yet / your first deployment starts a local progression file";
 }
 function buildTitleHero(){
- document.getElementById("titleSpectrum").innerHTML=DIVS.map(d=>`<i style="--c:${d.c}"></i>`).join("");
+ document.getElementById("titleSpectrum").innerHTML=DIVS.map((d,i)=>`<i style="--c:${d.c};--i:${i}"></i>`).join("");
  const accents=["#d4a843","#38bdf8","#22c55e","#f43f5e","#8b5cf6"];
  document.getElementById("titleStats").innerHTML=[[DIVS.length,"OPERATORS"],[ARENA_ORDER.length,"ARENAS"],[titleArsenalCount(),"WEAPONS"],[BOSS_DNA.length,"APEX BOSSES"],[Object.keys(PLAYLISTS).length,"PLAYLISTS"]]
   .map(([value,label],i)=>`<div class="tStat" style="--c:${accents[i%accents.length]}"><b>${value}</b><span>${label}</span></div>`).join("");
@@ -2240,8 +2261,12 @@ function buildTitleRail(){
  for(const section of sections){titleRevealObserver.observe(section);titleSpyObserver.observe(section)}
  /* Scroll backstop: whatever the observer misses still reveals, so no panel can be
     left permanently invisible on an unusual scroll or a restored scroll position. */
- const sweep=()=>{for(const section of sections)if(section.getBoundingClientRect().top<innerHeight*.92)section.classList.add("seen")};
- appLifecycle.listen(document.getElementById("titleScroll"),"scroll",sweep,{passive:true});
+ const scroller=document.getElementById("titleScroll"),shade=document.querySelector("#titleScreen .tShade"),motion=document.querySelector("#titleScreen .tMotion");
+ const sweep=()=>{
+  for(const section of sections)if(section.getBoundingClientRect().top<innerHeight*.92)section.classList.add("seen");
+  if(!SETTINGS.reducedMotion){const y=scroller.scrollTop;if(shade)shade.style.opacity=String(clamp(1-y/innerHeight*.35,.62,1));if(motion)motion.style.transform=`translateY(${(-y*.05).toFixed(1)}px)`}
+ };
+ appLifecycle.listen(scroller,"scroll",sweep,{passive:true});
  appLifecycle.listen(window,"resize",sweep);
  sweep();
 }
