@@ -53,6 +53,8 @@ function makeSandbox() {
   FakeAudio.instances = [];
   const storage = new Map();
   const documentListeners = new Map();
+  const pendingTimers = new Map();
+  let nextTimer = 1;
   const sandbox = {
     Audio: FakeAudio,
     AudioContext: FakeAudioContext,
@@ -69,14 +71,14 @@ function makeSandbox() {
       getItem(key) { return storage.has(key) ? storage.get(key) : null; },
       setItem(key, value) { storage.set(key, value); }
     },
-    setTimeout(callback) { callback(); return 1; },
-    clearTimeout() {},
+    setTimeout(callback) { const id = nextTimer++; pendingTimers.set(id, callback); return id; },
+    clearTimeout(id) { pendingTimers.delete(id); },
     dispatchEvent() {},
     CustomEvent: class CustomEvent { constructor(type, init) { this.type = type; this.detail = init?.detail; } }
   };
   vm.runInNewContext(manifestSource, sandbox);
   vm.runInNewContext(managerSource, sandbox);
-  return { sandbox, storage, audio: sandbox.CS3D_AUDIO };
+  return { sandbox, storage, audio: sandbox.CS3D_AUDIO, pendingTimers };
 }
 
 test('repeated state updates do not start duplicate persistent music', async () => {
@@ -107,4 +109,17 @@ test('mute and music volume preferences persist under namespaced keys', () => {
   assert.equal(audio.setMusicVolume(0.37), 0.37);
   assert.equal(storage.get('cs3d.audio.muted'), 'true');
   assert.equal(storage.get('cs3d.audio.musicVolume'), '0.37');
+});
+
+test('audio teardown cancels crossfade cleanup and releases all media elements', async () => {
+  const { audio, pendingTimers } = makeSandbox();
+  audio.initAudio();
+  await audio.unlockAudioFromUserGesture();
+  await audio.playMusic('main_menu');
+  await audio.playMusic('arena_combat_1');
+  assert.ok(pendingTimers.size > 0);
+  audio.disposeAudio();
+  assert.equal(pendingTimers.size, 0);
+  assert.equal(audio.getState().initialized, false);
+  assert.ok(FakeAudio.instances.every(instance => instance.pauseCalls > 0));
 });

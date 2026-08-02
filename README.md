@@ -47,13 +47,14 @@ Open `http://localhost:4173/`. Serving the repository root and opening
 
 | Script | What it does |
 | --- | --- |
-| `npm test` | Static contract checks on the HTML source |
+| `npm test` | Runtime unit tests plus static HTML/offline contracts |
 | `npm run vendor` | Rebuild the pinned Three.js / anime.js runtime bundle |
 | `npm run fonts` | Rebuild the inlined webfont stylesheet |
 | `npm run build` | Vendor + fonts + `dist/` |
+| `npm run audio:check` | Validate all local soundtrack files and manifest entries |
 | `npm run smoke` | Headless Chromium playthrough into a live round, fails on any console, page, or network error |
 | `npm run rigs` | Render a close-up sheet of all 20 operator rigs holding a weapon |
-| `npm run check` | `test` + `build` + `smoke` |
+| `npm run check` | `test` + `build` + `audio:check` + full browser smoke |
 
 `npm run smoke` and `npm run rigs` write into `screenshots/` (git-ignored).
 
@@ -66,11 +67,16 @@ Open `http://localhost:4173/`. Serving the repository root and opening
 - `F`: plant or defuse
 - `B`: armory
 - `R`: reload
-- `1–4`: weapon select
+- `1–5`: weapon select
+- `6`: cycle Series 03 weapons
 - `Tab`: scoreboard
 - `Esc`: pause
 
 Touch and standard dual-stick gamepads are supported.
+
+Runtime architecture, safe extension points, save migrations, teardown ownership,
+quality budgets, and browser expectations are documented in
+[`docs/GAMEPLAY_RUNTIME.md`](docs/GAMEPLAY_RUNTIME.md).
 
 ## Progression and difficulty
 

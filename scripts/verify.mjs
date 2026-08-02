@@ -7,14 +7,16 @@ const root = path.resolve(import.meta.dirname, "..");
 const sourcePath = path.join(root, "COLLECTIVE_STRIKE_3D.html");
 const arenaRuntimePath = path.join(root, "src", "arena-runtime.js");
 const arenaCorePath = path.join(root, "src", "arena-core.js");
+const arenaBallisticsPath = path.join(root, "src", "arena-ballistics.js");
 const soundtrackManifestPath = path.join(root, "src", "soundtrack-manifest.js");
 const audioManagerPath = path.join(root, "src", "audio-manager.js");
 const html = fs.readFileSync(sourcePath, "utf8");
 const arenaRuntime = fs.existsSync(arenaRuntimePath) ? fs.readFileSync(arenaRuntimePath, "utf8") : "";
 const arenaCoreSource = fs.existsSync(arenaCorePath) ? fs.readFileSync(arenaCorePath, "utf8") : "";
+const arenaBallisticsSource = fs.existsSync(arenaBallisticsPath) ? fs.readFileSync(arenaBallisticsPath, "utf8") : "";
 const soundtrackManifestSource = fs.existsSync(soundtrackManifestPath) ? fs.readFileSync(soundtrackManifestPath, "utf8") : "";
 const audioManagerSource = fs.existsSync(audioManagerPath) ? fs.readFileSync(audioManagerPath, "utf8") : "";
-const corpus = html + "\n" + arenaRuntime + "\n" + arenaCoreSource + "\n" + soundtrackManifestSource + "\n" + audioManagerSource;
+const corpus = html + "\n" + arenaRuntime + "\n" + arenaCoreSource + "\n" + arenaBallisticsSource + "\n" + soundtrackManifestSource + "\n" + audioManagerSource;
 const failures = [];
 const pass = message => console.log(`✓ ${message}`);
 const assert = (condition, message) => {
@@ -75,6 +77,9 @@ for (const architecture of arenaIds) assert(new RegExp(`\\b${architecture}: Obje
 for (const name of ["NEON FOUNDRY", "SUNKEN ARCHIVE", "SKYGRAVE BASTION", "VERDANT OVERRUN", "CRYO RIFT", "NULL CATHEDRAL"]) assert(arenaCoreSource.includes(name), `${name} is authored`);
 for (const section of ["identity", "topology", "traversal", "combat", "hazards", "interactables", "visuals", "audio", "runtimeModifiers", "bossCompatibility"]) assert(arenaCoreSource.includes(`${section}:`), `arena definitions expose ${section}`);
 assert(/function teardownArena\(/.test(html) && /disposeTree/.test(html) && /dynamicCells/.test(html), "arena teardown releases render and runtime artifacts");
+assert(/traceArenaSegment/.test(arenaBallisticsSource) && /actorRayClear/.test(html) && /height-field-v1/.test(html), "arena elevation drives shared projectile and visibility occlusion");
+assert(/makeWaterSurface/.test(html) && /ShaderMaterial/.test(html) && /waterShader/.test(html), "flooded routes use bounded procedural water shaders");
+assert(/makeFogVolume/.test(html) && /localFogVolumeCount/.test(html), "visibility events construct bounded local fog volumes");
 assert(/id="arenaSelectScreen"/.test(html) && /id="arenaDeployBtn"/.test(html), "post-operator arena deployment screen is present");
 assert(/function updateMapSelect\(/.test(html) && /function showArenaDiorama\(/.test(html), "selected arena renders as a live isometric miniature");
 assert(/function ensureMapSelectMarkers\(/.test(html) && /SITE A/.test(html) && /STRIKE SPAWN/.test(html) && /SENTINEL SPAWN/.test(html), "3D site and team-spawn markers are present");
