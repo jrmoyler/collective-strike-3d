@@ -1167,7 +1167,7 @@ function buildArena(id=selectedArenaId){
 }
 function mat(color,em=.08){const c=hex(color);return new THREE.MeshPhysicalMaterial({color:c,roughness:.36,metalness:.32,clearcoat:.32,clearcoatRoughness:.38,emissive:c.clone().multiplyScalar(.42),emissiveIntensity:em})}
 const geo={sphere:new THREE.SphereGeometry(1,32,24),box:new THREE.BoxGeometry(1,1,1,2,2,2),cyl:new THREE.CylinderGeometry(1,1,1,18),cone:new THREE.ConeGeometry(1,1,24),torus:new THREE.TorusGeometry(1,.1,14,48),dome:new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.62),shellArc:new THREE.TorusGeometry(1,.075,12,40,Math.PI*1.35),octa16:new THREE.OctahedronGeometry(.16),circle:new THREE.CircleGeometry(1,32),plane:new THREE.PlaneGeometry(1,1)};Object.values(geo).forEach(value=>value.userData.shared=true);
-function trimMat(color){const c=hex(color);return new THREE.MeshPhysicalMaterial({color:c,emissive:c,emissiveIntensity:1.6,roughness:.2,metalness:.42,clearcoat:.55,clearcoatRoughness:.3})}
+function trimMat(color){const c=hex(color);return new THREE.MeshPhysicalMaterial({color:c,emissive:c,emissiveIntensity:2.3,roughness:.2,metalness:.42,clearcoat:.55,clearcoatRoughness:.3})}
 Object.values(geo).forEach(g=>g.userData.shared=true);
 function limb(parent,x,y,z,sx,sy,sz,color){const m=new THREE.Mesh(geo.cyl,mat(color,.05));m.scale.set(sx,sy,sz);m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
 function weaponPart(parent,geometry,material,scale,position,rotation){
@@ -1366,7 +1366,7 @@ function makeRig(p,previewMode=false){
  /* segmented under-suit: ring plates beneath the exoshell give the torso a layered, manufactured read */
  for(let i=0;i<2;i++){const seg=new THREE.Mesh(geo.cyl,darkSkin);seg.scale.set(torso.scale.x*(.94-i*.11),.05*s,torso.scale.z*(.94-i*.11));seg.position.set(0,torso.position.y-torso.scale.y*(.2+i*.3),0);body.add(seg)}
  /* division accent strips: thin emissive trim seeded per-division for a distinct identity pattern */
- {const stripN=2+Math.floor(rngA()*3);for(let i=0;i<stripN;i++){const aA=rngA()*Math.PI*2,hA=(rngA()*.9-.35)*torso.scale.y;const st=new THREE.Mesh(geo.box,glowTrim);st.scale.set(.04*s,torso.scale.y*(.28+rngA()*.34),.022*s);st.position.set(Math.cos(aA)*torso.scale.x*.99,torso.position.y+hA,Math.sin(aA)*torso.scale.z*.99);st.rotation.y=-aA;st.rotation.z=(rngA()-.5)*.5;body.add(st)}}
+ {const stripN=2+Math.floor(rngA()*3);for(let i=0;i<stripN;i++){const aA=rngA()*Math.PI*2,fH=rngA()*.72-.3,surf=Math.sqrt(Math.max(.2,1-fH*fH))*1.012;const st=new THREE.Mesh(geo.box,glowTrim);st.scale.set(.05*s,torso.scale.y*(.24+rngA()*.3)*surf,.03*s);st.position.set(Math.cos(aA)*torso.scale.x*surf,torso.position.y+fH*torso.scale.y,Math.sin(aA)*torso.scale.z*surf);st.rotation.y=-aA;st.rotation.z=(rngA()-.5)*.4;body.add(st)}}
  if(d.hourglass){const lower=new THREE.Mesh(geo.sphere,skin);lower.scale.copy(torso.scale).multiplyScalar(.85);lower.position.set(0,torso.position.y-.65*s,0);body.add(lower);const pinch=new THREE.Mesh(geo.sphere,accent);pinch.scale.set(.22*s,.18*s,.22*s);pinch.position.set(0,torso.position.y-.28*s,0);body.add(pinch)}
  if(d.belly){const b=new THREE.Mesh(geo.sphere,mat(d.belly,.1));b.scale.copy(torso.scale).multiplyScalar(.72);b.position.set(0,torso.position.y-.08*s,torso.scale.z*.38);body.add(b)}
  if(d.plates||d.mech){for(let i=0;i<3;i++){const pl=new THREE.Mesh(geo.box,accent);pl.scale.set(.28*s,.16*s,.22*s);pl.position.set(0,torso.position.y+torso.scale.y*.72,(i-1)*.32*s);pl.rotation.x=(i-1)*.18;body.add(pl)}}
