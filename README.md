@@ -9,6 +9,15 @@ own procedural textures, PBR material response, architecture, atmosphere,
 landmarks, lighting, and animated environmental effects while preserving the
 same learnable competitive layout.
 
+Every session opens on a branded title and briefing screen. The wordmark sits
+over a live cinematic orbit of the arena rendered by the same Three.js scene the
+match uses, and eight scroll sections break down the round loop, the three
+playlists, all twenty operators, the full arsenal, the ten arenas, the twelve
+Apex bosses, and the controls. Every panel is generated from the constants the
+match actually runs on, so the briefing cannot drift out of sync. Picking an
+operator, playlist, or combat intensity from the briefing carries the choice
+straight into operator select through a band-wipe transition.
+
 After choosing an operator or squad, deployment advances to a dedicated live
 map-selection screen. The selected arena is rendered as an isometric tactical
 miniature with Site A/B and team-spawn markers, biome and mode guidance,
@@ -77,6 +86,16 @@ Touch and standard dual-stick gamepads are supported.
 Runtime architecture, safe extension points, save migrations, teardown ownership,
 quality budgets, and browser expectations are documented in
 [`docs/GAMEPLAY_RUNTIME.md`](docs/GAMEPLAY_RUNTIME.md).
+
+## Survivability
+
+Operators carry 150 health; Animus Prime runs 190 and Kinetic Edge trades down to
+135 for speed. The player you control also absorbs part of the incoming damage,
+scaled by combat intensity (50% at Rookie, 66% at Tactical, 82% at Elite), and a
+3.2-second deployment shield covers the opening of every round. The shield drops
+the moment you take your first shot, so it protects the walk out of spawn without
+protecting an aggressive opening duel. At Tactical a Pulse Rifle needs eight
+clean hits to drop you and a Railgun no longer one-shots.
 
 ## Progression and difficulty
 
