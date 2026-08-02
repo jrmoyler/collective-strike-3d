@@ -1333,7 +1333,7 @@ function twoBoneIK(a,t,l1,l2,pole,outKnee){
  const cosA=clamp((l1*l1+d*d-l2*l2)/(2*l1*d),-1,1),sinA=Math.sqrt(Math.max(0,1-cosA*cosA));
  outKnee.copy(a).addScaledVector(_ikDir,cosA*l1).addScaledVector(_ikPerp,sinA*l1);
 }
-const _camV=new THREE.Vector3(),_sh=V3(),_grip=V3(),_pole=V3();
+const _camV=new THREE.Vector3(),_camT=new THREE.Vector3(),_camW=new THREE.Vector3(),_pvWhite=new THREE.Color("#ffffff"),_sh=V3(),_grip=V3(),_pole=V3();
 function makeRig(p,previewMode=false){
  const d=DNA[p.div.id]||DNA.zenflow,color=p.div.c,root=new THREE.Group();root.position.set(p.x*S,arenaElevationWorld(p.x,p.y),p.y*S);scene.add(root);
  const s=d.scale||1,body=new THREE.Group();root.add(body);
@@ -1968,8 +1968,8 @@ function ensurePreviewPad(){
 }
 function updateMapSelect(dt){
  if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;if(mapSelectMarkers)mapSelectMarkers.visible=true;
- updateWorld(SETTINGS.reducedMotion?0:dt);dioramaOrbit+=SETTINGS.reducedMotion?0:dt*.055;const now=performance.now()/1000,target=V3(WORLD_W*S/2,1.8,WORLD_H*S/2),angle=Math.PI*.25+dioramaOrbit,radius=132;
- const want=V3(target.x+Math.cos(angle)*radius,108,target.z+Math.sin(angle)*radius);camera.position.lerp(want,Math.min(1,dt*3.5));camera.lookAt(target);
+ updateWorld(SETTINGS.reducedMotion?0:dt);dioramaOrbit+=SETTINGS.reducedMotion?0:dt*.055;const now=performance.now()/1000,target=_camT.set(WORLD_W*S/2,1.8,WORLD_H*S/2),angle=Math.PI*.25+dioramaOrbit,radius=132;
+ const want=_camW.set(target.x+Math.cos(angle)*radius,108,target.z+Math.sin(angle)*radius);camera.position.lerp(want,Math.min(1,dt*3.5));camera.lookAt(target);
  if(mapSelectMarkers)for(const marker of mapSelectMarkers.children){const pulse=.5+.5*Math.sin(now*2.4+marker.userData.phase);marker.position.y=marker.userData.baseY+pulse*.22;for(const child of marker.children){if(child.userData.markerRing!==undefined){child.rotation.z+=dt*(child.userData.markerRing?-.42:.62);child.material.opacity=.34+pulse*.5}else if(child.userData.markerBeam)child.material.opacity=.08+pulse*.18}}
  drawScene()
 }
@@ -1983,7 +1983,7 @@ if(shakeAmt>0){const s2=shakeAmt*shakeAmt;camera.position.x+=rnd(-1,1)*s2*.9;cam
 camera.lookAt(tx,0,tz);
 ui.followP=followP;
 drawScene()}
-function updatePreview(dt){if(!preview)return;menuOrbit+=SETTINGS.reducedMotion?0:dt*.45;preview.angle=Math.PI/2-menuOrbit;updateRig(preview,dt);const px=WORLD_W*S*.82,pz=WORLD_H*S*.24,pad=ensurePreviewPad();pad.visible=true;pad.position.set(px,0,pz);pad.children.forEach(o=>{if(o.userData.previewSpin&&!SETTINGS.reducedMotion)o.rotation.z+=dt*o.userData.previewSpin});const r=rigs.get(preview.id);let eye=2.6,mid=1.6;if(r){const fit=clamp(1.55/Math.max(.5,r.fitR),.45,2.4);r.root.scale.setScalar(fit);r.root.visible=true;r.mark.visible=false;eye=r.fitR*fit;mid=r.fitY*fit;preview.greetT=(preview.greetT===undefined?2.2:preview.greetT)-dt;if(preview.greetT<=0){r.greet=1.2;preview.greetT=6.5}}const target=V3(px,mid,pz);const orbit=eye*4.1;if(previewLight){previewLight.position.set(target.x+2,mid+eye*2.8,target.z+4);previewLight.color.set(hex(preview.div.c)).lerp(hex("#ffffff"),.45)}if(previewRim)previewRim.position.set(target.x-Math.sin(menuOrbit)*eye*3,mid+eye*1.1,target.z-Math.cos(menuOrbit)*eye*3);const want=V3(target.x+Math.sin(menuOrbit)*orbit,mid+eye*1.5,target.z+Math.cos(menuOrbit)*orbit);if(previewSnap||SETTINGS.reducedMotion){camera.position.copy(want);previewSnap=false}else camera.position.lerp(want,Math.min(1,dt*4));camera.lookAt(target)}
+function updatePreview(dt){if(!preview)return;menuOrbit+=SETTINGS.reducedMotion?0:dt*.45;preview.angle=Math.PI/2-menuOrbit;updateRig(preview,dt);const px=WORLD_W*S*.82,pz=WORLD_H*S*.24,pad=ensurePreviewPad();pad.visible=true;pad.position.set(px,0,pz);pad.children.forEach(o=>{if(o.userData.previewSpin&&!SETTINGS.reducedMotion)o.rotation.z+=dt*o.userData.previewSpin});const r=rigs.get(preview.id);let eye=2.6,mid=1.6;if(r){const fit=clamp(1.55/Math.max(.5,r.fitR),.45,2.4);r.root.scale.setScalar(fit);r.root.visible=true;r.mark.visible=false;eye=r.fitR*fit;mid=r.fitY*fit;preview.greetT=(preview.greetT===undefined?2.2:preview.greetT)-dt;if(preview.greetT<=0){r.greet=1.2;preview.greetT=6.5}}const target=_camT.set(px,mid,pz);const orbit=eye*4.1;if(previewLight){previewLight.position.set(target.x+2,mid+eye*2.8,target.z+4);previewLight.color.set(preview.div.c).lerp(_pvWhite,.45)}if(previewRim)previewRim.position.set(target.x-Math.sin(menuOrbit)*eye*3,mid+eye*1.1,target.z-Math.cos(menuOrbit)*eye*3);const want=_camW.set(target.x+Math.sin(menuOrbit)*orbit,mid+eye*1.5,target.z+Math.cos(menuOrbit)*orbit);if(previewSnap||SETTINGS.reducedMotion){camera.position.copy(want);previewSnap=false}else camera.position.lerp(want,Math.min(1,dt*4));camera.lookAt(target)}
 function renderTacticalHUD(nowS,w){
  const objective=document.getElementById("objectiveChip");let text="HOLD THE LINE",hot=false;
  if(ui.hazardT>nowS){text=ui.hazardWarning;hot=true}
@@ -2330,8 +2330,8 @@ function updateTitleCinematic(dt){
  if(preview){const rig=rigs.get(preview.id);if(rig)rig.root.visible=false}
  updateWorld(SETTINGS.reducedMotion?0:dt);
  titleOrbit+=SETTINGS.reducedMotion?0:dt*.035;
- const target=V3(WORLD_W*S/2,13,WORLD_H*S/2),angle=Math.PI*.22+titleOrbit,radius=146;
- const want=V3(target.x+Math.cos(angle)*radius,34+Math.sin(titleOrbit*.8)*5,target.z+Math.sin(angle)*radius);
+ const target=_camT.set(WORLD_W*S/2,13,WORLD_H*S/2),angle=Math.PI*.22+titleOrbit,radius=146;
+ const want=_camW.set(target.x+Math.cos(angle)*radius,34+Math.sin(titleOrbit*.8)*5,target.z+Math.sin(angle)*radius);
  camera.position.lerp(want,Math.min(1,dt*2.2));camera.lookAt(target);
  drawScene();
 }
