@@ -61,7 +61,11 @@ const page = await browser.newPage({ viewport: { width: 1200, height: 760 } });
 const errors = [];
 page.on("pageerror", error => errors.push(error.message));
 
+await page.addInitScript(() => localStorage.setItem("cs3d.settings.v2", JSON.stringify({ version: 2, tutorialCompleted: true })));
 await page.goto(`${origin}/index.html`, { waitUntil: "load" });
+// The game boots into the title briefing; step through it to reach operator select.
+await page.waitForFunction(() => document.getElementById("titleScreen")?.classList.contains("on"), { timeout: 30_000 });
+await page.click("#titleEnterBtn");
 await page.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
 
 const ids = await page.evaluate(() => DIVS.map(d => d.id));
@@ -87,6 +91,9 @@ for (const id of ids) {
   await page.waitForTimeout(900);
   await page.evaluate(() => {
     paused = true;
+    // Face the capture camera (placed at +x*3.4,+z*1.7 from the pad) and settle one pose frame.
+    preview.angle = Math.atan2(1.7, 3.4);
+    updateRig(preview, 0.016);
     const r = rigs.get(preview.id);
     const fit = Math.max(.45, Math.min(2.4, 1.55 / Math.max(.5, r.fitR)));
     r.root.scale.setScalar(fit);
