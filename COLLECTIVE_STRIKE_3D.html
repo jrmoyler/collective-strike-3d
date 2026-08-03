@@ -249,8 +249,47 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 #ammo{font:800 calc(36px * var(--ui-scale)) "JetBrains Mono";line-height:1}#ammo small{font-size:calc(15px * var(--ui-scale));color:var(--muted)}#weaponName,#cash{margin-top:6px;font-size:calc(10px * var(--ui-scale));color:var(--muted);letter-spacing:.2em;text-transform:uppercase}#cash{font-size:calc(15px * var(--ui-scale));color:var(--gold);font-family:"JetBrains Mono";letter-spacing:.04em}
 #feed{position:absolute;top:18px;right:18px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}.feedRow{padding:6px 12px;border-radius:8px;background:rgba(6,10,22,.78);border:1px solid var(--line);font-size:12px;animation:feedIn .2s both}@keyframes feedIn{from{opacity:0;transform:translateX(18px)}}
 #banner{position:absolute;top:25%;left:50%;transform:translateX(-50%);text-align:center;font-size:34px;font-weight:800;letter-spacing:.22em;text-shadow:0 0 24px rgba(0,0,0,.9);opacity:0}#banner.show{animation:banner 2.7s ease both}@keyframes banner{0%{opacity:0;transform:translate(-50%,18px)}12%,78%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-10px)}}
-#crosshair{position:absolute;width:52px;height:52px;left:50%;top:50%;transform:translate(-50%,-50%);display:none;filter:drop-shadow(0 2px 4px #000);will-change:left,top}#crosshair span{position:absolute;background:#f8fafc;box-shadow:0 0 8px rgba(0,0,0,.8);transition:background .1s,transform .1s,opacity .1s}#crosshair .h{width:14px;height:2px;top:25px}#crosshair .v{width:2px;height:14px;left:25px}.l1{left:0}.l2{right:0}.l3{top:0}.l4{bottom:0}.dot{left:23px;top:23px;width:6px;height:6px;border-radius:50%;outline:1px solid rgba(0,0,0,.55)}#crosshair.live .l1{transform:translateX(5px)}#crosshair.live .l2{transform:translateX(-5px)}#crosshair.live .l3{transform:translateY(5px)}#crosshair.live .l4{transform:translateY(-5px)}#crosshair.target span{background:#ef4444}#crosshair.hit span{background:#facc15}.aimRing{position:absolute;inset:11px;border:1px solid rgba(248,250,252,.55);border-radius:50%;opacity:.7}.aimName{position:absolute;left:50%;top:58px;transform:translateX(-50%);font:800 10px "JetBrains Mono";letter-spacing:.18em;color:#ef4444;text-shadow:0 2px 8px #000;white-space:nowrap;opacity:0}#crosshair.target .aimName{opacity:1}
+#crosshair{position:absolute;width:52px;height:52px;left:50%;top:50%;transform:translate(-50%,-50%);display:none;filter:drop-shadow(0 2px 4px #000);will-change:left,top}#crosshair span{position:absolute;background:#f8fafc;box-shadow:0 0 8px rgba(0,0,0,.8);transition:background .1s,transform .1s,opacity .1s}#crosshair .h{width:14px;height:2px;top:25px}#crosshair .v{width:2px;height:14px;left:25px}.l1{left:0}.l2{right:0}.l3{top:0}.l4{bottom:0}.dot{left:23px;top:23px;width:6px;height:6px;border-radius:50%;outline:1px solid rgba(0,0,0,.55)}#crosshair.live .l1{transform:translateX(var(--ch-gap,5px))}#crosshair.live .l2{transform:translateX(calc(-1 * var(--ch-gap,5px)))}#crosshair.live .l3{transform:translateY(var(--ch-gap,5px))}#crosshair.live .l4{transform:translateY(calc(-1 * var(--ch-gap,5px)))}#crosshair.target span{background:#ef4444}#crosshair.hit span{background:#facc15}.aimRing{position:absolute;inset:11px;border:1px solid rgba(248,250,252,.55);border-radius:50%;opacity:.7}.aimName{position:absolute;left:50%;top:58px;transform:translateX(-50%);font:800 10px "JetBrains Mono";letter-spacing:.18em;color:#ef4444;text-shadow:0 2px 8px #000;white-space:nowrap;opacity:0}#crosshair.target .aimName{opacity:1}
 #damageVignette{position:absolute;inset:-20px;pointer-events:none;background:radial-gradient(circle at center,transparent 45%,rgba(239,68,68,.45));opacity:0;transition:opacity .18s}#damageVignette.show{opacity:1}
+/* ---- faction + hit confirmation ---- */
+:root{--team-ally:#35d6ff;--team-enemy:#ff3b30;--team-self:#f7d774}
+#crosshair.ally span{background:var(--team-ally)}
+#crosshair.ally .aimRing{border-color:color-mix(in srgb,var(--team-ally) 70%,transparent);opacity:1}
+#crosshair.ally .aimName{opacity:1;color:var(--team-ally)}
+#crosshair.target span{background:var(--team-enemy)}
+#crosshair.target .aimName{color:var(--team-enemy)}
+#hitMarker{position:absolute;left:50%;top:50%;width:60px;height:60px;transform:translate(-50%,-50%);pointer-events:none;opacity:0;z-index:5}
+#hitMarker i{position:absolute;left:50%;top:50%;width:15px;height:3px;border-radius:2px;background:#f8fafc;box-shadow:0 0 9px rgba(0,0,0,.85);transform-origin:50% 50%}
+#hitMarker i:nth-child(1){transform:translate(-26px,-26px) rotate(45deg)}
+#hitMarker i:nth-child(2){transform:translate(11px,-26px) rotate(-45deg)}
+#hitMarker i:nth-child(3){transform:translate(-26px,23px) rotate(-45deg)}
+#hitMarker i:nth-child(4){transform:translate(11px,23px) rotate(45deg)}
+#hitMarker.on{animation:hitPop .26s ease-out both}
+#hitMarker.armor i{background:#7dd3fc}
+#hitMarker.critical i{background:#f472b6;box-shadow:0 0 14px rgba(244,114,182,.9)}
+#hitMarker.boss i{background:#f9a8d4}
+#hitMarker.elimination i{background:#fde047;width:19px;height:4px;box-shadow:0 0 16px rgba(253,224,71,.95)}
+#hitMarker.elimination{animation:hitKill .42s ease-out both}
+@keyframes hitPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.55)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}100%{opacity:0;transform:translate(-50%,-50%) scale(.94)}}
+@keyframes hitKill{0%{opacity:0;transform:translate(-50%,-50%) scale(.5) rotate(0)}22%{opacity:1;transform:translate(-50%,-50%) scale(1.4) rotate(45deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.05) rotate(45deg)}}
+#topBar .scoreCell.atk .label,#topBar .scoreCell.def .label{font-weight:800}
+#topBar .scoreCell.mine{box-shadow:inset 0 -2px 0 var(--team-self)}
+#topBar .teamMark{display:block;margin-top:3px;font:800 7px "JetBrains Mono";letter-spacing:.18em;color:var(--muted)}
+#topBar .scoreCell.mine .teamMark{color:var(--team-self)}
+/* ---- weapon rail + swap card ---- */
+#weaponRail{position:absolute;right:18px;bottom:168px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;pointer-events:none}
+.weaponSlot{display:flex;align-items:center;gap:9px;padding:5px 11px;border-radius:7px;border:1px solid rgba(155,173,210,.16);background:rgba(6,10,22,.6);color:var(--muted);font:700 9px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;opacity:.6;transition:opacity .14s,border-color .14s,transform .14s}
+.weaponSlot b{display:grid;place-items:center;min-width:16px;height:16px;border-radius:4px;background:rgba(155,173,210,.16);color:#e2e8f0;font:800 9px "JetBrains Mono"}
+.weaponSlot.doctrine{border-left:2px solid var(--ws,#d4a843)}
+.weaponSlot.on{opacity:1;color:#f8fafc;border-color:rgba(212,168,67,.6);background:rgba(212,168,67,.12);transform:translateX(-6px)}
+.weaponSlot.on b{background:var(--gold);color:#090b12}
+.weaponSlot.on.doctrine{border-color:var(--ws,#d4a843);background:color-mix(in srgb,var(--ws,#d4a843) 16%,rgba(6,10,22,.6))}
+#weaponToast{position:absolute;left:50%;bottom:196px;transform:translate(-50%,10px);padding:9px 20px;border-radius:9px;background:rgba(4,8,18,.9);border:1px solid var(--wt,#d4a843);border-left-width:3px;text-align:left;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s}
+#weaponToast.on{opacity:1;transform:translate(-50%,0)}
+#weaponToastName{display:block;color:var(--wt,#d4a843);font:800 12px "JetBrains Mono";letter-spacing:.18em}
+#weaponToastMeta{display:block;margin-top:4px;color:#c3cee0;font:700 9px "JetBrains Mono";letter-spacing:.13em}
+@media (pointer:coarse){#weaponRail{bottom:306px;transform:scale(.86);transform-origin:bottom right}#weaponToast{bottom:250px}}
+@media (max-width:680px){#weaponRail{display:none}}
 #buyMenu{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;width:min(720px,92vw);padding:22px;border-radius:14px;display:none}#buyMenu.open{display:block}#buyMenu h3{color:var(--gold);font-size:13px;letter-spacing:.24em;margin-bottom:12px}.buyGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.buy{padding:12px;border-radius:10px;border:1px solid var(--line);background:rgba(15,23,42,.56);cursor:pointer}.buy:hover{border-color:var(--gold)}.buy.cant{opacity:.35;pointer-events:none}.buy b{display:block}.buy span{color:var(--muted);font-size:11px}.buy.signature{grid-column:1/-1;border-color:color-mix(in srgb,var(--sig) 68%,transparent);background:linear-gradient(110deg,color-mix(in srgb,var(--sig) 18%,rgba(15,23,42,.7)),rgba(15,23,42,.5));box-shadow:inset 3px 0 var(--sig)}.buy.signature span{display:block;margin-top:4px}
 #endScreen{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:radial-gradient(circle at 50% 36%,color-mix(in srgb,var(--arena-secondary) 18%,transparent),transparent 36%),rgba(3,6,14,.94);text-align:center;backdrop-filter:blur(8px)}#endCard{width:min(620px,92vw);padding:42px;border-radius:18px;background:linear-gradient(145deg,rgba(15,23,42,.9),rgba(4,8,18,.96));border:1px solid rgba(212,168,67,.32);box-shadow:0 40px 120px rgba(0,0,0,.55)}#endScreen h2{font-size:54px;letter-spacing:.2em}#endSub{margin-top:9px;color:var(--muted);letter-spacing:.12em}#endRewards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px}.reward{padding:13px 8px;border-radius:9px;background:rgba(15,23,42,.7);border:1px solid var(--line)}.reward b{display:block;color:var(--gold);font:800 18px "JetBrains Mono"}.reward span{display:block;margin-top:4px;color:var(--muted);font:700 8px "JetBrains Mono";letter-spacing:.16em}#endScreen button{margin-top:26px;padding:14px 44px;border:0;border-radius:10px;background:linear-gradient(160deg,#eccb72,#bd8b2c);font-weight:800;letter-spacing:.18em;cursor:pointer}
 #minimap{position:absolute;top:16px;left:18px;padding:7px;border-radius:12px}
@@ -506,11 +545,14 @@ body[data-colorblind=deuteranopia]{--red:#f97316;--green:#60a5fa}body[data-color
   </footer>
 </section>
 <div id="hud">
-  <div id="topBar" class="glass"><div class="scoreCell"><div class="score" id="atkScore">0</div><div class="label">Strike</div></div><div class="scoreCell mid"><div class="score" id="clock">1:35</div><div class="label" id="phase">Round 1</div></div><div class="scoreCell"><div class="score" id="defScore">0</div><div class="label">Sentinel</div></div></div>
+  <div id="topBar" class="glass"><div class="scoreCell atk" id="atkCell"><div class="score" id="atkScore">0</div><div class="label">Strike</div><span class="teamMark" id="atkMark"></span></div><div class="scoreCell mid"><div class="score" id="clock">1:35</div><div class="label" id="phase">Round 1</div></div><div class="scoreCell def" id="defCell"><div class="score" id="defScore">0</div><div class="label">Sentinel</div><span class="teamMark" id="defMark"></span></div></div>
   <div id="bottomLeft" class="glass"><div id="divTag"><span class="chip"></span><span id="divText"></span></div><div id="hpRow"><span id="hp">100</span><span id="armor"></span></div><div class="bar"><i id="hpBar"></i></div><div id="ability"><b>E</b> <span id="abilityText">ABILITY READY</span></div><div id="doctrine"><b>Q</b> <span id="doctrineText">DOCTRINE READY</span></div></div>
   <div id="bottomRight" class="glass"><div id="ammo">12 <small>/48</small></div><div id="weaponName">P-9 Sidearm</div><div id="cash">$800</div></div>
   <div id="feed" role="log" aria-live="polite"></div><div id="banner" role="status" aria-live="assertive"></div>
   <div id="damageVignette"></div><div id="lowHp"></div>
+  <div id="hitMarker"><i></i><i></i><i></i><i></i></div>
+  <div id="weaponRail" aria-hidden="true"></div>
+  <div id="weaponToast"><b id="weaponToastName"></b><span id="weaponToastMeta"></span></div>
   <div id="spawnGuard" role="status"><b>DEPLOYMENT SHIELD</b><span id="spawnGuardTime">3.2S</span></div>
   <div id="damageDir"></div><div id="streak"></div>
   <div id="minimap" class="glass"><canvas id="mapCanvas" width="184" height="133"></canvas></div>
@@ -810,12 +852,22 @@ const SND=(()=>{
    else{noise({t,dur:.32,g:.44*v,f:2600,f2:170,q:.6});tone({t,f:120,f2:32,type:"sine",dur:.42,g:.6*v});tone({t,f:820,f2:2600,type:"sine",dur:.16,g:.1*v})}
   },
   dry(){tone({f:900,type:"square",dur:.04,g:.1})},
-  hit(kill){
+  /* Four distinct confirmations: flesh, armour, critical and elimination.
+     The pitch alone should tell you what the last shot actually did. */
+  hit(kind){
    if(!ensure())return;const t=ctx.currentTime;
-   if(kill){tone({t,f:520,f2:190,type:"square",dur:.13,g:.26});tone({t:t+.07,f:340,f2:120,type:"square",dur:.16,g:.26});noise({t,dur:.18,g:.14,f:3200,f2:900})}
+   if(kind===true||kind==="elimination"){tone({t,f:520,f2:190,type:"square",dur:.13,g:.26});tone({t:t+.07,f:340,f2:120,type:"square",dur:.16,g:.26});noise({t,dur:.18,g:.14,f:3200,f2:900})}
+   else if(kind==="critical"){tone({t,f:1720,f2:1180,type:"square",dur:.06,g:.19});tone({t:t+.04,f:2280,f2:1500,type:"square",dur:.06,g:.12})}
+   else if(kind==="armor"){tone({t,f:980,f2:700,type:"triangle",dur:.07,g:.17});noise({t,dur:.06,g:.1,f:4200,q:2})}
    else tone({t,f:1350,f2:920,type:"square",dur:.05,g:.16})
   },
   hurt(){noise({dur:.15,g:.26,f:420,f2:120,q:.7});tone({f:110,f2:52,type:"sine",dur:.2,g:.38})},
+  swap(){
+   if(!ensure())return;const t=ctx.currentTime;
+   noise({t,dur:.05,g:.14,f:2200,q:2.4});
+   tone({t:t+.02,f:420,f2:780,type:"square",dur:.07,g:.11});
+   noise({t:t+.13,dur:.05,g:.16,f:3000,q:2.8});
+  },
   reload(id){
    if(!ensure())return;const t=ctx.currentTime,d=id==="sniper"?1.4:.95;
    noise({t,dur:.05,g:.18,f:2600,q:2});
@@ -907,7 +959,51 @@ function additionalWeapon(id){const w=ADDITIONAL_WEAPONS[id];return w?{...w,ammo
 function availableAdditions(id){return Object.values(ADDITIONAL_WEAPONS).filter(w=>w.owner==="all"||w.owner===id)}
 function addAdditionalLoadout(weapons,id){for(const w of availableAdditions(id))weapons[w.id]=additionalWeapon(w.id);return weapons}
 function isDoctrineWeapon(w){return !!w?.special}
-function cycleAdditional(p){const ids=availableAdditions(p.div.id).map(w=>w.id).filter(id=>p.weapons[id]);if(!ids.length)return;const i=ids.indexOf(p.cur);p.cur=ids[(i+1)%ids.length];SND.uiClick(true)}
+function cycleAdditional(p){const ids=availableAdditions(p.div.id).map(w=>w.id).filter(id=>p.weapons[id]);if(!ids.length)return;const i=ids.indexOf(p.cur);equipWeapon(p,ids[(i+1)%ids.length])}
+/* ================================================================
+   WEAPON SWAP
+   Switching has to be felt, not inferred from an ammo counter: the rig
+   lowers and re-presents the new weapon, the rail moves, a card names
+   what you are now holding, and the swap costs a short ready time.
+   ================================================================ */
+const WEAPON_SLOTS=[{key:"pistol",slot:"1"},{key:"smg",slot:"2"},{key:"rifle",slot:"3"},{key:"sniper",slot:"4"},{key:"signature",slot:"5"}];
+function weaponClassLabel(w){
+ if(!w)return "";
+ if(isDoctrineWeapon(w))return w.series==="03"?"SERIES 03":"DIVISION ISSUE";
+ return w.id==="sniper"?"ANTI-MATERIEL":w.id==="rifle"?"ASSAULT":w.id==="smg"?"CLOSE QUARTERS":"SIDEARM";
+}
+function equipWeapon(p,id){
+ if(!p||!p.weapons[id]||p.cur===id)return false;
+ const now=performance.now()/1000;
+ p.cur=id;p.reloadT=0;p.swapT=now+.24;p.swapKick=1;
+ p.fireT=Math.max(p.fireT,now-Math.max(0,curW(p).delay-.24));
+ if(p===me){ui.switchedWeapon=true;SND.swap();showWeaponToast(curW(p))}
+ return true;
+}
+function showWeaponToast(w){
+ const toast=document.getElementById("weaponToast");if(!toast||!w)return;
+ const glow=isDoctrineWeapon(w)?(w.glow||me.div.c):"#d4a843";
+ toast.style.setProperty("--wt",glow);
+ document.getElementById("weaponToastName").textContent=isDoctrineWeapon(w)?`${w.n} / ${w.type}`:w.n;
+ document.getElementById("weaponToastMeta").textContent=`${weaponClassLabel(w)} · ${w.dmg} DMG · ${Math.round(1/Math.max(.02,w.delay))}/S · ${w.mag} MAG${w.auto?" · AUTO":""}`;
+ toast.classList.add("on");
+ scheduleGame(()=>toast.classList.remove("on"),1600,"weapon-toast");
+}
+let weaponRailKey="";
+function renderWeaponRail(){
+ const rail=document.getElementById("weaponRail");if(!rail||!me)return;
+ const owned=[...WEAPON_SLOTS.filter(entry=>me.weapons[entry.key]),...availableAdditions(me.div.id).filter(w=>me.weapons[w.id]).map((w,i)=>({key:w.id,slot:i?`6${String.fromCharCode(64+i)}`:"6"}))];
+ const key=owned.map(entry=>entry.key).join(",")+"|"+me.cur+"|"+me.div.id;
+ if(weaponRailKey===key)return;
+ weaponRailKey=key;
+ rail.replaceChildren(...owned.map(entry=>{
+  const w=me.weapons[entry.key],node=document.createElement("div");
+  node.className=`weaponSlot${entry.key===me.cur?" on":""}${isDoctrineWeapon(w)?" doctrine":""}`;
+  if(isDoctrineWeapon(w))node.style.setProperty("--ws",w.glow||me.div.c);
+  node.innerHTML=`<b>${entry.slot}</b><span>${w.n}</span>`;
+  return node;
+ }));
+}
 function makePlayer(team,id,human,name){const sp=spawn(team),div=DIV_BY_ID[id],signature=doctrineWeapon(id),weapons=addAdditionalLoadout({pistol:{...WEAPONS.pistol,ammo:12,reserve:48},signature},id);const p={id:Math.random().toString(36).slice(2),team,div,human,name,x:sp.x,y:sp.y,angle:team==="ATK"?-Math.PI/2:Math.PI/2,hp:100,armor:0,alive:true,money:800,kills:0,deaths:0,cur:"signature",weapons,fireT:0,reloadT:0,abilityT:0,doctrineT:0,revealT:0,slowT:0,speedUntil:0,fireUntil:0,critUntil:0,phaseUntil:0,boostShots:0,usedWind:false,target:null,pathT:0,deadT:0};p.hp=maxHp(p);if(id==="terra")p.armor=25;return p}
 function combatTargets(p){const targets=players.filter(q=>q.alive&&q.team!==p.team);if(activeBoss?.alive&&activeBoss.team!==p.team)targets.push(activeBoss);return targets}
 function bossOccupancyCells(boss=activeBoss,x=boss?.x,y=boss?.y){if(!boss||!BOSS_RUNTIME.cellsForCircle)return[];return BOSS_RUNTIME.cellsForCircle({x,y,radius:boss.radius,tile:TILE,mapW:MAPW,mapH:MAPH})}
@@ -986,8 +1082,19 @@ function updateBoss(dt,now){
  if(boss.pendingAbility&&boss.pendingAbility.at<=now){applyBossAbility(boss.pendingAbility.result,now);boss.pendingAbility=null}
  if(!boss.pendingAbility&&boss.nextAbility<=now){const slot=boss.dna.hybrid&&Math.random()<.35?"secondary":"primary",result=BOSS_RUNTIME.runBossAbility?.(boss,{players,now,fx,grid,lastPlayerAbilityId},slot);boss.nextAbility=now+3.4+rnd(0,2.4);if(result&&!result.skipped){boss.lastAbilityName=result.name;boss.pendingAbility={result,at:now+(result.params?.telegraphMs||900)/1000};for(let i=0;i<3;i++)scheduleGame(()=>{if(boss.alive&&boss.pendingAbility)fx.ring(boss.x,boss.y,boss.dna.accent,Math.max(1,(result.params?.radius||150)/90))},i*220);showBanner(result.name);feed(`${result.telegraph} / MOVE OR BREAK LINE OF SIGHT`,boss.dna.accent)}}
 }
+/* Every point of damage you personally deal resolves through here, so a shot,
+   an ability tick and a doctrine wave all confirm in the same visual language:
+   reticle marker, floating number, world impact and a kind-specific tone. */
+function confirmHit(target,amount,kind){
+ const now=performance.now()/1000;
+ ui.hitKind=kind;ui.hitKindT=now+.3;ui.hitT=now+.16;ui.hitMarkerSeq=(ui.hitMarkerSeq||0)+1;
+ fx.dmgText(target.x,target.y,Math.max(1,Math.round(amount)),kind);
+ fx.hitConfirm(target,kind,target.hitAng);
+ if(kind!=="elimination"&&now-(ui.hitSoundT||0)>.05){ui.hitSoundT=now;SND.hit(kind)}
+ if(kind==="elimination"||kind==="critical")addShake(kind==="elimination"?.14:.06);
+}
 function damageBoss(boss,dmg,src,flags={}){
- if(!boss?.alive)return;const now=performance.now()/1000,armorHit=boss.armor>0;let d=dmg;if(boss.armor>0){d*=.72;boss.armor=Math.max(0,boss.armor-dmg*.08)}boss.hp-=d;boss.hitT=now+.3;if(src){boss.hitAng=Math.atan2(boss.y-src.y,boss.x-src.x);fx.sparks(boss.x,boss.y,boss.dna.accent,16,1.5)}if(src===me){ui.hitT=now+.16;ui.hitKind=boss.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"boss";ui.hitKindT=now+.24;fx.dmgText(boss.x,boss.y,Math.round(d),boss.hp<=0)}if(boss.hp<=0)finishBoss(src)
+ if(!boss?.alive)return;const now=performance.now()/1000,armorHit=boss.armor>0;let d=dmg;if(boss.armor>0){d*=.72;boss.armor=Math.max(0,boss.armor-dmg*.08)}boss.hp-=d;boss.hitT=now+.3;if(src){boss.hitAng=Math.atan2(boss.y-src.y,boss.x-src.x);if(src!==me)fx.sparks(boss.x,boss.y,boss.dna.accent,16,1.5)}if(src===me)confirmHit(boss,d,boss.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"boss");if(boss.hp<=0)finishBoss(src)
 }
 function finishBoss(src){
  const boss=activeBoss;if(!boss?.alive)return;boss.alive=false;boss.hp=0;const r=bossRigs.get(boss.id);if(r)r.root.visible=false;fx.ring(boss.x,boss.y,boss.dna.accent,4);fx.sparks(boss.x,boss.y,boss.dna.accent,70,3);showBanner("APEX NEUTRALIZED");if(src===me)awardMatchXP(180,"APEX ELIMINATION");
@@ -1000,7 +1107,7 @@ function encounterDefeat(){
  if(matchFinalized)return;if(encounterKind==="apex"){apexComplete=true;bossOutcome=`${activeBoss?.name||"APEX"} HELD THE LATTICE`;setGamePhase("end","apex-defeat");phaseT=3;return}
  matchOutcomeOverride=false;bossOutcome="SQUAD ELIMINATED";setGamePhase("end","squad-defeat");phaseT=3
 }
-function curW(p){return p.weapons[p.cur]}function giveW(p,id){const w=WEAPONS[id];p.weapons[id]={...w,ammo:w.mag,reserve:w.res};p.cur=id}
+function curW(p){return p.weapons[p.cur]}function giveW(p,id){const w=WEAPONS[id];p.weapons[id]={...w,ammo:w.mag,reserve:w.res};if(!equipWeapon(p,id))p.cur=id}
 function arenaTheme(id=selectedArenaId){return ARENAS[id]||ARENAS.forge||{id:"forge",accent:"#d4a843",secondary:"#38bdf8",accentHex:0xd4a843,secondaryHex:0x38bdf8,fog:0x060d1c,fogDensity:.0052,bg:"#030712",floor:["#111827","rgba(212,168,67,.18)"],floorTint:0xa8b4c8,floorRoughness:.68,floorMetalness:.28,wall:0x778399,wallEmissive:0x101827,outer:0x050912,trim:0xd4a843,particle:0x9fc4ff,architecture:"forge"}}
 function disposeTree(root){const geometries=new Set(),materials=new Set(),textures=new Set();root.traverse(o=>{if(o.geometry&&!o.isSprite&&!o.geometry.userData.shared)geometries.add(o.geometry);for(const m of(Array.isArray(o.material)?o.material:[o.material]))if(m){materials.add(m);for(const k of["map","normalMap","roughnessMap","metalnessMap","emissiveMap","alphaMap"])if(m[k]&&!m[k].userData?.shared)textures.add(m[k])}});for(const value of textures)value.dispose?.();for(const value of materials)value.dispose?.();for(const value of geometries)value.dispose?.()}
 function teardownArena(){
@@ -1169,6 +1276,38 @@ function mat(color,em=.08){const c=hex(color);return new THREE.MeshPhysicalMater
 const geo={sphere:new THREE.SphereGeometry(1,32,24),box:new THREE.BoxGeometry(1,1,1,2,2,2),cyl:new THREE.CylinderGeometry(1,1,1,18),cone:new THREE.ConeGeometry(1,1,24),torus:new THREE.TorusGeometry(1,.1,14,48),dome:new THREE.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.62),shellArc:new THREE.TorusGeometry(1,.075,12,40,Math.PI*1.35),octa16:new THREE.OctahedronGeometry(.16),circle:new THREE.CircleGeometry(1,32),plane:new THREE.PlaneGeometry(1,1)};Object.values(geo).forEach(value=>value.userData.shared=true);
 function trimMat(color){const c=hex(color);return new THREE.MeshPhysicalMaterial({color:c,emissive:c,emissiveIntensity:2.3,roughness:.2,metalness:.42,clearcoat:.55,clearcoatRoughness:.3})}
 Object.values(geo).forEach(g=>g.userData.shared=true);
+/* ================================================================
+   TEAM IDENTITY
+   Twenty divisions can appear on either side, so division colour can
+   never answer "do I shoot this?". Faction is carried by a separate,
+   redundant channel: colour, silhouette (ring/marker shape) and a word
+   on the nameplate, so it survives a colour-vision palette too.
+   ================================================================ */
+const TEAM_LABEL={ATK:"STRIKE",DEF:"SENTINEL"};
+const TEAM_PALETTE={
+ symbols:{ally:0x35d6ff,enemy:0xff3b30},
+ deuteranopia:{ally:0x4c9bff,enemy:0xff9f0a},
+ protanopia:{ally:0x38bdf8,enemy:0xffd60a},
+ tritanopia:{ally:0x9d7bff,enemy:0xff5c8a},
+};
+const TEAM_LOOK={
+ self:{key:"self",hex:0xfff4cf,css:"#fff4cf",word:"YOU",glyph:"o",hostile:false},
+ ally:{key:"ally",hex:0x35d6ff,css:"#35d6ff",word:"ALLY",glyph:"+",hostile:false},
+ enemy:{key:"enemy",hex:0xff3b30,css:"#ff3b30",word:"HOSTILE",glyph:"x",hostile:true},
+ boss:{key:"boss",hex:0xff67cb,css:"#ff67cb",word:"APEX",glyph:"*",hostile:true},
+};
+const cssHex=value=>"#"+value.toString(16).padStart(6,"0");
+function applyTeamPalette(){
+ const p=TEAM_PALETTE[SETTINGS.colorblind]||TEAM_PALETTE.symbols;
+ TEAM_LOOK.ally.hex=p.ally;TEAM_LOOK.ally.css=cssHex(p.ally);
+ TEAM_LOOK.enemy.hex=p.enemy;TEAM_LOOK.enemy.css=cssHex(p.enemy);
+ document.documentElement.style.setProperty("--team-ally",TEAM_LOOK.ally.css);
+ document.documentElement.style.setProperty("--team-enemy",TEAM_LOOK.enemy.css);
+ for(const r of rigs.values())if(r.applyTeamLook)r.applyTeamLook();
+}
+const isAlly=p=>!!p&&!p.isBoss&&p.team===myTeam;
+const teamLook=p=>p?.isBoss?TEAM_LOOK.boss:(p&&p===me)?TEAM_LOOK.self:isAlly(p)?TEAM_LOOK.ally:TEAM_LOOK.enemy;
+const isHostile=p=>teamLook(p).hostile;
 function limb(parent,x,y,z,sx,sy,sz,color){const m=new THREE.Mesh(geo.cyl,mat(color,.05));m.scale.set(sx,sy,sz);m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
 function weaponPart(parent,geometry,material,scale,position,rotation){
  const m=new THREE.Mesh(geometry,material);m.scale.set(...scale);m.position.set(...position);
@@ -1267,9 +1406,15 @@ function makeWeapon(accent,signature,additions=[]){
  const energy=new THREE.MeshStandardMaterial({color:hex(signature?.glow||accent),emissive:hex(signature?.glow||accent),emissiveIntensity:2.5,roughness:.18,metalness:.18});
  const coil=new THREE.MeshBasicMaterial({color:hex(accent),transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false});
  const flash=new THREE.MeshBasicMaterial({color:hex(signature?.glow||accent),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
- const body=new THREE.Mesh(geo.box,dark),barrel=new THREE.Mesh(geo.cyl,metal),stock=new THREE.Mesh(geo.box,dark),mag=new THREE.Mesh(geo.box,metal),grip=new THREE.Mesh(geo.box,dark),rail=new THREE.Mesh(geo.box,dark),core=new THREE.Mesh(geo.box,trim),sight=new THREE.Mesh(geo.sphere,trim);
- barrel.rotation.x=Math.PI/2;standard.add(body,barrel,stock,mag,grip,rail,core,sight);
- for(const m of [body,barrel,stock,mag,grip,rail])m.castShadow=true;
+ /* Each standard class carries its own hardware so the silhouette, not just
+    the HUD label, tells you what is in your hands. */
+ const classTrim=new THREE.MeshPhysicalMaterial({color:hex(accent),emissive:hex(accent),emissiveIntensity:1.9,roughness:.24,metalness:.5});
+ const body=new THREE.Mesh(geo.box,dark),barrel=new THREE.Mesh(geo.cyl,metal),stock=new THREE.Mesh(geo.box,dark),mag=new THREE.Mesh(geo.box,metal),grip=new THREE.Mesh(geo.box,dark),rail=new THREE.Mesh(geo.box,dark),core=new THREE.Mesh(geo.box,classTrim),sight=new THREE.Mesh(geo.sphere,classTrim);
+ const scope=new THREE.Mesh(geo.cyl,dark),lens=new THREE.Mesh(geo.cyl,classTrim),brake=new THREE.Mesh(geo.torus,metal),handle=new THREE.Mesh(geo.box,dark);
+ scope.rotation.x=Math.PI/2;lens.rotation.x=Math.PI/2;brake.rotation.x=Math.PI/2;
+ const bipod=[new THREE.Mesh(geo.cyl,metal),new THREE.Mesh(geo.cyl,metal)];
+ barrel.rotation.x=Math.PI/2;standard.add(body,barrel,stock,mag,grip,rail,core,sight,scope,lens,brake,handle,...bipod);
+ for(const m of [body,barrel,stock,mag,grip,rail,scope,handle])m.castShadow=true;
  const rings=[];for(let i=0;i<2;i++){const r=new THREE.Mesh(geo.torus,coil);r.rotation.x=Math.PI/2;standard.add(r);rings.push(r)}
  const signatureProfile=buildSignatureMesh(signatureGroup,signature||SIGNATURES.zenflow,{dark,metal,trim,energy});
  const doctrineGroups={signature:{group:signatureGroup,profile:signatureProfile,weapon:signature}};
@@ -1284,10 +1429,17 @@ function makeWeapon(accent,signature,additions=[]){
  const muzzleStar=new THREE.Group();
  for(const az of[0,Math.PI/2]){const pl=new THREE.Mesh(geo.plane,starMat);pl.rotation.set(-Math.PI/2,0,az);pl.scale.set(1,.2,1);muzzleStar.add(pl)}
  muzzleStar.visible=false;g.add(muzzleStar);
- g.userData={dark,metal,trim,coil,flash,body,barrel,stock,mag,grip,rail,core,sight,muzzleGlow,rings,muzzle,muzzleStar,starMat,standard,doctrineRoot,doctrineGroups,signatureGroup,signatureProfile,signature};
+ g.userData={dark,metal,trim,classTrim,coil,flash,body,barrel,stock,mag,grip,rail,core,sight,scope,lens,brake,handle,bipod,muzzleGlow,rings,muzzle,muzzleStar,starMat,standard,doctrineRoot,doctrineGroups,signatureGroup,signatureProfile,signature};
  return g
 }
-const WVIS={pistol:{b:[.32,.2,.62],ba:.58,r:.052,st:0,mag:.24},smg:{b:[.42,.23,.82],ba:.78,r:.058,st:.38,mag:.42},rifle:{b:[.48,.25,1.02],ba:1.08,r:.06,st:.55,mag:.5},sniper:{b:[.54,.27,1.22],ba:1.58,r:.048,st:.72,mag:.42}};
+/* b: receiver box, ba: barrel length, r: barrel radius, st: stock depth,
+   mag: magazine drop, tint: class livery, plus the hardware each class wears. */
+const WVIS={
+ pistol:{b:[.32,.2,.62],ba:.58,r:.052,st:0,mag:.24,tint:"#9fb0cc",scope:0,handle:0,bipod:0,brake:0,magTilt:0},
+ smg:{b:[.42,.23,.82],ba:.62,r:.058,st:.3,mag:.62,tint:"#38bdf8",scope:0,handle:0,bipod:0,brake:0,magTilt:.42},
+ rifle:{b:[.48,.25,1.02],ba:1.08,r:.06,st:.55,mag:.5,tint:"#d4a843",scope:0,handle:1,bipod:0,brake:0,magTilt:.16},
+ sniper:{b:[.54,.27,1.32],ba:1.72,r:.048,st:.78,mag:.34,tint:"#a5f3fc",scope:1,handle:0,bipod:1,brake:1,magTilt:0},
+};
 function setWeaponMesh(w,id){
  const u=w.userData;
  const doctrine=u.doctrineGroups?.[id];
@@ -1299,15 +1451,33 @@ function setWeaponMesh(w,id){
   u.cur=id;return
  }
  const c=WVIS[id]||WVIS.pistol;u.standard.visible=true;u.doctrineRoot.visible=false;
+ u.classTrim.color.set(hex(c.tint));u.classTrim.emissive.set(hex(c.tint));
  u.body.scale.set(...c.b);u.body.position.set(0,0,0);
  u.barrel.scale.set(c.r,c.ba/2,c.r);u.barrel.position.set(0,0,c.b[2]/2+c.ba/2);
  u.stock.visible=!!c.st;u.stock.scale.set(c.b[0]*.72,c.b[1]*.78,c.st||.01);u.stock.position.set(0,-c.b[1]*.1,-c.b[2]/2-(c.st||0)/2);
- u.mag.scale.set(c.b[0]*.44,c.mag,.16);u.mag.position.set(0,-c.b[1]*.9-c.mag*.32,.08);
+ u.mag.scale.set(c.b[0]*.44,c.mag,.16);u.mag.position.set(0,-c.b[1]*.9-c.mag*.42,.08-c.magTilt*.06);u.mag.rotation.x=c.magTilt;
  u.grip.scale.set(c.b[0]*.42,c.b[1]*1.02,.14);u.grip.position.set(0,-c.b[1]*.88,-c.b[2]*.2);u.grip.rotation.x=-.24;
  u.rail.scale.set(c.b[0]*.5,.055,c.b[2]*.84);u.rail.position.set(0,c.b[1]*.62,0);
  u.core.scale.set(c.b[0]*1.02,.05,c.b[2]*.52);u.core.position.set(0,c.b[1]*.18,-c.b[2]*.08);
- u.sight.scale.setScalar(id==='sniper'?.055:.04);u.sight.position.set(0,c.b[1]*.95,c.b[2]*(id==='sniper'?.08:.3));
- u.rings.forEach((r,i)=>{r.scale.setScalar(c.r*2.7);r.position.set(0,0,c.b[2]*.5+c.ba*(.3+i*.36))});
+ u.sight.visible=!c.scope;u.sight.scale.setScalar(.04);u.sight.position.set(0,c.b[1]*.95,c.b[2]*.3);
+ /* long-gun optics, carry handle, muzzle brake and bipod */
+ u.scope.visible=u.lens.visible=!!c.scope;
+ if(c.scope){
+  u.scope.scale.set(.075,.34,.075);u.scope.position.set(0,c.b[1]*1.05,c.b[2]*.06);
+  u.lens.scale.set(.062,.03,.062);u.lens.position.set(0,c.b[1]*1.05,c.b[2]*.06+.35);
+ }
+ u.handle.visible=!!c.handle;
+ if(c.handle){u.handle.scale.set(c.b[0]*.34,.12,c.b[2]*.3);u.handle.position.set(0,c.b[1]*1.02,-c.b[2]*.05)}
+ u.brake.visible=!!c.brake;
+ if(c.brake){u.brake.scale.setScalar(c.r*3.4);u.brake.position.set(0,0,c.b[2]/2+c.ba*.94)}
+ u.bipod.forEach((leg,i)=>{
+  leg.visible=!!c.bipod;
+  if(!c.bipod)return;
+  leg.scale.set(.02,.17,.02);
+  leg.position.set((i?1:-1)*.085,-c.b[1]*.8,c.b[2]*.42+c.ba*.34);
+  leg.rotation.z=(i?-1:1)*.42;
+ });
+ u.rings.forEach((r,i)=>{r.visible=!c.brake;r.scale.setScalar(c.r*2.7);r.position.set(0,0,c.b[2]*.5+c.ba*(.3+i*.36))});
  u.muzzle.position.set(0,0,c.b[2]/2+c.ba+.08);
  u.muzzleGlow.position.copy(u.muzzle.position);u.muzzleGlow.scale.setScalar(id==='sniper'?.24:.17);
  if(u.muzzleStar){u.muzzleStar.position.copy(u.muzzle.position);u.starMat.color.set(u.flash.color)}
@@ -1434,6 +1604,28 @@ function makeRig(p,previewMode=false){
   root.add(upper,fore,hand);
   arms.push({side,anchor,l1:armLen*.54,l2:armLen*.5,upper,fore,hand,knee:V3(),ru:.075*s,rf:.062*s});
  }
+ /* ---- faction livery: worn hardware, not a recolour of the division ----
+    Division colour still owns the body. Faction owns a fixed set of issued
+    plates so the same operator reads friend or foe on either side. */
+ const look=teamLook(p);
+ const liveryMat=new THREE.MeshStandardMaterial({color:look.hex,emissive:look.hex,emissiveIntensity:.75,roughness:.34,metalness:.55});
+ const liveryGlow=new THREE.MeshBasicMaterial({color:look.hex,transparent:true,opacity:.62,blending:THREE.AdditiveBlending,depthWrite:false});
+ const teamParts=[liveryMat,liveryGlow];
+ for(const arm of arms){
+  const mantle=new THREE.Mesh(geo.shellArc,liveryMat);
+  mantle.scale.setScalar(.2*s);mantle.position.copy(arm.anchor);mantle.position.y+=.045*s;
+  mantle.rotation.set(Math.PI*.5,0,arm.side>0?-Math.PI*.28:Math.PI*.28);mantle.castShadow=true;body.add(mantle);
+ }
+ const sash=new THREE.Mesh(geo.box,liveryMat);
+ sash.scale.set(torso.scale.x*1.42,.075*s,.06*s);
+ sash.position.set(0,torso.position.y+torso.scale.y*(quadish?.34:.02),torso.scale.z*.78);
+ sash.rotation.z=.14;body.add(sash);
+ const beacon=new THREE.Mesh(geo.cone,liveryMat);
+ beacon.scale.set(.09*s,.34*s,.09*s);
+ beacon.position.set(0,torso.position.y+torso.scale.y*(quadish?.9:.72),-torso.scale.z*(quadish?.55:.72));
+ beacon.rotation.x=-.34;beacon.castShadow=true;body.add(beacon);
+ const beaconGlow=new THREE.Mesh(geo.sphere,liveryGlow);
+ beaconGlow.scale.setScalar(.08*s);beaconGlow.position.copy(beacon.position);beaconGlow.position.y+=.2*s;body.add(beaconGlow);
  /* Solve the carry point so both hands land on the weapon instead of reaching
     past it: keep the grip inside arm reach, clear of the torso and the head. */
  const reach=armLen;
@@ -1455,18 +1647,100 @@ function makeRig(p,previewMode=false){
  const bb=new THREE.Box3().setFromObject(body);
  const fitR=Math.max(bb.max.x-bb.min.x,bb.max.y-bb.min.y,bb.max.z-bb.min.z)*.5+hold.d*.55;
  const fitY=(bb.min.y+bb.max.y)*.5-root.position.y;
- const mark=new THREE.Mesh(geo.octa16,new THREE.MeshBasicMaterial({color:p.team===myTeam?0x38bdf8:0xef4444,transparent:true,opacity:.9}));mark.position.y=topY;root.add(mark);
+ /* ---- footprint: the fastest faction read on a top-down camera ----
+    Allies get a calm closed ring. Hostiles get an open ring with four
+    outward barbs, so the silhouette differs even with colour removed. */
+ const footprint=new THREE.Group();footprint.position.y=.03;root.add(footprint);
+ const footDisc=new THREE.Mesh(geo.circle,new THREE.MeshBasicMaterial({color:look.hex,transparent:true,opacity:.14,blending:THREE.AdditiveBlending,depthWrite:false}));
+ footDisc.rotation.x=-Math.PI/2;footDisc.scale.setScalar(.92*s);footprint.add(footDisc);
+ /* A dark backing ring keeps the faction colour readable on bright floors —
+    additive alone disappears on the foundry's orange deck. */
+ const footShade=new THREE.Mesh(geo.torus,new THREE.MeshBasicMaterial({color:0x04060d,transparent:true,opacity:.7,depthWrite:false}));
+ footShade.rotation.x=-Math.PI/2;footShade.scale.set(1.02*s,1.02*s,7.2);footShade.position.y=-.008;footprint.add(footShade);
+ const footRing=new THREE.Mesh(geo.torus,new THREE.MeshBasicMaterial({color:look.hex,transparent:true,opacity:.9,depthWrite:false}));
+ footRing.rotation.x=-Math.PI/2;footRing.scale.set(.92*s,.92*s,3.4);footprint.add(footRing);
+ const barbs=new THREE.Group();barbs.visible=look.hostile;footprint.add(barbs);
+ for(let i=0;i<4;i++){
+  const barb=new THREE.Mesh(geo.cone,footRing.material);
+  const a=i*Math.PI/2+Math.PI/4;
+  barb.scale.set(.11*s,.3*s,.11*s);
+  barb.position.set(Math.cos(a)*1.06*s,0,Math.sin(a)*1.06*s);
+  barb.rotation.set(Math.PI/2,0,-a+Math.PI/2);barbs.add(barb);
+ }
+ const heading=new THREE.Mesh(geo.cone,footRing.material);
+ heading.scale.set(.16*s,.42*s,.16*s);heading.visible=look.key==="self";root.add(heading);
  const shadow=new THREE.Mesh(geo.circle,new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.28,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;shadow.scale.setScalar(.9*s);root.add(shadow);
- const rig={root,body,torso,head,weapon,mark,arms,hold,muzzleLight,quadish,topY,fitR,fitY,pulse:0,breath:Math.random()*7,greet:0,previewMode,scale:s,dna:d};
+ /* ---- overhead marker: chevron for allies, barbed diamond for hostiles ---- */
+ const mark=new THREE.Group();mark.position.y=topY;root.add(mark);
+ const markMat=new THREE.MeshBasicMaterial({color:look.hex,transparent:true,opacity:.94,depthWrite:false});
+ teamParts.push(markMat,footDisc.material,footRing.material);
+ const markShape=new THREE.Mesh(look.hostile?geo.octa16:geo.cone,markMat);
+ if(look.hostile)markShape.scale.setScalar(1.35);
+ else{markShape.scale.set(.19,.26,.19);markShape.rotation.x=Math.PI}
+ mark.add(markShape);
+ const markBeam=new THREE.Mesh(geo.cyl,new THREE.MeshBasicMaterial({color:look.hex,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false}));
+ markBeam.scale.set(.035,topY*.5,.035);markBeam.position.y=-topY*.5-.2;markBeam.visible=look.hostile;mark.add(markBeam);
+ teamParts.push(markBeam.material);
+ /* ---- nameplate: callsign, faction word and a live health bar ---- */
+ const plateCanvas=document.createElement("canvas");plateCanvas.width=256;plateCanvas.height=72;
+ const plateTex=new THREE.CanvasTexture(plateCanvas);
+ const plate=new THREE.Sprite(new THREE.SpriteMaterial({map:plateTex,transparent:true,depthWrite:false,depthTest:false}));
+ plate.scale.set(3.5,.98,1);plate.position.y=topY+.62;plate.renderOrder=6;root.add(plate);
+ const rig={root,body,torso,head,weapon,mark,markShape,markBeam,footprint,footRing,footDisc,barbs,heading,plate,plateCanvas,plateCtx:plateCanvas.getContext("2d"),plateTex,plateKey:"",teamParts,liveryMat,arms,hold,muzzleLight,quadish,topY,fitR,fitY,pulse:0,breath:Math.random()*7,greet:0,previewMode,scale:s,dna:d,teamKey:look.key};
+ rig.applyTeamLook=()=>{
+  const next=teamLook(p);
+  rig.teamKey=next.key;rig.plateKey="";
+  for(const m of rig.teamParts)m.color.setHex(next.hex);
+  if(rig.liveryMat.emissive)rig.liveryMat.emissive.setHex(next.hex);
+  rig.barbs.visible=next.hostile;
+  rig.heading.visible=next.key==="self";
+  rig.markBeam.visible=next.hostile;
+ };
+ if(previewMode){plate.visible=false;mark.visible=false}
  rigs.set(p.id,rig);return rig
+}
+/* Redraws the floating callsign plate only when its content actually changes. */
+function paintNameplate(r,p){
+ const look=teamLook(p),hpNow=Math.max(0,Math.round(p.hp)),max=Math.max(1,maxHp(p));
+ const key=`${look.key}|${p.name}|${hpNow}|${max}|${Math.round(p.armor||0)}`;
+ if(r.plateKey===key)return;
+ r.plateKey=key;
+ const g=r.plateCtx;g.clearRect(0,0,256,72);
+ g.fillStyle="rgba(4,8,18,.72)";g.beginPath();
+ if(g.roundRect)g.roundRect(6,4,244,40,8);else g.rect(6,4,244,40);
+ g.fill();g.strokeStyle=look.css;g.lineWidth=2;g.stroke();
+ g.font='800 20px "JetBrains Mono",monospace';g.textBaseline="middle";
+ g.fillStyle=look.css;g.textAlign="left";g.fillText(look.glyph,17,25);
+ g.fillStyle="#f8fafc";g.fillText(String(p.name).toUpperCase().slice(0,11),40,25);
+ g.font='800 13px "JetBrains Mono",monospace';g.textAlign="right";
+ g.fillStyle=look.css;g.fillText(look.word,242,25);
+ g.fillStyle="rgba(148,163,184,.28)";g.fillRect(12,52,232,10);
+ const frac=clamp(hpNow/max,0,1);
+ g.fillStyle=frac>.55?"#4ade80":frac>.25?"#fbbf24":"#ef4444";g.fillRect(12,52,232*frac,10);
+ if(p.armor>0){g.fillStyle="rgba(125,211,252,.85)";g.fillRect(12,52,232*clamp(p.armor/100,0,1),3)}
+ r.plateTex.needsUpdate=true;
 }
 function updateRig(p,dt){
  let r=rigs.get(p.id);if(!r)r=makeRig(p);const now=performance.now()/1000;
- if(!p.alive){r.root.visible=now-p.deadT<2.4;r.root.rotation.z=Math.min(1,now-p.deadT)*1.35;r.body.scale.setScalar(1);if(r.muzzleLight)r.muzzleLight.intensity=0;return}
+ if(!p.alive){r.root.visible=now-p.deadT<2.4;r.root.rotation.z=Math.min(1,now-p.deadT)*1.35;r.body.scale.setScalar(1);if(r.muzzleLight)r.muzzleLight.intensity=0;if(r.plate)r.plate.visible=false;if(r.footprint)r.footprint.visible=false;if(r.mark)r.mark.visible=false;return}
+ if(!r.previewMode&&r.teamKey!==teamLook(p).key)r.applyTeamLook();
  const enemy=p.team!==myTeam,visible=p===me||!enemy||canSee(me,p)||p.revealT>now;r.root.visible=visible;if(!visible)return;
+ if(!r.previewMode){
+  const look=teamLook(p),hostile=look.hostile,beat=.5+.5*Math.sin(now*(hostile?5.2:2.1));
+  r.footprint.visible=true;r.mark.visible=p!==me;
+  r.footRing.material.opacity=(hostile?.62:.72)+beat*(hostile?.36:.16);
+  r.footDisc.material.opacity=.1+beat*(hostile?.13:.05);
+  r.footprint.rotation.y+=dt*(look.key==="self"?0:hostile?-1.1:.35);
+  if(r.heading.visible){const ha=p.angle;r.heading.position.set(Math.cos(ha)*1.34*r.scale,.06,Math.sin(ha)*1.34*r.scale);r.heading.rotation.set(Math.PI/2,0,Math.PI/2-ha)}
+  r.markShape.rotation.y+=dt*(hostile?2.4:1.1);
+  r.mark.position.y=r.topY+Math.sin(now*2.4+r.breath)*.09;
+  r.plate.visible=p!==me&&(p===ui.followP||!enemy||canSee(me,p)||p.revealT>now);
+  if(r.plate.visible)paintNameplate(r,p);
+ }
  r.root.position.set(p.x*S,arenaElevationWorld(p.x,p.y),p.y*S);r.root.rotation.z=0;
  const hit=clamp(((p.hitT||0)-now)/.28,0,1),shake=hit*Math.sin(now*90)*.035;
  r.root.position.x+=Math.cos(p.hitAng||0)*shake;r.root.position.z+=Math.sin(p.hitAng||0)*shake;r.body.scale.setScalar(1+hit*.08);
+ if(r.liveryMat)r.liveryMat.emissiveIntensity=.75+hit*2.6;
  const a=p.angle,yaw=Math.PI/2-a,cy=Math.sin(a),sy=Math.cos(a);
  const fwdX=Math.cos(a),fwdZ=Math.sin(a),sideX=Math.sin(a),sideZ=-Math.cos(a);
  r.body.rotation.y=yaw+hit*Math.sin(now*70)*.08;
@@ -1491,12 +1765,16 @@ function updateRig(p,dt){
  const wScale=r.scale*wcfg.scale;
  r.weapon.scale.setScalar(wScale);
  const reloading=(p.reloadT||0)>0,rl=reloading?clamp(1-p.reloadT/(p.reloadMax||1),0,1):0,swap=reloading?Math.sin(rl*Math.PI):0;
+ /* Weapon swap: the rig drops the old frame out of the aim line and presents
+    the new one, so the silhouette change is visible from the combat camera. */
+ const swapK=clamp((p.swapKick||0),0,1);p.swapKick=Math.max(0,swapK-dt*4.2);
+ const present=Math.sin(swapK*Math.PI);
  const reach=r.arms[0].l1+r.arms[0].l2;
- const holdD=r.hold.d-kick*.07*r.scale;
+ const holdD=r.hold.d-kick*.07*r.scale-present*.16*r.scale;
  const holdSide=r.hold.side;
- const holdY=r.body.position.y+r.hold.y-swap*.1*r.scale;
+ const holdY=r.body.position.y+r.hold.y-swap*.1*r.scale-present*.3*r.scale;
  r.weapon.position.set(fwdX*holdD+sideX*holdSide,holdY,fwdZ*holdD+sideZ*holdSide);
- r.weapon.rotation.set(-.04+kick*.16,yaw,swap*.6);
+ r.weapon.rotation.set(-.04+kick*.16-present*.85,yaw,swap*.6+present*.5);
  const gripAt=(gx,gy,gz)=>_grip.set(r.weapon.position.x+(gx*cy+gz*sy)*wScale,r.weapon.position.y+gy*wScale,r.weapon.position.z+(-gx*sy+gz*cy)*wScale);
  for(const arm of r.arms){
  _sh.set(arm.anchor.x*cy+arm.anchor.z*sy,r.body.position.y+arm.anchor.y,-arm.anchor.x*sy+arm.anchor.z*cy);
@@ -1553,7 +1831,7 @@ function makeFX(){
    else if(it.type==='flash')flashPool.push(it.m)}};
  return{
   blasterBolt(p,ang,len,impactColor,endHeight=null){
-   const r=rigs.get(p.id),w=curW(p),signature=isDoctrineWeapon(w),col=signature?(w.glow||p.div.c):p.cur==='sniper'?'#a5f3fc':(p.div.c||'#ffffff');
+   const r=rigs.get(p.id),w=curW(p),signature=isDoctrineWeapon(w),col=signature?(w.glow||p.div.c):(WVIS[p.cur]?.tint||p.div.c||'#ffffff');
    if(r&&r.weapon)r.weapon.userData.muzzleGlow.material.opacity=.95;
    const u=boltPool.pop();if(!u)return;
    u.start.set(p.x*S,1.8,p.y*S);
@@ -1593,17 +1871,31 @@ function makeFX(){
     scene.add(u.ball,u.col);items.push({type:'burst',u,t:.55,max:.55})}
    const m=ringPool.pop();
    if(m){m.material.color.set(hex(c));m.material.opacity=.95;m.rotation.set(Math.PI/2,0,0);m.position.set(px,py+.15,pz);m.scale.setScalar(.4);scene.add(m);items.push({type:'shock',m,t:.7,max:.7})}},
-  dmgText(x,y,val,killing){
+  /* Floating damage: the number says how much, the colour says what kind. */
+  dmgText(x,y,val,kind="hit"){
    const u=dmgPool.pop();if(!u)return;
+   const killing=kind==="elimination";
+   const label=killing?String(val):(kind==="critical"?"✦"+val:String(val));
+   const fill=killing?'#fde047':kind==="critical"?'#f9a8d4':kind==="armor"?'#7dd3fc':'#f8fafc';
    const g=u.g;g.clearRect(0,0,192,96);
-   g.font='800 '+(killing?64:46)+'px "JetBrains Mono",monospace';g.textAlign='center';g.textBaseline='middle';
-   g.lineWidth=8;g.lineJoin='round';g.strokeStyle='rgba(3,7,18,.92)';g.strokeText(String(val),96,48);
-   g.fillStyle=killing?'#fde047':'#f8fafc';g.fillText(String(val),96,48);
+   g.font='800 '+(killing?62:kind==="critical"?52:44)+'px "JetBrains Mono",monospace';g.textAlign='center';g.textBaseline='middle';
+   g.lineWidth=8;g.lineJoin='round';g.strokeStyle='rgba(3,7,18,.92)';g.strokeText(label,96,48);
+   g.fillStyle=fill;g.fillText(label,96,48);
    u.tex.needsUpdate=true;
-   u.s.material.opacity=1;u.s.position.set(x*S+rnd(-.2,.2),arenaElevationWorld(x,y)+2.7,y*S);
-   const sc=killing?1.7:1.2;u.s.scale.set(sc,sc*.5,1);
-   u.s.userData.v.set(rnd(-.4,.4),2.4,0);
-   scene.add(u.s);items.push({type:'float',m:u.s,u,t:.8,max:.8});
+   u.s.material.opacity=1;u.s.position.set(x*S+rnd(-.35,.35),arenaElevationWorld(x,y)+2.7,y*S);
+   const sc=killing?1.85:kind==="critical"?1.5:1.2;u.s.scale.set(sc,sc*.5,1);
+   u.s.userData.v.set(rnd(-.5,.5),killing?3:2.4,0);
+   scene.add(u.s);items.push({type:'float',m:u.s,u,t:killing?1:.8,max:killing?1:.8});
+  },
+  /* Impact on the body you actually shot: a camera-facing ring plus sparks at
+     chest height, so a landed shot is legible even at full arena zoom. */
+  hitConfirm(target,kind,ang){
+   const height=arenaElevationWorld(target.x,target.y)+(target.isBoss?2.4:1.7);
+   const col=kind==="elimination"?'#fde047':kind==="critical"?'#f9a8d4':kind==="armor"?'#7dd3fc':'#fff1c2';
+   _head.set(target.x*S,height,target.y*S);
+   this.impactWorld(_head,col,kind==="elimination"?1.9:kind==="critical"?1.35:1);
+   if(Number.isFinite(ang))this.sparksWorld(_head,col,kind==="elimination"?22:12,kind==="elimination"?2.2:1.5);
+   if(kind==="elimination")this.ring(target.x,target.y,col,1.5);
   },
   clear(){for(const it of items.splice(0))rel(it)},
   step(dt){for(let i=items.length-1;i>=0;i--){const it=items[i];
@@ -1626,7 +1918,7 @@ function makeFX(){
  }
 }
 function fireWeapon(p,tx,ty){
- const w=curW(p),now=performance.now()/1000;if(p.reloadT>0||w.ammo<=0){if(p.human&&w.ammo<=0){if(p===me&&now-(ui.dryT||0)>.3){ui.dryT=now;SND.dry()}reload(p)}return}
+ const w=curW(p),now=performance.now()/1000;if((p.swapT||0)>now)return;if(p.reloadT>0||w.ammo<=0){if(p.human&&w.ammo<=0){if(p===me&&now-(ui.dryT||0)>.3){ui.dryT=now;SND.dry()}reload(p)}return}
  const hostileTime=p.slowFireUntil>now?.7:1,fm=(p.div.id==='signal'?1.08:1)*(p.fireUntil>now?1.4:1)*hostileTime;if(now-p.fireT<w.delay/fm)return;p.fireT=now;w.ammo--;
  if(p===me){ui.hasFired=true;p.spawnGuardUntil=0}
  let spread=w.spread*((Math.abs(p.vx||0)+Math.abs(p.vy||0))>20?1.7:1);if(!p.human)spread+=difficulty().spread;
@@ -1642,7 +1934,6 @@ function fireWeapon(p,tx,ty){
  else SND.shot(shotVoice,clamp(1-dist(p,me)/650,0,1)*.5);
  fx.blasterBolt(p,ang,hd,doctrine?(w.glow||p.div.c):(hit?hit.div.c:'#cbd5e1'),endHeight);
  if(hit){
-  if(p===me){ui.hitT=now+.16;SND.hit(false)}
   let shotDamage=w.dmg,critical=false;
   if(p.critUntil>now&&Math.random()<.5){shotDamage*=1.65;critical=true;fx.ring(hit.x,hit.y,w.glow||p.div.c,.7)}
   if(p.boostShots>0){shotDamage*=1.35;p.boostShots--}
@@ -1685,9 +1976,10 @@ function damage(q,dmg,src,flags={}){if(q?.isBoss)return damageBoss(q,dmg,src,fla
  if(q.resistUntil>now)d*=.82;
  if(q.armor>0){d*=.55;q.armor=Math.max(0,q.armor-dmg*.35)}
  q.hp-=d;if(q.refundUntil>now)q.refundPool=(q.refundPool||0)+d*.4;q.lastDmg=now;q.hitT=now+.28;
- if(src){q.hitAng=Math.atan2(q.y-src.y,q.x-src.x);fx.sparks(q.x,q.y,q.div.c,12,1.3);if(src.div.id==="nexus")q.revealT=now+2}
- if(src===me){ui.hitKind=q.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"hit";ui.hitKindT=now+.24;fx.dmgText(q.x,q.y,Math.round(d),q.hp<=0)}
- if(q===me){ui.damageT=now+.34;SND.hurt();addShake(.22);feed(`${src?src.name:"Enemy"} hit you`,src?src.div.c:"#ef4444")}
+ if(src){q.hitAng=Math.atan2(q.y-src.y,q.x-src.x);if(src.div.id==="nexus")q.revealT=now+2}
+ if(src===me)confirmHit(q,d,q.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"hit");
+ else if(src)fx.sparks(q.x,q.y,teamLook(src).css,9,1.2);
+ if(q===me){ui.damageT=now+.34;SND.hurt();addShake(.22);feed(`${src?src.name:"Hostile"} hit you`,src?teamLook(src).css:TEAM_LOOK.enemy.css)}
  if(src&&q.reflectUntil>now&&!flags.reflect)damage(src,d*.2,q,{reflect:true,doctrine:true});
  if(src&&q.linkedUntil>now&&!flags.linked)for(const other of players)if(other!==q&&other.alive&&other.team===q.team&&other.linkedUntil>now)damage(other,d*.3,src,{linked:true,doctrine:true});
  if(q.hp<=0){if(q.div.id==="eon"&&!q.usedWind){q.usedWind=true;q.hp=35;q.revealT=now+1;feed(`${q.name} triggered Second Wind`,q.div.c);fx.ring(q.x,q.y,q.div.c,1);return}kill(q,src)}
@@ -1778,7 +2070,7 @@ function kill(q,src){const now=performance.now()/1000;q.alive=false;q.deadT=now;
  if(bomb.carrier===q&&bomb.state==="carried"){bomb.state="dropped";bomb.x=q.x;bomb.y=q.y;setSpikeWorld(q.x,q.y,false);feed("Spike dropped!","#f59e0b")}
  if(q.seedOnDeathUntil>now)players.filter(a=>a.alive&&a.team===q.seedTeam&&dist(a,q)<260).forEach(a=>{a.hp=Math.min(maxHp(a),a.hp+18);fx.ring(a.x,a.y,"#F0D08C",.55)});
  if(q===me){SND.hurt();addShake(.5);transitionState(RUNTIME.GAME_STATES.SPECTATING,"player-death");announce("You were eliminated. Spectating an ally. Use brackets or gamepad bumpers to change view.")}
- if(src&&src.team!==q.team){src.kills=(src.kills||0)+1;if(src.isBoss)feed(`${src.name} eliminated ${q.name}`,src.div.c);else{const base=src.div.id==="collective"?450:300,tithe=q.titheUntil>now&&q.titheTeam===src.team?Math.round(base*.15):0;src.money=Math.min(9000,src.money+base+tithe);feed(`${src.name} eliminated ${q.name}${tithe?` / TITHE +$${tithe}`:""}`,src.div.c);if(src===me){ui.streak=now-ui.lastKillT<7?ui.streak+1:1;me.bestStreak=Math.max(me.bestStreak||0,ui.streak);ui.lastKillT=now;ui.streakT=now+2.2;SND.hit(true);ui.killT=now+.4;awardMatchXP(28);showBanner(ui.streak>=3?`${ui.streak}X ELIMINATION`:"ELIMINATED")}}}
+ if(src&&src.team!==q.team){src.kills=(src.kills||0)+1;if(src.isBoss)feed(`${TEAM_LOOK.boss.glyph} ${src.name} eliminated ${q.name}`,TEAM_LOOK.boss.css);else{const base=src.div.id==="collective"?450:300,tithe=q.titheUntil>now&&q.titheTeam===src.team?Math.round(base*.15):0;src.money=Math.min(9000,src.money+base+tithe);feed(`${teamLook(src).glyph} ${src.name} eliminated ${q.name}${tithe?` / TITHE +$${tithe}`:""}`,teamLook(src).css);if(src===me){ui.streak=now-ui.lastKillT<7?ui.streak+1:1;me.bestStreak=Math.max(me.bestStreak||0,ui.streak);ui.lastKillT=now;ui.streakT=now+2.2;SND.hit(true);ui.killT=now+.4;awardMatchXP(28);showBanner(ui.streak>=3?`${ui.streak}X ELIMINATION`:"ELIMINATED")}}}
  checkRound()}
 function reload(p){const w=curW(p);if(p.reloadT>0||w.ammo===w.mag||w.reserve<=0)return;p.reloadT=(w.id==="sniper"?2.05:isDoctrineWeapon(w)?clamp(2.05-(w.stats?.[1]||60)/100,1.05,1.65):1.45)*(p.div.id==="binary"?.65:1)*(p.controlUntil>performance.now()/1000 ? .78 : 1);p.reloadMax=p.reloadT;if(p===me)SND.reload(w.id)}
 function abilityFx(id,p,tp){
@@ -1939,7 +2231,7 @@ function teardownMatch({removeArena=false}={}){
  gameScheduler.cancelTag("match");gameScheduler.cancelTag("ui");mouse.down=mouse.fired=false;keys={};actionInput.releaseAll();touchMove.x=touchMove.y=padMove.x=padMove.y=0;setScoreboard(false);
  clearSpikeMesh();clearBoss();fx?.clear?.();for(const rig of rigs.values()){scene.remove(rig.root);disposeTree(rig.root)}rigs.clear();players=[];me=null;
  for(const entry of tempMeshes.splice(0)){scene.remove(entry.m);disposeTree(entry.m)}
- document.getElementById("feed").replaceChildren();document.getElementById("buyMenu").classList.remove("open");document.getElementById("pause").classList.remove("on");document.getElementById("endScreen").style.display="none";document.getElementById("hud").style.display="none";document.getElementById("crosshair").style.display="none";document.getElementById("touchControls").classList.remove("active");document.body.classList.remove("game-active");buyOpen=false;paused=false;AUDIO.setPaused(false);SND.setAmb(false);
+ document.getElementById("feed").replaceChildren();document.getElementById("weaponToast").classList.remove("on");weaponRailKey="";hudTeamKey="";document.getElementById("buyMenu").classList.remove("open");document.getElementById("pause").classList.remove("on");document.getElementById("endScreen").style.display="none";document.getElementById("hud").style.display="none";document.getElementById("crosshair").style.display="none";document.getElementById("touchControls").classList.remove("active");document.body.classList.remove("game-active");buyOpen=false;paused=false;AUDIO.setPaused(false);SND.setAmb(false);
  if(removeArena)teardownArena();return runtimeMetrics()
 }
 function restartMatch(){
@@ -2059,11 +2351,44 @@ function crosshairTarget(p){
  return best
 }
 function aimTarget(){if(!me||!me.alive)return null;return crosshairTarget(me)}
+/* Friendly under the reticle: the crosshair must say "hold fire", not just
+   fail to turn red, or a squadmate in a doorway reads as an empty lane. */
+function allyUnderCrosshair(){
+ if(!me||!me.alive)return null;
+ let best=null,score=1e9;
+ for(const q of players){
+  if(q===me||!q.alive||q.team!==me.team)continue;
+  const d=screenDistToPlayer(q);
+  if(d>20+SETTINGS.aimAssist*18||d>=score)continue;
+  score=d;best=q;
+ }
+ return best;
+}
 function updateCombatUI(){
  const now=performance.now()/1000,ch=document.getElementById("crosshair");if(!ch)return;
  ch.style.left=clamp(mouse.x,24,innerWidth-24)+"px";ch.style.top=clamp(mouse.y,24,innerHeight-24)+"px";
- const target=phase!=="menu"?aimTarget():null;ch.classList.toggle("target",!!target);ch.classList.toggle("live",phase==="live");ch.classList.toggle("hit",ui.hitT>now);ch.classList.toggle("kill",ui.killT>now);for(const kind of["armor","critical","boss"])ch.classList.toggle(kind,ui.hitKind===kind&&ui.hitKindT>now);
- const name=ch.querySelector(".aimName");if(name)name.textContent=target?target.name.toUpperCase():"";
+ const target=phase!=="menu"?aimTarget():null,ally=target?null:(phase!=="menu"?allyUnderCrosshair():null);
+ ch.classList.toggle("target",!!target);ch.classList.toggle("ally",!!ally);ch.classList.toggle("live",phase==="live");ch.classList.toggle("hit",ui.hitT>now);ch.classList.toggle("kill",ui.killT>now);for(const kind of["armor","critical","boss"])ch.classList.toggle(kind,ui.hitKind===kind&&ui.hitKindT>now);
+ const name=ch.querySelector(".aimName");
+ if(name)name.textContent=target?`${teamLook(target).glyph} ${target.name.toUpperCase()}`:ally?`ALLY / ${ally.name.toUpperCase()}`:"";
+ /* Reticle bloom is the equipped weapon's actual spread, widened while moving
+    and while the swap animation is still presenting the new frame. */
+ if(me?.alive&&phase!=="menu"){
+  const cw=curW(me),moving=(Math.abs(me.vx||0)+Math.abs(me.vy||0))>20;
+  const bloom=3+(cw?.spread||.04)*150+(moving?4:0)+((me.swapT||0)>now?7:0)+(me.reloadT>0?5:0);
+  ch.style.setProperty("--ch-gap",bloom.toFixed(1)+"px");
+ }
+ const marker=document.getElementById("hitMarker");
+ if(marker){
+  const live=ui.hitKindT>now;
+  if(!live)marker.className="";
+  else if(ui.hitMarkerSeq!==ui.hitMarkerDrawn){
+   /* Restart the pop for every confirmed hit, not just the first of a burst. */
+   ui.hitMarkerDrawn=ui.hitMarkerSeq;
+   marker.style.left=ch.style.left;marker.style.top=ch.style.top;
+   marker.className="";void marker.offsetWidth;marker.className=`on ${ui.hitKind||"hit"}`;
+  }
+ }
  document.getElementById("damageVignette").classList.toggle("show",ui.damageT>now);
 }
 function updateWorld(dt){
@@ -2134,7 +2459,21 @@ function renderTacticalHUD(nowS,w){
  const dd=document.getElementById("damageDir");dd.classList.toggle("on",ui.damageT>nowS);if(ui.damageT>nowS&&Number.isFinite(me.hitAng))dd.style.transform=`translate(-50%,-50%) rotate(${me.hitAng-me.angle+Math.PI/2}rad)`;
  const streak=document.getElementById("streak");streak.textContent=ui.streak>=2?`${ui.streak}X COMBAT CHAIN`:"";streak.classList.toggle("on",ui.streak>=2&&ui.streakT>nowS);
 }
-function renderHUD(){if(!me)return;const nowS=performance.now()/1000;document.getElementById("atkScore").textContent=scoreATK;document.getElementById("defScore").textContent=scoreDEF;
+let hudTeamKey="";
+/* The scoreboard cells have to say which side is yours; "Strike vs Sentinel"
+   means nothing until it is anchored to the operator you are driving. */
+function syncTeamHud(){
+ if(hudTeamKey===myTeam)return;
+ hudTeamKey=myTeam;
+ const atkCell=document.getElementById("atkCell"),defCell=document.getElementById("defCell");
+ if(!atkCell||!defCell)return;
+ atkCell.classList.toggle("mine",myTeam==="ATK");defCell.classList.toggle("mine",myTeam==="DEF");
+ document.getElementById("atkMark").textContent=myTeam==="ATK"?"YOUR UNIT":"HOSTILE";
+ document.getElementById("defMark").textContent=myTeam==="DEF"?"YOUR UNIT":"HOSTILE";
+ atkCell.querySelector(".label").style.color=myTeam==="ATK"?TEAM_LOOK.ally.css:TEAM_LOOK.enemy.css;
+ defCell.querySelector(".label").style.color=myTeam==="DEF"?TEAM_LOOK.ally.css:TEAM_LOOK.enemy.css;
+}
+function renderHUD(){if(!me)return;const nowS=performance.now()/1000;syncTeamHud();document.getElementById("atkScore").textContent=scoreATK;document.getElementById("defScore").textContent=scoreDEF;
  const clockEl=document.getElementById("clock"),planted=phase==="live"&&bomb.state==="planted";
  document.getElementById("phase").textContent=activeBoss?.alive?"APEX":encounterKind==="wave"?`WAVE ${waveIndex+1}`:planted?"SPIKE LIVE":(phase==="buy"?"Buy ":"Round ")+round;
  const showT=planted?Math.max(0,bomb.timer):Math.max(0,phaseT);
@@ -2154,13 +2493,13 @@ function renderHUD(){if(!me)return;const nowS=performance.now()/1000;document.ge
  document.getElementById("lowHp").style.opacity=me.alive&&me.hp<32?((.3+.35*(.5+.5*Math.sin(nowS*5)))*(1-me.hp/38)):0;
  const spec=document.getElementById("spectate");
  if(!me.alive&&phase==="live"&&ui.followP&&ui.followP!==me&&ui.followP.name){spec.style.display="block";document.getElementById("spectateName").textContent=ui.followP.name}
- else spec.style.display="none";document.querySelector(".chip").style.background=me.div.c;document.getElementById("divText").textContent=me.div.n;document.getElementById("hp").textContent=Math.max(0,Math.round(me.hp));document.getElementById("armor").textContent=me.armor>0?`+${Math.round(me.armor)} ARMOR`:"";document.getElementById("hpBar").style.width=clamp(me.hp/maxHp(me)*100,0,100)+"%";const guardLeft=Math.max(0,(me.spawnGuardUntil||0)-nowS),guardNode=document.getElementById("spawnGuard");guardNode.classList.toggle("on",guardLeft>0&&me.alive);if(guardLeft>0)document.getElementById("spawnGuardTime").textContent=guardLeft.toFixed(1)+"S";const w=curW(me);document.getElementById("ammo").innerHTML=me.reloadT>0?`<small>RELOADING</small>`:`${w.ammo} <small>/${w.reserve}</small>`;document.getElementById("weaponName").textContent=isDoctrineWeapon(w)?`${w.n} / ${w.type}`:w.n;document.getElementById("cash").textContent="$"+me.money;const cd=Math.max(0,me.abilityT-performance.now()/1000);document.getElementById("abilityText").textContent=me.div.id==="eon"?"SECOND WIND PASSIVE":(cd>0?`${me.div.ab.toUpperCase()} ${cd.toFixed(1)}S`:`${me.div.ab.toUpperCase()} READY`);const dcd=Math.max(0,me.doctrineT-nowS),doctrine=document.getElementById("doctrine"),activeDoctrine=isDoctrineWeapon(w)?w:SIGNATURES[me.div.id];document.getElementById("doctrineText").textContent=dcd>0?`${activeDoctrine.special.n} ${dcd.toFixed(1)}S`:`${activeDoctrine.special.n} READY`;doctrine.classList.toggle("ready",dcd<=0&&isDoctrineWeapon(w));renderTacticalHUD(nowS,w)}
+ else spec.style.display="none";document.querySelector(".chip").style.background=me.div.c;document.getElementById("divText").textContent=me.div.n;document.getElementById("hp").textContent=Math.max(0,Math.round(me.hp));document.getElementById("armor").textContent=me.armor>0?`+${Math.round(me.armor)} ARMOR`:"";document.getElementById("hpBar").style.width=clamp(me.hp/maxHp(me)*100,0,100)+"%";const guardLeft=Math.max(0,(me.spawnGuardUntil||0)-nowS),guardNode=document.getElementById("spawnGuard");guardNode.classList.toggle("on",guardLeft>0&&me.alive);if(guardLeft>0)document.getElementById("spawnGuardTime").textContent=guardLeft.toFixed(1)+"S";const w=curW(me);document.getElementById("ammo").innerHTML=(me.swapT||0)>nowS?`<small>SWITCHING</small>`:me.reloadT>0?`<small>RELOADING</small>`:`${w.ammo} <small>/${w.reserve}</small>`;const nameNode=document.getElementById("weaponName");nameNode.textContent=isDoctrineWeapon(w)?`${w.n} / ${w.type}`:`${w.n} · ${weaponClassLabel(w)}`;nameNode.style.color=isDoctrineWeapon(w)?(w.glow||me.div.c):"";renderWeaponRail();document.getElementById("cash").textContent="$"+me.money;const cd=Math.max(0,me.abilityT-performance.now()/1000);document.getElementById("abilityText").textContent=me.div.id==="eon"?"SECOND WIND PASSIVE":(cd>0?`${me.div.ab.toUpperCase()} ${cd.toFixed(1)}S`:`${me.div.ab.toUpperCase()} READY`);const dcd=Math.max(0,me.doctrineT-nowS),doctrine=document.getElementById("doctrine"),activeDoctrine=isDoctrineWeapon(w)?w:SIGNATURES[me.div.id];document.getElementById("doctrineText").textContent=dcd>0?`${activeDoctrine.special.n} ${dcd.toFixed(1)}S`:`${activeDoctrine.special.n} READY`;doctrine.classList.toggle("ready",dcd<=0&&isDoctrineWeapon(w));renderTacticalHUD(nowS,w)}
 function animateIf(target,opts){if(window.anime&&!SETTINGS.reducedMotion)anime({targets:target,...opts})}
 function feed(text,color="#f4f7fb"){const el=document.getElementById("feed"),row=document.createElement("div");row.className="feedRow";row.style.color=color;row.textContent=text;el.appendChild(row);animateIf(row,{translateX:[24,0],opacity:[0,1],scale:[.96,1],duration:260,easing:"easeOutQuad"});while(el.children.length>5)el.removeChild(el.firstChild);scheduleGame(()=>row.remove(),3900,"ui")}
 function showBanner(text){const b=document.getElementById("banner");b.textContent=text;b.classList.remove("show");void b.offsetWidth;b.classList.add("show");SND.banner();animateIf(b,{scale:[.92,1.04,1],duration:540,easing:"easeOutExpo"})}
 function renderBuy(){const grid=document.getElementById("buyGrid"),sig=SIGNATURES[me.div.id];grid.innerHTML="";
- const doctrine=document.createElement("div");doctrine.className="buy signature";doctrine.style.setProperty("--sig",sig.glow);doctrine.innerHTML=`<b>5 / ${sig.n} — ${sig.type} / DIVISION ISSUE</b><span>${sig.special.n}: ${sig.special.eff}</span>`;doctrine.onclick=()=>{me.cur="signature";SND.uiClick();renderBuy()};grid.appendChild(doctrine);
- availableAdditions(me.div.id).forEach((sig,i)=>{const relic=document.createElement("div");relic.className="buy signature";relic.style.setProperty("--sig",sig.glow);relic.innerHTML=`<b>6${i?String.fromCharCode(64+i):""} / ${sig.n} — ${sig.type} / SERIES 03</b><span>${sig.special.n}: ${sig.special.eff}</span>`;relic.onclick=()=>{me.cur=sig.id;SND.uiClick();renderBuy()};grid.appendChild(relic)});
+ const doctrine=document.createElement("div");doctrine.className="buy signature";doctrine.style.setProperty("--sig",sig.glow);doctrine.innerHTML=`<b>5 / ${sig.n} — ${sig.type} / DIVISION ISSUE</b><span>${sig.special.n}: ${sig.special.eff}</span>`;doctrine.onclick=()=>{equipWeapon(me,"signature");renderBuy()};grid.appendChild(doctrine);
+ availableAdditions(me.div.id).forEach((sig,i)=>{const relic=document.createElement("div");relic.className="buy signature";relic.style.setProperty("--sig",sig.glow);relic.innerHTML=`<b>6${i?String.fromCharCode(64+i):""} / ${sig.n} — ${sig.type} / SERIES 03</b><span>${sig.special.n}: ${sig.special.eff}</span>`;relic.onclick=()=>{equipWeapon(me,sig.id);renderBuy()};grid.appendChild(relic)});
  [{id:"smg",k:"1"},{id:"rifle",k:"2"},{id:"sniper",k:"3"},{id:"armor",k:"4"}].forEach(it=>{let name,pr,st,owned=false;if(it.id==="armor"){name="LATTICE ARMOR";pr=price(me,650);st="+50 armor";owned=me.armor>=100}else{const w=WEAPONS[it.id];name=w.n;pr=price(me,w.price);st=`${w.dmg} dmg / ${w.mag} mag`;owned=!!me.weapons[it.id]}const d=document.createElement("div");d.className="buy"+(owned||me.money<pr?" cant":"");d.innerHTML=`<b>${it.k} / ${name} - $${pr}</b><span>${owned?"owned":st}</span>`;d.onclick=()=>buyItem(it.id);grid.appendChild(d)})}
 function buyItem(id){let bought=false;if(id==="armor"){const pr=price(me,650);if(me.money>=pr&&me.armor<100){me.money-=pr;me.armor=Math.min(100,me.armor+50);bought=true}}else{const pr=price(me,WEAPONS[id].price);if(me.money>=pr&&!me.weapons[id]){me.money-=pr;giveW(me,id);bought=true}}if(bought)SND.buy();renderBuy()}
 function toggleBuy(){if(phase==="menu")return;mouse.down=false;mouse.fired=false;buyOpen=!buyOpen;SND.uiClick();document.getElementById("buyMenu").classList.toggle("open",buyOpen);if(buyOpen)renderBuy()}
@@ -2178,14 +2517,27 @@ function drawMinimap(){
  }
  mmG.fillStyle="#31456b";
  for(const r of walls)mmG.fillRect(r.x*TILE*sx,r.y*TILE*sy,Math.max(1,r.w*TILE*sx),Math.max(1,r.h*TILE*sy));
+ /* Faction shape carries as much of the read as faction colour: allies are
+    forward chevrons, hostiles are barbed diamonds, you are a ringed dot. */
  for(const p of players){
   if(!p.alive)continue;
   const enemy=p.team!==myTeam;
   if(enemy&&!(canSee(me,p)||p.revealT>now))continue;
-  mmG.beginPath();mmG.arc(p.x*sx,p.y*sy,p===me?3.4:2.6,0,7);
-  mmG.fillStyle=p===me?"#f8fafc":(enemy?"#ef4444":"#38bdf8");mmG.fill();
-  if(p===me){mmG.strokeStyle="rgba(248,250,252,.85)";mmG.lineWidth=1.4;mmG.beginPath();mmG.moveTo(p.x*sx,p.y*sy);mmG.lineTo(p.x*sx+Math.cos(p.angle)*7,p.y*sy+Math.sin(p.angle)*7);mmG.stroke()}
+  const look=teamLook(p),px=p.x*sx,py=p.y*sy;
+  mmG.save();mmG.translate(px,py);mmG.rotate(p.angle+Math.PI/2);
+  mmG.fillStyle=look.css;mmG.shadowColor=look.css;mmG.shadowBlur=p===me?9:5;
+  if(p===me){
+   mmG.beginPath();mmG.arc(0,0,3.4,0,7);mmG.fill();
+   mmG.strokeStyle="rgba(247,215,116,.9)";mmG.lineWidth=1.3;mmG.beginPath();mmG.arc(0,0,6,0,7);mmG.stroke();
+  }else if(look.hostile){
+   mmG.beginPath();mmG.moveTo(0,-4.2);mmG.lineTo(3.4,0);mmG.lineTo(0,4.2);mmG.lineTo(-3.4,0);mmG.closePath();mmG.fill();
+  }else{
+   mmG.beginPath();mmG.moveTo(0,-4.4);mmG.lineTo(3.3,3.4);mmG.lineTo(0,1.5);mmG.lineTo(-3.3,3.4);mmG.closePath();mmG.fill();
+  }
+  mmG.restore();
+  if(p===me){mmG.shadowBlur=0;mmG.strokeStyle="rgba(247,215,116,.85)";mmG.lineWidth=1.4;mmG.beginPath();mmG.moveTo(px,py);mmG.lineTo(px+Math.cos(p.angle)*9,py+Math.sin(p.angle)*9);mmG.stroke()}
  }
+ mmG.shadowBlur=0;
  if(activeBoss?.alive){
   const bx=activeBoss.x*sx,by=activeBoss.y*sy,pulse=1+.18*Math.sin(now*7);mmG.save();mmG.translate(bx,by);mmG.rotate(Math.PI/4);mmG.fillStyle=activeBoss.dna.accent||"#f9a8d4";mmG.shadowColor=activeBoss.dna.accent||"#f9a8d4";mmG.shadowBlur=8;mmG.fillRect(-4.6*pulse,-4.6*pulse,9.2*pulse,9.2*pulse);mmG.rotate(-Math.PI/4);mmG.fillStyle="#160817";mmG.font="900 8px 'JetBrains Mono',monospace";mmG.textAlign="center";mmG.textBaseline="middle";mmG.fillText("B",0,.5);mmG.restore()
  }
@@ -2199,11 +2551,14 @@ function drawMinimap(){
 let sbOpen=false;
 function renderScoreboard(){
  const el=document.getElementById("sbBody");if(!el)return;let html="";
- for(const team of["ATK","DEF"]){
-  const label=team==="ATK"?"STRIKE UNIT":"SENTINEL UNIT",col=team==="ATK"?"#f59e0b":"#38bdf8";
-  html+=`<div class="sbTeam"><div class="sbHead"><span style="color:${col}">${label} - ${team==="ATK"?scoreATK:scoreDEF}</span><span>ELIMS</span><span>DEATHS</span><span>HP</span><span>CREDITS</span></div>`;
+ /* Your squad first, and both headers carry the same faction colour the
+    world markers use, so the board and the arena agree. */
+ for(const team of[myTeam,myTeam==="ATK"?"DEF":"ATK"]){
+  const mine=team===myTeam,look=mine?TEAM_LOOK.ally:TEAM_LOOK.enemy;
+  const label=`${TEAM_LABEL[team]} UNIT`,col=look.css;
+  html+=`<div class="sbTeam"><div class="sbHead"><span style="color:${col}">${look.glyph} ${label} / ${mine?"YOUR SQUAD":"HOSTILE"} - ${team==="ATK"?scoreATK:scoreDEF}</span><span>ELIMS</span><span>DEATHS</span><span>HP</span><span>CREDITS</span></div>`;
   for(const p of players.filter(q=>q.team===team).sort((a,b)=>b.kills-a.kills)){
-   html+=`<div class="sbRow${p===me?" meRow":""}${p.alive?"":" dead"}"><b><span class="sbDot" style="background:${p.div.c}"></span>${p.name}<span style="color:var(--muted);font-size:10px"> / ${p.div.n}</span></b><span class="num">${p.kills}</span><span class="num">${p.deaths}</span><span class="num">${p.alive?Math.max(1,Math.round(p.hp)):"-"}</span><span class="num" style="color:var(--gold)">$${p.money}</span></div>`;
+   html+=`<div class="sbRow${p===me?" meRow":""}${p.alive?"":" dead"}" style="border-left:2px solid ${p===me?TEAM_LOOK.self.css:col}"><b><span class="sbDot" style="background:${p.div.c}"></span>${p.name}<span style="color:var(--muted);font-size:10px"> / ${p.div.n}</span></b><span class="num">${p.kills}</span><span class="num">${p.deaths}</span><span class="num">${p.alive?Math.max(1,Math.round(p.hp)):"-"}</span><span class="num" style="color:var(--gold)">$${p.money}</span></div>`;
   }
   html+="</div>";
  }
@@ -2225,7 +2580,7 @@ function togglePause(){
 }
 function preferredAutoQuality(){const memory=navigator.deviceMemory||4,cores=navigator.hardwareConcurrency||4;return memory<=2||cores<=2?"low":memory<=4||cores<=4?"medium":"high"}
 function applyUserSettings(){
- document.documentElement.style.setProperty("--ui-scale",SETTINGS.uiScale);document.body.classList.toggle("touch-left",SETTINGS.touchLeftHanded);document.body.classList.toggle("reduced-motion",SETTINGS.reducedMotion);document.body.dataset.colorblind=SETTINGS.colorblind;
+ document.documentElement.style.setProperty("--ui-scale",SETTINGS.uiScale);document.body.classList.toggle("touch-left",SETTINGS.touchLeftHanded);document.body.classList.toggle("reduced-motion",SETTINGS.reducedMotion);document.body.dataset.colorblind=SETTINGS.colorblind;applyTeamPalette();
  CFG.master=SETTINGS.master;CFG.music=SETTINGS.music;CFG.sfx=SETTINGS.effects;CFG.shake=SETTINGS.shake;SND.vol();AUDIO.setMasterVolume(CFG.master);AUDIO.setMusicVolume(CFG.music);
  const target=SETTINGS.quality==="auto"?(renderer?qualityController.profile:preferredAutoQuality()):SETTINGS.quality;if(renderer)applyQualityProfile(target);else qualityController.set(target)
 }
@@ -2480,7 +2835,7 @@ function cycleSpectate(direction){if(me?.alive)return;const available=players.fi
 function selectWeaponAction(action){
  if(!me)return;const slot=Number(action.replace("weapon",""));if(slot===6){cycleAdditional(me);ui.switchedWeapon=true;if(buyOpen)renderBuy();return}
  if(buyOpen&&slot<5){buyItem({1:"smg",2:"rifle",3:"sniper",4:"armor"}[slot]);return}
- const wid={1:"pistol",2:"smg",3:"rifle",4:"sniper",5:"signature"}[slot];if(me.weapons[wid]&&me.cur!==wid){me.cur=wid;ui.switchedWeapon=true;SND.uiClick(true)}
+ const wid={1:"pistol",2:"smg",3:"rifle",4:"sniper",5:"signature"}[slot];equipWeapon(me,wid)
 }
 function performAction(action){
  if(action==="pause"){if(buyOpen)toggleBuy();else togglePause();return}

@@ -27,21 +27,21 @@ const baseVisuals = ({
  */
 export const ARENA_DEFINITIONS = Object.freeze({
   forge: Object.freeze({
-    identity: Object.freeze({ id: "forge", name: "NEON FOUNDRY", biome: "Vertical industrial furnace", recommendedMode: "TACTICAL", silhouette: "stepped cruciform refinery", tacticalSummary: "Own the furnace ring, climb the offset catwalk routes, or ride the conveyors through the dark perimeter before steam closes a sightline." }),
+    identity: Object.freeze({ id: "forge", name: "NEON FOUNDRY", biome: "Vertical industrial furnace", recommendedMode: "TACTICAL", silhouette: "stepped cruciform refinery", tacticalSummary: "Strike enters through the west casting hall and has to split around the furnace: the north gantry reaches the pour deck, the south conveyor reaches the slag bay, and steam can close either one mid-push." }),
     topology: Object.freeze({
       floorZones: [r(1, 1, 34, 24), r(0, 10, 36, 6)],
       voids: [r(1, 1, 5, 4), r(30, 1, 5, 4), r(1, 21, 5, 4), r(30, 21, 5, 4)],
-      blocks: [r(14, 9, 8, 7, { kind: "furnace" }), r(7, 5, 3, 5), r(26, 16, 3, 5), r(3, 12, 4, 2), r(29, 12, 4, 2)],
+      blocks: [r(14, 9, 8, 7, { kind: "furnace" }), r(7, 5, 3, 5), r(26, 16, 3, 5), r(3, 12, 4, 2), r(29, 12, 4, 2), r(24, 6, 2, 4), r(11, 18, 3, 2)],
       platforms: [r(2, 6, 9, 3, { elevation: 2.4 }), r(25, 17, 9, 3, { elevation: 2.4 }), r(11, 6, 4, 2, { elevation: 1.2 }), r(21, 18, 4, 2, { elevation: 1.2 })],
       ramps: [r(9, 7, 4, 2, { from: 0, to: 2.4 }), r(23, 18, 4, 2, { from: 0, to: 2.4 })],
       landmark: Object.freeze({ type: "furnace-reactor", x: 18, y: 12.5, scale: 2.8 }),
       boundary: "armored heat shield and grated service edge",
     }),
-    traversal: Object.freeze({ mechanics: ["elevated-catwalk", "conveyor-push", "under-furnace-flank"], routes: ["west sniper gantry", "furnace ring", "east service conveyor", "dark perimeter"] }),
+    traversal: Object.freeze({ mechanics: ["elevated-catwalk", "conveyor-push", "under-furnace-flank"], routes: ["west casting hall", "north pour gantry", "south slag conveyor", "dark perimeter"] }),
     combat: Object.freeze({
-      sites: [zone("A", 3, 6, 6, 4), zone("B", 27, 16, 6, 4)],
-      spawns: Object.freeze({ ATK: r(3, 16, 5, 4), DEF: r(28, 6, 5, 4) }),
-      subspaces: ["furnace control ring", "west gantry", "east conveyor", "perimeter service trench"],
+      sites: [zone("A", 27, 2, 6, 4), zone("B", 23, 21, 6, 4)],
+      spawns: Object.freeze({ ATK: r(0, 11, 5, 3), DEF: r(31, 13, 5, 3) }),
+      subspaces: ["west casting hall", "furnace control ring", "north pour gantry", "south slag conveyor", "perimeter service trench"],
       coverDensity: "medium", sightlineProfile: "vertical crossfire with protected under-routes",
     }),
     hazards: [
@@ -57,52 +57,52 @@ export const ARENA_DEFINITIONS = Object.freeze({
   }),
 
   abyss: Object.freeze({
-    identity: Object.freeze({ id: "abyss", name: "SUNKEN ARCHIVE", biome: "Flooded mnemonic ruins", recommendedMode: "BOSS MODE", silhouette: "broken crescent around a raised sanctum", tacticalSummary: "The dry sanctum controls the map, but flooded flanks and collapsed stacks let squads fracture long sightlines and surface behind it." }),
+    identity: Object.freeze({ id: "abyss", name: "SUNKEN ARCHIVE", biome: "Flooded mnemonic ruins", recommendedMode: "BOSS MODE", silhouette: "broken crescent around a raised sanctum", tacticalSummary: "Strike wades in from the west stacks and must cross the raised sanctum or swim the mist-covered moon pool; both routes surface inside a Sentinel firing line." }),
     topology: Object.freeze({
       floorZones: [r(2, 2, 32, 22), r(0, 8, 5, 10), r(31, 5, 5, 15)],
       voids: [r(2, 2, 7, 3), r(27, 21, 7, 3), r(1, 18, 6, 5), r(30, 2, 5, 5)],
-      blocks: [r(16, 11, 4, 3, { kind: "sanctum-core" }), r(6, 7, 2, 6), r(9, 16, 6, 2), r(24, 5, 2, 7), r(27, 14, 5, 2), r(4, 13, 3, 2)],
+      blocks: [r(16, 11, 4, 3, { kind: "sanctum-core" }), r(6, 7, 2, 6), r(9, 16, 6, 2), r(24, 5, 2, 7), r(27, 14, 5, 2), r(4, 13, 3, 2), r(20, 18, 4, 2)],
       platforms: [r(13, 8, 10, 9, { elevation: 1.4 })],
       ramps: [r(11, 11, 3, 3, { from: 0, to: 1.4 }), r(22, 12, 3, 3, { from: 1.4, to: 0 })],
       landmark: Object.freeze({ type: "archive-sanctum", x: 18, y: 12.5, scale: 2.5 }),
       boundary: "collapsed seawall and black flooded depth",
     }),
-    traversal: Object.freeze({ mechanics: ["shallow-water-slow", "raised-sanctum", "collapsed-stack-slalom"], routes: ["raised sanctum", "west flooded stacks", "east moon pool", "southern ruin breach"] }),
-    combat: Object.freeze({ sites: [zone("A", 14, 9, 8, 7), zone("B", 26, 16, 5, 4)], spawns: Object.freeze({ ATK: r(4, 5, 5, 3), DEF: r(27, 18, 5, 3) }), subspaces: ["central sanctum", "flooded west archive", "moon-pool flank", "collapsed reading hall"], coverDensity: "high layered", sightlineProfile: "broken mid-range lanes with reflective low routes" }),
-    hazards: [zone("memory-surge", 3, 9, 9, 8, { type: "surge", telegraph: 1.8, active: 4, cooldown: 13, effect: "slow", strength: 0.35 }), zone("mist-beat", 23, 7, 10, 10, { type: "mist", telegraph: 1.4, active: 4.5, cooldown: 14, offset: 6, effect: "visibility" })],
-    interactables: [zone("flooded-west", 3, 9, 9, 8, { type: "water", movementMultiplier: 0.86 }), zone("flooded-east", 24, 7, 8, 10, { type: "water", movementMultiplier: 0.88 })],
+    traversal: Object.freeze({ mechanics: ["shallow-water-slow", "raised-sanctum", "collapsed-stack-slalom"], routes: ["west flooded stacks", "raised sanctum", "east moon pool", "southern ruin breach"] }),
+    combat: Object.freeze({ sites: [zone("A", 27, 3, 6, 4), zone("B", 23, 20, 6, 4)], spawns: Object.freeze({ ATK: r(0, 10, 5, 3), DEF: r(31, 13, 5, 3) }), subspaces: ["west flooded stacks", "central sanctum", "north index vault", "moon-pool flank", "collapsed reading hall"], coverDensity: "high layered", sightlineProfile: "broken mid-range lanes with reflective low routes" }),
+    hazards: [zone("memory-surge", 6, 9, 7, 8, { type: "surge", telegraph: 1.8, active: 4, cooldown: 13, effect: "slow", strength: 0.35 }), zone("mist-beat", 23, 7, 8, 9, { type: "mist", telegraph: 1.4, active: 4.5, cooldown: 14, offset: 6, effect: "visibility" })],
+    interactables: [zone("flooded-west", 6, 9, 7, 8, { type: "water", movementMultiplier: 0.86 }), zone("flooded-east", 24, 8, 6, 9, { type: "water", movementMultiplier: 0.88 })],
     visuals: baseVisuals({ accent: 0x93c5fd, secondary: 0xc4b5fd, fog: 0x071321, fogDensity: 0.0071, background: 0x01050a, floorTint: 0x4d6878, wall: 0x596874, outer: 0x010409, particle: 0xdbeafe, roughness: 0.72, metalness: 0.08, sky: "moonlit-ruin", landmark: "raised memory sanctum" }),
     audio: Object.freeze({ musicTier: "combat_2", ambience: ["distant-water", "stone-groan", "whispered-index"] }),
     runtimeModifiers: Object.freeze({ cameraHeight: 44, cameraLead: 0.06, ambientEvent: "water-surge", elevationScale: 1 }),
-    bossCompatibility: Object.freeze({ safeSpawnZones: [r(14, 17, 8, 5), r(24, 8, 7, 7)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
+    bossCompatibility: Object.freeze({ safeSpawnZones: [r(14, 17, 8, 5), r(15, 3, 8, 4)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
   }),
 
   tempest: Object.freeze({
-    identity: Object.freeze({ id: "tempest", name: "SKYGRAVE BASTION", biome: "Stormborne aerial fortress", recommendedMode: "WAVE MODE", silhouette: "three offset battlements on narrow bridges", tacticalSummary: "The tower owns distance; two lower bridge systems and sheltered crenellation runs provide counterplay without forcing a lethal crossing." }),
+    identity: Object.freeze({ id: "tempest", name: "SKYGRAVE BASTION", biome: "Stormborne aerial fortress", recommendedMode: "WAVE MODE", silhouette: "four battlements hung off a cruciform spine", tacticalSummary: "Everything crosses the spine. Strike stages on the south deck and picks a lower battlement to swing from; Sentinel holds the tower stair and answers whichever crenellation lights up first." }),
     topology: Object.freeze({
-      floorZones: [r(15, 1, 6, 24), r(2, 4, 11, 8), r(6, 17, 9, 5), r(23, 14, 11, 8), r(13, 7, 2, 3), r(13, 18, 2, 3), r(21, 17, 2, 3)],
+      floorZones: [r(15, 1, 6, 24), r(2, 4, 11, 8), r(23, 4, 11, 8), r(4, 16, 10, 7), r(22, 16, 10, 7), r(13, 7, 2, 3), r(21, 7, 2, 3), r(13, 18, 2, 3), r(21, 18, 2, 3)],
       voids: [],
-      blocks: [r(16, 8, 4, 6, { kind: "high-tower" }), r(4, 6, 2, 3), r(9, 8, 3, 2), r(26, 16, 2, 4), r(30, 18, 2, 2), r(8, 18, 3, 2)],
-      platforms: [r(15, 4, 6, 12, { elevation: 3.2 }), r(2, 4, 11, 8, { elevation: 1.1 }), r(23, 14, 11, 8, { elevation: 1.1 })],
-      ramps: [r(13, 7, 4, 3, { from: 1.1, to: 3.2 }), r(19, 15, 4, 3, { from: 3.2, to: 1.1 })],
+      blocks: [r(16, 8, 4, 6, { kind: "high-tower" }), r(4, 6, 2, 3), r(9, 9, 3, 2), r(30, 6, 2, 3), r(25, 9, 3, 2), r(6, 19, 3, 2), r(28, 19, 3, 2), r(17, 17, 2, 2)],
+      platforms: [r(15, 4, 6, 12, { elevation: 3.2 }), r(2, 4, 11, 8, { elevation: 1.1 }), r(23, 4, 11, 8, { elevation: 1.1 })],
+      ramps: [r(13, 7, 4, 3, { from: 1.1, to: 3.2 }), r(20, 7, 4, 3, { from: 3.2, to: 1.1 }), r(15, 15, 6, 2, { from: 3.2, to: 0 })],
       landmark: Object.freeze({ type: "grave-tower", x: 18, y: 11, scale: 3.4 }),
       boundary: "waist-high crenellations with storm recovery field",
     }),
-    traversal: Object.freeze({ mechanics: ["bridge-crossing", "wind-lane", "tower-ramp"], routes: ["dominant grave tower", "west battlement", "east counter-battery", "lower banner bridge"] }),
-    combat: Object.freeze({ sites: [zone("A", 3, 5, 7, 5), zone("B", 25, 15, 7, 5)], spawns: Object.freeze({ ATK: r(16, 20, 4, 4), DEF: r(16, 2, 4, 4) }), subspaces: ["grave tower", "west battlement", "east counter-battery", "lower bridge network"], coverDensity: "low-medium", sightlineProfile: "long exposed lanes broken by crenellations and hanging masonry" }),
-    hazards: [zone("crosswind-west", 12, 6, 4, 6, { type: "wind", telegraph: 1.4, active: 3.2, cooldown: 10, effect: "push", vector: [0, 1], strength: 28 }), zone("crosswind-east", 20, 14, 4, 7, { type: "wind", telegraph: 1.4, active: 3.2, cooldown: 10, offset: 5, effect: "push", vector: [0, -1], strength: 28 })],
-    interactables: [zone("recovery-west", 12, 6, 3, 6, { type: "recovery-field" }), zone("recovery-east", 21, 15, 3, 6, { type: "recovery-field" })],
+    traversal: Object.freeze({ mechanics: ["bridge-crossing", "wind-lane", "tower-stair"], routes: ["south staging deck", "west crenellation", "east counter-battery", "tower stair", "upper battlements"] }),
+    combat: Object.freeze({ sites: [zone("A", 3, 5, 6, 4), zone("B", 27, 5, 6, 4)], spawns: Object.freeze({ ATK: r(15, 21, 5, 3), DEF: r(15, 1, 5, 3) }), subspaces: ["tower stair", "west crenellation", "east counter-battery", "south staging deck", "lower bridge network"], coverDensity: "low-medium", sightlineProfile: "long exposed lanes broken by crenellations and hanging masonry" }),
+    hazards: [zone("crosswind-west", 11, 6, 4, 6, { type: "wind", telegraph: 1.4, active: 3.2, cooldown: 10, effect: "push", vector: [0, 1], strength: 28 }), zone("crosswind-east", 21, 6, 4, 6, { type: "wind", telegraph: 1.4, active: 3.2, cooldown: 10, offset: 5, effect: "push", vector: [0, -1], strength: 28 }), zone("downdraft-deck", 6, 17, 9, 4, { type: "wind", telegraph: 1.8, active: 2.6, cooldown: 12, offset: 3, effect: "slow", strength: 0.4 })],
+    interactables: [zone("recovery-west", 12, 8, 3, 4, { type: "recovery-field" }), zone("recovery-east", 21, 8, 3, 4, { type: "recovery-field" })],
     visuals: baseVisuals({ accent: 0xb7c6dc, secondary: 0x93c5fd, fog: 0x8994a8, fogDensity: 0.0026, background: 0x202d45, floorTint: 0x7a7f89, wall: 0x596171, outer: 0x111827, particle: 0xe2e8f0, roughness: 0.84, metalness: 0.05, sky: "moving-cloud-sea", landmark: "dominant grave tower" }),
     audio: Object.freeze({ musicTier: "combat_3", ambience: ["high-wind", "banner-snap", "distant-thunder"] }),
     runtimeModifiers: Object.freeze({ cameraHeight: 49, cameraLead: 0.1, ambientEvent: "wind-gust", elevationScale: 1 }),
-    bossCompatibility: Object.freeze({ safeSpawnZones: [r(15, 14, 6, 5), r(3, 5, 9, 6), r(24, 15, 9, 6)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
+    bossCompatibility: Object.freeze({ safeSpawnZones: [r(15, 16, 6, 6), r(3, 4, 9, 6), r(24, 4, 9, 6)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
   }),
 
   verdant: Object.freeze({
     identity: Object.freeze({ id: "verdant", name: "VERDANT OVERRUN", biome: "Biomechanical research overgrowth", recommendedMode: "BOSS MODE", silhouette: "root-lobed facility with a severed glass spine", tacticalSummary: "Dense root pockets reward ambushes while the exposed lab spine and two cleared service lanes keep objective rotations readable." }),
     topology: Object.freeze({ floorZones: [r(2, 3, 32, 20), r(0, 9, 7, 8), r(29, 6, 7, 13)], voids: [r(2, 3, 6, 3), r(28, 20, 6, 3)], blocks: [r(15, 4, 6, 5, { kind: "broken-lab" }), r(12, 12, 3, 7), r(21, 10, 3, 8), r(5, 14, 5, 3), r(27, 7, 4, 3), r(7, 6, 2, 4)], platforms: [r(15, 9, 6, 4, { elevation: 0.8 })], ramps: [r(13, 9, 3, 3, { from: 0, to: 0.8 })], landmark: Object.freeze({ type: "biomech-heart", x: 18, y: 7, scale: 2.6 }), boundary: "root wall, shattered glass and containment fencing" }),
     traversal: Object.freeze({ mechanics: ["root-tunnel", "bramble-slow", "cleared-lab-lane"], routes: ["biomech heart", "west root tunnel", "east clean lane", "spore nursery"] }),
-    combat: Object.freeze({ sites: [zone("A", 4, 5, 6, 5), zone("B", 26, 15, 6, 5)], spawns: Object.freeze({ ATK: r(4, 18, 5, 3), DEF: r(27, 4, 5, 3) }), subspaces: ["heart chamber", "root tunnel", "cleared lab spine", "spore nursery"], coverDensity: "high pockets / low lanes", sightlineProfile: "ambush pockets separated by two crisp traversal lanes" }),
+    combat: Object.freeze({ sites: [zone("A", 25, 3, 6, 4), zone("B", 24, 19, 6, 4)], spawns: Object.freeze({ ATK: r(0, 11, 5, 3), DEF: r(31, 12, 5, 3) }), subspaces: ["west containment breach", "heart chamber", "root tunnel", "cleared lab spine", "spore nursery"], coverDensity: "high pockets / low lanes", sightlineProfile: "ambush pockets separated by two crisp traversal lanes" }),
     hazards: [zone("bramble-nest", 8, 11, 5, 6, { type: "bramble", telegraph: 0.8, active: 6, cooldown: 12, effect: "slow", strength: 0.5 }), zone("burst-pods", 24, 10, 5, 6, { type: "spores", telegraph: 1.5, active: 3.6, cooldown: 11, offset: 5, effect: "visibility" })],
     interactables: [zone("root-tunnel", 2, 10, 8, 3, { type: "covered-route", movementMultiplier: 1.04 }), zone("reactive-flora", 24, 10, 5, 6, { type: "proximity-pulse" })],
     visuals: baseVisuals({ accent: 0x42d392, secondary: 0x2dd4bf, fog: 0x07140e, fogDensity: 0.0056, background: 0x020906, floorTint: 0x4b6752, wall: 0x425849, outer: 0x010603, particle: 0xa7f3d0, roughness: 0.86, metalness: 0.04, sky: "broken-greenhouse", landmark: "pulsing biomechanical heart" }),
@@ -115,7 +115,7 @@ export const ARENA_DEFINITIONS = Object.freeze({
     identity: Object.freeze({ id: "cryo", name: "CRYO RIFT", biome: "Fractured polar machinery", recommendedMode: "TACTICAL", silhouette: "split ice shelf stitched by three crossings", tacticalSummary: "Watch the rift telegraph, rotate through ice-cave cover, and use the stable central machinery bridge when outer shelves begin to crack." }),
     topology: Object.freeze({ floorZones: [r(1, 2, 34, 22)], voids: [r(16, 2, 4, 7), r(16, 11, 4, 5), r(16, 18, 4, 6), r(1, 2, 5, 4), r(30, 20, 5, 4)], blocks: [r(7, 6, 5, 2), r(5, 15, 3, 6), r(24, 5, 3, 6), r(27, 16, 5, 2), r(13, 12, 3, 2), r(20, 17, 3, 2)], platforms: [r(2, 3, 13, 5, { elevation: 1.2 }), r(21, 18, 13, 5, { elevation: 1.2 })], ramps: [r(12, 6, 4, 3, { from: 1.2, to: 0 }), r(20, 17, 4, 3, { from: 0, to: 1.2 })], landmark: Object.freeze({ type: "rift-chasm", x: 18, y: 13, scale: 3.2 }), boundary: "snow berm and crystalline safety pylons" }),
     traversal: Object.freeze({ mechanics: ["cracking-route", "readable-ice-slide", "cavern-shortcut"], routes: ["north ice shelf", "central machinery bridge", "south ridge", "west ice cavern"] }),
-    combat: Object.freeze({ sites: [zone("A", 3, 7, 6, 5), zone("B", 27, 14, 6, 5)], spawns: Object.freeze({ ATK: r(3, 18, 5, 4), DEF: r(28, 4, 5, 4) }), subspaces: ["rift overlook", "ice cavern", "machinery bridge", "exposed outer shelf"], coverDensity: "medium asymmetric", sightlineProfile: "exposed shelves contrasted with tight ice corridors" }),
+    combat: Object.freeze({ sites: [zone("A", 9, 2, 6, 4), zone("B", 3, 21, 6, 4)], spawns: Object.freeze({ ATK: r(31, 17, 5, 3), DEF: r(1, 10, 5, 3) }), subspaces: ["east staging shelf", "rift overlook", "ice cavern", "machinery bridge", "exposed outer shelf"], coverDensity: "medium asymmetric", sightlineProfile: "exposed shelves contrasted with tight ice corridors" }),
     hazards: [zone("cracking-north", 12, 8, 8, 3, { type: "cracking-ice", telegraph: 2.2, active: 3, cooldown: 13, effect: "damage", damagePerSecond: 7 }), zone("cracking-south", 16, 16, 8, 3, { type: "cracking-ice", telegraph: 2.2, active: 3, cooldown: 13, offset: 6.5, effect: "damage", damagePerSecond: 7 })],
     interactables: [zone("slide-west", 8, 13, 6, 2, { type: "ice-slide", vector: [1, 0], strength: 22 }), zone("slide-east", 22, 11, 6, 2, { type: "ice-slide", vector: [-1, 0], strength: 22 })],
     visuals: baseVisuals({ accent: 0x9ee7ff, secondary: 0xf8fafc, fog: 0x0b1a2a, fogDensity: 0.0062, background: 0x020812, floorTint: 0xb9d9e8, wall: 0x7d9caf, outer: 0x01050b, particle: 0xe0f2fe, roughness: 0.28, metalness: 0.12, sky: "polar-night", landmark: "luminous depth rift" }),
@@ -128,8 +128,8 @@ export const ARENA_DEFINITIONS = Object.freeze({
     identity: Object.freeze({ id: "mirage", name: "NULL CATHEDRAL", biome: "Alien ritual megastructure", recommendedMode: "WAVE MODE", silhouette: "asymmetrical nave with offset transepts", tacticalSummary: "The nave is decisive but exposed. Side chapels, elevated galleries, and telegraphed phase barriers let squads rotate around the ritual machine." }),
     topology: Object.freeze({ floorZones: [r(12, 1, 12, 24), r(2, 4, 10, 7), r(4, 15, 8, 7), r(24, 7, 10, 12), r(10, 7, 4, 3), r(10, 17, 4, 3)], voids: [], blocks: [r(16, 9, 5, 7, { kind: "monolith" }), r(5, 6, 4, 2), r(6, 17, 3, 3), r(27, 9, 3, 2), r(29, 14, 3, 3), r(13, 4, 2, 4)], platforms: [r(12, 2, 4, 8, { elevation: 2.3 }), r(22, 16, 2, 7, { elevation: 2.3 })], ramps: [r(10, 7, 4, 3, { from: 0, to: 2.3 }), r(22, 15, 4, 3, { from: 2.3, to: 0 })], landmark: Object.freeze({ type: "null-monolith", x: 18.5, y: 12.5, scale: 3.5 }), boundary: "black-stone buttress and luminous void curb" }),
     traversal: Object.freeze({ mechanics: ["phase-barrier", "gallery-ramp", "off-axis-chapel"], routes: ["monumental nave", "west reliquary", "east ritual chamber", "upper galleries"] }),
-    combat: Object.freeze({ sites: [zone("A", 3, 5, 7, 5), zone("B", 26, 12, 6, 5)], spawns: Object.freeze({ ATK: r(6, 18, 5, 3), DEF: r(15, 2, 6, 3) }), subspaces: ["great nave", "west reliquary", "east ritual chamber", "elevated galleries"], coverDensity: "low nave / high chambers", sightlineProfile: "one commanding axial lane with off-axis counterplay" }),
-    hazards: [zone("null-pulse", 13, 8, 10, 10, { type: "null-pulse", telegraph: 2, active: 2.8, cooldown: 14, effect: "slow", strength: 0.4 })],
+    combat: Object.freeze({ sites: [zone("A", 6, 4, 6, 4), zone("B", 25, 12, 6, 4)], spawns: Object.freeze({ ATK: r(12, 23, 5, 3), DEF: r(20, 2, 5, 3) }), subspaces: ["south processional", "great nave", "west reliquary", "east ritual chamber", "elevated galleries"], coverDensity: "low nave / high chambers", sightlineProfile: "one commanding axial lane with off-axis counterplay" }),
+    hazards: [zone("null-pulse", 13, 8, 10, 10, { type: "null-pulse", telegraph: 2, active: 2.8, cooldown: 14, effect: "slow", strength: 0.4 }), zone("reliquary-chill", 4, 15, 8, 6, { type: "mist", telegraph: 1.6, active: 4, cooldown: 13, offset: 5, effect: "visibility" })],
     interactables: [zone("phase-gate-west", 11, 8, 2, 2, { type: "phase-barrier", telegraph: 2.5, active: 4, cooldown: 12 }), zone("phase-gate-east", 23, 16, 2, 2, { type: "phase-barrier", telegraph: 2.5, active: 4, cooldown: 12, offset: 6 })],
     visuals: baseVisuals({ accent: 0xa78bfa, secondary: 0xe9d5ff, fog: 0x090811, fogDensity: 0.0048, background: 0x010103, floorTint: 0x292631, wall: 0x17151d, outer: 0x000001, particle: 0xc4b5fd, roughness: 0.72, metalness: 0.18, sky: "void-aperture", landmark: "rotating ritual monolith" }),
     audio: Object.freeze({ musicTier: "combat_4", ambience: ["sub-bass-choir", "stone-resonance", "ring-hum"] }),
@@ -138,31 +138,31 @@ export const ARENA_DEFINITIONS = Object.freeze({
   }),
 
   neon: Object.freeze({
-    identity: Object.freeze({ id: "neon", name: "NEON CANOPY", biome: "Megacity rooftop exchange", recommendedMode: "WAVE MODE", silhouette: "offset rooftop diamonds around a transit spine", tacticalSummary: "Fast transit lanes connect four unequal rooftops while holographic screens interrupt otherwise dangerous skyline sightlines." }),
-    topology: Object.freeze({ floorZones: [r(3, 3, 12, 8), r(21, 3, 12, 8), r(4, 16, 10, 7), r(22, 15, 11, 8), r(14, 6, 8, 3), r(12, 18, 11, 3), r(17, 8, 3, 11)], voids: [], blocks: [r(6, 5, 3, 3), r(26, 6, 4, 2), r(7, 18, 2, 3), r(27, 17, 3, 3), r(17, 6, 2, 2)], platforms: [r(21, 3, 12, 8, { elevation: 1.6 }), r(4, 16, 10, 7, { elevation: 0.8 })], ramps: [r(19, 6, 4, 3, { from: 0, to: 1.6 }), r(12, 18, 4, 3, { from: 0.8, to: 0 })], landmark: Object.freeze({ type: "transit-holo", x: 18, y: 7, scale: 2.2 }), boundary: "lit parapet and city-depth curb" }),
-    traversal: Object.freeze({ mechanics: ["transit-boost", "roof-ramp"], routes: ["north transit spine", "west data roof", "east tower roof", "south maintenance bridge"] }),
-    combat: Object.freeze({ sites: [zone("A", 4, 4, 6, 5), zone("B", 25, 16, 6, 5)], spawns: Object.freeze({ ATK: r(5, 18, 5, 3), DEF: r(27, 4, 5, 3) }), subspaces: ["transit spine", "data roof", "tower roof", "maintenance bridge"], coverDensity: "medium-low", sightlineProfile: "roof-to-roof long lanes with billboard cuts" }),
-    hazards: [zone("train-wake", 14, 6, 8, 3, { type: "transit-wake", telegraph: 1.4, active: 2, cooldown: 9, effect: "push", vector: [1, 0], strength: 24 })],
-    interactables: [zone("boost-rail", 13, 18, 10, 3, { type: "conveyor", vector: [1, 0], strength: 34 })],
+    identity: Object.freeze({ id: "neon", name: "NEON CANOPY", biome: "Megacity rooftop exchange", recommendedMode: "WAVE MODE", silhouette: "four roofs closed into a ring around a transit core", tacticalSummary: "A closed ring: two sky bridges north and south, two service spines east and west. Strike holds the west spine and can swing either way around the transit core; Sentinel sits on the east spine and covers both eastern roofs." }),
+    topology: Object.freeze({ floorZones: [r(3, 3, 11, 8), r(3, 15, 11, 8), r(22, 3, 11, 8), r(22, 15, 11, 8), r(14, 5, 8, 3), r(14, 17, 8, 3), r(5, 11, 5, 4), r(26, 11, 5, 4)], voids: [], blocks: [r(16, 10, 5, 6, { kind: "transit-core" }), r(6, 5, 3, 3), r(24, 5, 3, 3), r(6, 18, 3, 3), r(25, 18, 3, 3), r(11, 7, 2, 2), r(29, 8, 2, 2), r(11, 19, 2, 2)], platforms: [r(22, 3, 11, 8, { elevation: 1.6 }), r(3, 15, 11, 8, { elevation: 0.8 })], ramps: [r(20, 5, 3, 3, { from: 0, to: 1.6 }), r(26, 10, 4, 2, { from: 1.6, to: 0 }), r(12, 17, 3, 3, { from: 0, to: 0.8 })], landmark: Object.freeze({ type: "transit-holo", x: 18, y: 12.5, scale: 2.4 }), boundary: "lit parapet and city-depth curb" }),
+    traversal: Object.freeze({ mechanics: ["transit-boost", "roof-ramp", "service-spine-drop"], routes: ["north sky bridge", "south maintenance bridge", "west service spine", "east service spine"] }),
+    combat: Object.freeze({ sites: [zone("A", 26, 3, 6, 4), zone("B", 26, 18, 6, 4)], spawns: Object.freeze({ ATK: r(5, 11, 5, 3), DEF: r(26, 11, 5, 3) }), subspaces: ["west service spine", "north sky bridge", "south maintenance bridge", "north tower roof", "south exchange roof"], coverDensity: "medium-low", sightlineProfile: "roof-to-roof long lanes with billboard cuts" }),
+    hazards: [zone("train-wake", 14, 5, 8, 3, { type: "transit-wake", telegraph: 1.4, active: 2, cooldown: 9, effect: "push", vector: [1, 0], strength: 24 }), zone("downdraft", 14, 17, 8, 3, { type: "wind", telegraph: 1.4, active: 2.4, cooldown: 10, offset: 4, effect: "push", vector: [-1, 0], strength: 22 }), zone("holo-static", 3, 6, 8, 5, { type: "dust", telegraph: 1.6, active: 3.2, cooldown: 13, offset: 7, effect: "visibility" })],
+    interactables: [zone("boost-rail", 14, 17, 8, 3, { type: "conveyor", vector: [-1, 0], strength: 34 }), zone("west-spine-cover", 5, 11, 5, 4, { type: "covered-route", movementMultiplier: 1.05 })],
     visuals: baseVisuals({ accent: 0xf472b6, secondary: 0x22d3ee, fog: 0x0a0618, fogDensity: 0.0044, background: 0x05010f, floorTint: 0x8b7bb7, wall: 0x49386f, outer: 0x03010a, particle: 0xf9a8d4, roughness: 0.4, metalness: 0.52, sky: "rain-city", landmark: "suspended transit hologram" }),
-    audio: Object.freeze({ musicTier: "combat_2", ambience: ["rain", "maglev-pass", "city-hum"] }), runtimeModifiers: Object.freeze({ cameraHeight: 45, cameraLead: 0.09, ambientEvent: "transit-pass", elevationScale: 1 }), bossCompatibility: Object.freeze({ safeSpawnZones: [r(4, 4, 9, 6), r(23, 15, 9, 7)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
+    audio: Object.freeze({ musicTier: "combat_2", ambience: ["rain", "maglev-pass", "city-hum"] }), runtimeModifiers: Object.freeze({ cameraHeight: 45, cameraLead: 0.09, ambientEvent: "transit-pass", elevationScale: 1 }), bossCompatibility: Object.freeze({ safeSpawnZones: [r(4, 3, 9, 6), r(23, 15, 9, 7)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
   }),
 
   solar: Object.freeze({
     identity: Object.freeze({ id: "solar", name: "SOLAR BASTION", biome: "Heliostat desert fortress", recommendedMode: "TACTICAL", silhouette: "sunburst courts around a shaded diagonal", tacticalSummary: "Cross exposed reflector courts quickly or rotate through the shaded diagonal cooling trench." }),
-    topology: Object.freeze({ floorZones: [r(2, 2, 32, 22)], voids: [r(2, 2, 7, 5), r(27, 19, 7, 5)], blocks: [r(15, 9, 6, 8), r(5, 8, 5, 2), r(26, 7, 4, 2), r(7, 17, 3, 3), r(25, 17, 5, 2)], platforms: [r(3, 14, 9, 7, { elevation: 1 })], ramps: [r(10, 15, 4, 3, { from: 1, to: 0 })], landmark: Object.freeze({ type: "solar-crown", x: 18, y: 12.5, scale: 2.7 }), boundary: "sandstone curtain wall" }),
-    traversal: Object.freeze({ mechanics: ["shade-lane", "reflector-cycle"], routes: ["solar court", "cooling trench", "west battery", "east collector"] }),
-    combat: Object.freeze({ sites: [zone("A", 4, 14, 6, 5), zone("B", 26, 4, 6, 5)], spawns: Object.freeze({ ATK: r(27, 17, 5, 3), DEF: r(4, 5, 5, 3) }), subspaces: ["solar court", "cooling trench", "west battery", "east collector"], coverDensity: "low exposed", sightlineProfile: "hard long-range courts and shaded close trench" }), hazards: [zone("solar-flare", 11, 4, 14, 5, { type: "heat", telegraph: 2, active: 2.5, cooldown: 13, effect: "damage", damagePerSecond: 6 })], interactables: [zone("shade-trench", 8, 17, 18, 3, { type: "covered-route", movementMultiplier: 1.06 })], visuals: baseVisuals({ accent: 0xfbbf24, secondary: 0xfb7185, fog: 0x2a1608, fogDensity: 0.0037, background: 0x160b04, floorTint: 0xc79a63, wall: 0x9b7046, outer: 0x120904, particle: 0xffd98a, roughness: 0.78, metalness: 0.16, sky: "sun-haze", landmark: "heliostat crown" }), audio: Object.freeze({ musicTier: "combat_1", ambience: ["dry-wind", "mirror-servo"] }), runtimeModifiers: Object.freeze({ cameraHeight: 44, cameraLead: 0.08, ambientEvent: "reflector-sweep", elevationScale: 1 }), bossCompatibility: Object.freeze({ safeSpawnZones: [r(10, 10, 7, 6), r(21, 10, 7, 6)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
+    topology: Object.freeze({ floorZones: [r(2, 2, 32, 22)], voids: [r(2, 2, 7, 5), r(27, 19, 7, 5)], blocks: [r(15, 9, 6, 8), r(5, 8, 5, 2), r(26, 7, 4, 2), r(7, 17, 3, 3), r(25, 17, 5, 2), r(11, 12, 3, 4), r(22, 19, 4, 2)], platforms: [r(3, 14, 9, 7, { elevation: 1 })], ramps: [r(10, 15, 4, 3, { from: 1, to: 0 })], landmark: Object.freeze({ type: "solar-crown", x: 18, y: 12.5, scale: 2.7 }), boundary: "sandstone curtain wall" }),
+    traversal: Object.freeze({ mechanics: ["shade-lane", "reflector-cycle", "coolant-conduit-ride"], routes: ["east collector deck", "solar court", "cooling trench", "west battery", "south mirror yard"] }),
+    combat: Object.freeze({ sites: [zone("A", 2, 6, 6, 4), zone("B", 11, 20, 6, 4)], spawns: Object.freeze({ ATK: r(31, 7, 5, 3), DEF: r(3, 16, 5, 3) }), subspaces: ["east collector deck", "solar court", "cooling trench", "west battery", "south mirror yard"], coverDensity: "low exposed", sightlineProfile: "hard long-range courts and shaded close trench" }), hazards: [zone("solar-flare", 11, 4, 14, 5, { type: "heat", telegraph: 2, active: 2.5, cooldown: 13, effect: "damage", damagePerSecond: 6 }), zone("mirror-glare", 11, 15, 12, 5, { type: "dust", telegraph: 1.6, active: 3.4, cooldown: 12, offset: 5, effect: "visibility" }), zone("sand-squall", 24, 12, 8, 6, { type: "dust", telegraph: 1.4, active: 3, cooldown: 14, offset: 8, effect: "slow", strength: 0.4 })], interactables: [zone("shade-trench", 8, 17, 16, 3, { type: "covered-route", movementMultiplier: 1.06 }), zone("coolant-conduit", 24, 9, 9, 2, { type: "conveyor", vector: [-1, 0], strength: 30 })], visuals: baseVisuals({ accent: 0xfbbf24, secondary: 0xfb7185, fog: 0x2a1608, fogDensity: 0.0037, background: 0x160b04, floorTint: 0xc79a63, wall: 0x9b7046, outer: 0x120904, particle: 0xffd98a, roughness: 0.78, metalness: 0.16, sky: "sun-haze", landmark: "heliostat crown" }), audio: Object.freeze({ musicTier: "combat_1", ambience: ["dry-wind", "mirror-servo"] }), runtimeModifiers: Object.freeze({ cameraHeight: 44, cameraLead: 0.08, ambientEvent: "reflector-sweep", elevationScale: 1 }), bossCompatibility: Object.freeze({ safeSpawnZones: [r(10, 10, 7, 6), r(21, 10, 7, 6)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
   }),
 
   lunar: Object.freeze({
     identity: Object.freeze({ id: "lunar", name: "LUNAR EXCAVATION", biome: "Low-gravity moon quarry", recommendedMode: "TACTICAL", silhouette: "terraced quarry bowl with a broken rim road", tacticalSummary: "The excavation bowl favors short fights while the incomplete rim road creates a dangerous long rotation." }),
-    topology: Object.freeze({ floorZones: [r(2, 2, 32, 22)], voids: [r(2, 2, 9, 4), r(25, 20, 9, 4), r(15, 10, 6, 6)], blocks: [r(6, 8, 4, 3), r(26, 6, 3, 5), r(8, 18, 5, 2), r(24, 17, 5, 2)], platforms: [r(11, 5, 14, 4, { elevation: 1.8 }), r(4, 14, 8, 7, { elevation: 0.9 })], ramps: [r(10, 7, 4, 3, { from: 0, to: 1.8 }), r(10, 16, 4, 3, { from: 0.9, to: 0 })], landmark: Object.freeze({ type: "quarry-crater", x: 18, y: 13, scale: 3 }), boundary: "regolith berm and beacon poles" }), traversal: Object.freeze({ mechanics: ["quarry-ramp", "rim-road"], routes: ["quarry bowl", "north rim", "west crawler cut", "east drill lane"] }), combat: Object.freeze({ sites: [zone("A", 4, 14, 6, 5), zone("B", 26, 5, 6, 5)], spawns: Object.freeze({ ATK: r(27, 17, 5, 3), DEF: r(4, 6, 5, 3) }), subspaces: ["quarry bowl", "north rim", "crawler cut", "drill lane"], coverDensity: "medium sparse", sightlineProfile: "rim long-range / bowl close-range" }), hazards: [zone("regolith-blast", 12, 16, 12, 4, { type: "dust", telegraph: 1.8, active: 3.5, cooldown: 13, effect: "visibility" })], interactables: [zone("crawler-track", 11, 5, 14, 3, { type: "conveyor", vector: [1, 0], strength: 20 })], visuals: baseVisuals({ accent: 0xe2e8f0, secondary: 0x22d3ee, fog: 0x090b12, fogDensity: 0.0028, background: 0x010205, floorTint: 0x9aa1ad, wall: 0x727986, outer: 0x030407, particle: 0xdbeafe, roughness: 0.9, metalness: 0.08, sky: "starfield", landmark: "excavation crater" }), audio: Object.freeze({ musicTier: "combat_2", ambience: ["radio-static", "drill-thrum"] }), runtimeModifiers: Object.freeze({ cameraHeight: 46, cameraLead: 0.07, ambientEvent: "regolith-blast", elevationScale: 1 }), bossCompatibility: Object.freeze({ safeSpawnZones: [r(11, 5, 14, 4), r(12, 17, 12, 5)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
+    topology: Object.freeze({ floorZones: [r(2, 2, 32, 22)], voids: [r(2, 2, 9, 4), r(29, 20, 5, 4), r(15, 10, 6, 6)], blocks: [r(6, 8, 4, 3), r(26, 6, 3, 5), r(8, 18, 4, 2), r(23, 17, 4, 2), r(12, 6, 3, 3), r(21, 20, 4, 2), r(3, 12, 3, 4)], platforms: [r(11, 5, 14, 4, { elevation: 1.8 }), r(4, 14, 8, 7, { elevation: 0.9 })], ramps: [r(10, 7, 4, 3, { from: 0, to: 1.8 }), r(10, 16, 4, 3, { from: 0.9, to: 0 })], landmark: Object.freeze({ type: "quarry-crater", x: 18, y: 13, scale: 3 }), boundary: "regolith berm and beacon poles" }), traversal: Object.freeze({ mechanics: ["quarry-ramp", "rim-road", "low-gravity-vault"], routes: ["north rim road", "west crawler cut", "east drill lane", "south loading floor"] }), combat: Object.freeze({ sites: [zone("A", 4, 17, 6, 4), zone("B", 25, 16, 6, 4)], spawns: Object.freeze({ ATK: r(16, 2, 5, 3), DEF: r(15, 20, 5, 3) }), subspaces: ["north rim road", "crawler cut", "drill lane", "south loading floor", "crater lip"], coverDensity: "medium sparse", sightlineProfile: "rim long-range / bowl close-range" }), hazards: [zone("regolith-blast", 12, 16, 11, 4, { type: "dust", telegraph: 1.8, active: 3.5, cooldown: 13, effect: "visibility" }), zone("west-rim-slip", 11, 9, 4, 8, { type: "dust", telegraph: 1.6, active: 3, cooldown: 12, offset: 4, effect: "slow", strength: 0.4 }), zone("east-rim-slip", 21, 9, 4, 8, { type: "dust", telegraph: 1.6, active: 3, cooldown: 12, offset: 9, effect: "slow", strength: 0.4 })], interactables: [zone("crawler-track", 11, 5, 14, 3, { type: "conveyor", vector: [1, 0], strength: 20 }), zone("mag-rail", 3, 8, 2, 10, { type: "conveyor", vector: [0, 1], strength: 22 })], visuals: baseVisuals({ accent: 0xe2e8f0, secondary: 0x22d3ee, fog: 0x090b12, fogDensity: 0.0028, background: 0x010205, floorTint: 0x9aa1ad, wall: 0x727986, outer: 0x030407, particle: 0xdbeafe, roughness: 0.9, metalness: 0.08, sky: "starfield", landmark: "excavation crater" }), audio: Object.freeze({ musicTier: "combat_2", ambience: ["radio-static", "drill-thrum"] }), runtimeModifiers: Object.freeze({ cameraHeight: 46, cameraLead: 0.07, ambientEvent: "regolith-blast", elevationScale: 1 }), bossCompatibility: Object.freeze({ safeSpawnZones: [r(11, 5, 14, 4), r(12, 17, 10, 5)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
   }),
 
   caldera: Object.freeze({
     identity: Object.freeze({ id: "caldera", name: "EMBER CALDERA", biome: "Basalt geothermal shrine", recommendedMode: "BOSS MODE", silhouette: "horseshoe basalt terraces around a lava throat", tacticalSummary: "Control the horseshoe rim, then decide between the hot throat shortcut and the safer shrine corridors." }),
-    topology: Object.freeze({ floorZones: [r(2, 2, 32, 22)], voids: [r(13, 7, 10, 12), r(2, 2, 6, 5), r(28, 19, 6, 5)], blocks: [r(7, 8, 4, 3), r(25, 7, 4, 3), r(6, 17, 5, 2), r(25, 16, 5, 2)], platforms: [r(3, 10, 9, 6, { elevation: 1.3 }), r(24, 10, 9, 6, { elevation: 1.3 })], ramps: [r(10, 11, 4, 3, { from: 1.3, to: 0 }), r(22, 11, 4, 3, { from: 0, to: 1.3 })], landmark: Object.freeze({ type: "lava-throat", x: 18, y: 13, scale: 3.2 }), boundary: "obsidian rim and magma trench" }), traversal: Object.freeze({ mechanics: ["heat-shortcut", "terrace-ramp"], routes: ["horseshoe rim", "west shrine", "east vent hall", "hot throat shortcut"] }), combat: Object.freeze({ sites: [zone("A", 4, 10, 6, 5), zone("B", 26, 10, 6, 5)], spawns: Object.freeze({ ATK: r(4, 18, 5, 3), DEF: r(27, 4, 5, 3) }), subspaces: ["lava throat", "west shrine", "east vent hall", "horseshoe rim"], coverDensity: "medium", sightlineProfile: "curved rim lanes around a denied center" }), hazards: [zone("magma-breath", 12, 9, 12, 8, { type: "heat", telegraph: 2, active: 3, cooldown: 12, effect: "damage", damagePerSecond: 9 })], interactables: [zone("vent-boost", 10, 19, 16, 2, { type: "conveyor", vector: [1, 0], strength: 24 })], visuals: baseVisuals({ accent: 0xf97316, secondary: 0xef4444, fog: 0x210706, fogDensity: 0.0064, background: 0x0d0202, floorTint: 0x5f4545, wall: 0x594145, outer: 0x0c0202, particle: 0xfdba74, roughness: 0.86, metalness: 0.12, sky: "ash-column", landmark: "open lava throat" }), audio: Object.freeze({ musicTier: "combat_4", ambience: ["lava-roar", "rockfall"] }), runtimeModifiers: Object.freeze({ cameraHeight: 45, cameraLead: 0.08, ambientEvent: "magma-breath", elevationScale: 1 }), bossCompatibility: Object.freeze({ safeSpawnZones: [r(3, 10, 9, 6), r(24, 10, 9, 6)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
+    topology: Object.freeze({ floorZones: [r(2, 2, 32, 22)], voids: [r(13, 7, 10, 12), r(2, 2, 6, 5), r(28, 19, 6, 5)], blocks: [r(7, 8, 4, 3), r(25, 7, 4, 3), r(6, 17, 5, 2), r(25, 16, 5, 2), r(15, 3, 4, 3), r(15, 20, 4, 3)], platforms: [r(3, 10, 9, 6, { elevation: 1.3 }), r(24, 10, 9, 6, { elevation: 1.3 })], ramps: [r(10, 11, 4, 3, { from: 1.3, to: 0 }), r(22, 11, 4, 3, { from: 0, to: 1.3 })], landmark: Object.freeze({ type: "lava-throat", x: 18, y: 13, scale: 3.2 }), boundary: "obsidian rim and magma trench" }), traversal: Object.freeze({ mechanics: ["heat-shortcut", "terrace-ramp", "thermal-lift"], routes: ["west shrine approach", "north terrace", "south vent hall", "east obsidian rim", "hot throat shortcut"] }), combat: Object.freeze({ sites: [zone("A", 24, 2, 6, 4), zone("B", 24, 19, 6, 4)], spawns: Object.freeze({ ATK: r(1, 11, 5, 3), DEF: r(31, 12, 5, 3) }), subspaces: ["west shrine approach", "north terrace", "lava throat", "south vent hall", "east obsidian rim"], coverDensity: "medium", sightlineProfile: "curved rim lanes around a denied center" }), hazards: [zone("magma-breath", 12, 9, 12, 8, { type: "heat", telegraph: 2, active: 3, cooldown: 12, effect: "damage", damagePerSecond: 9 }), zone("ash-fall", 6, 4, 8, 5, { type: "dust", telegraph: 1.6, active: 3.6, cooldown: 12, offset: 4, effect: "visibility" }), zone("ember-vent", 6, 16, 8, 5, { type: "heat", telegraph: 2.2, active: 2.4, cooldown: 14, offset: 8, effect: "damage", damagePerSecond: 6 })], interactables: [zone("vent-boost", 10, 19, 14, 2, { type: "conveyor", vector: [1, 0], strength: 24 }), zone("thermal-lift", 10, 5, 14, 2, { type: "conveyor", vector: [1, 0], strength: 26 })], visuals: baseVisuals({ accent: 0xf97316, secondary: 0xef4444, fog: 0x210706, fogDensity: 0.0064, background: 0x0d0202, floorTint: 0x5f4545, wall: 0x594145, outer: 0x0c0202, particle: 0xfdba74, roughness: 0.86, metalness: 0.12, sky: "ash-column", landmark: "open lava throat" }), audio: Object.freeze({ musicTier: "combat_4", ambience: ["lava-roar", "rockfall"] }), runtimeModifiers: Object.freeze({ cameraHeight: 45, cameraLead: 0.08, ambientEvent: "magma-breath", elevationScale: 1 }), bossCompatibility: Object.freeze({ safeSpawnZones: [r(3, 10, 9, 6), r(24, 10, 9, 6)], minimumClearance: 2, disabledHazardsDuringSpawn: true }),
   }),
 });
 
@@ -228,6 +228,75 @@ function zonesOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
+function openCellsIn(grid, value) {
+  const cells = [];
+  for (let y = Math.floor(value.y); y < Math.ceil(value.y + value.h); y++) {
+    for (let x = Math.floor(value.x); x < Math.ceil(value.x + value.w); x++) {
+      if (grid[y]?.[x] === 0) cells.push({ x, y });
+    }
+  }
+  return cells;
+}
+
+/** Breadth-first walking cost, in grid cells, from a set of start cells. */
+function walkField(grid, starts) {
+  const seen = new Map();
+  const queue = [];
+  for (const cell of starts) { seen.set(`${cell.x}:${cell.y}`, 0); queue.push(cell); }
+  for (let i = 0; i < queue.length; i++) {
+    const cell = queue[i];
+    const cost = seen.get(`${cell.x}:${cell.y}`) + 1;
+    for (const [x, y] of [[cell.x + 1, cell.y], [cell.x - 1, cell.y], [cell.x, cell.y + 1], [cell.x, cell.y - 1]]) {
+      const key = `${x}:${y}`;
+      if (grid[y]?.[x] !== 0 || seen.has(key)) continue;
+      seen.set(key, cost);
+      queue.push({ x, y });
+    }
+  }
+  return seen;
+}
+
+const UNREACHABLE = Number.POSITIVE_INFINITY;
+const fieldCost = (field, cells) => cells.reduce((best, cell) => Math.min(best, field.get(`${cell.x}:${cell.y}`) ?? UNREACHABLE), UNREACHABLE);
+
+/**
+ * Walking distances that make a plant/defuse arena legible.
+ *
+ * `ARENA_LAYOUT_RULES` is the contract every definition is measured against.
+ * The numbers encode the same three properties on every map: attackers pay a
+ * real approach for either site, defenders can rotate between both, and no
+ * spawn sits on top of an objective.
+ */
+export const ARENA_LAYOUT_RULES = Object.freeze({
+  attackToSite: Object.freeze({ min: 15, max: 32 }),
+  defendToSite: Object.freeze({ min: 5, max: 16 }),
+  minimumApproachCost: 6,
+  maximumSiteImbalance: 6,
+  minimumSiteSeparation: 12,
+  minimumSpawnSeparation: 18,
+  spawnSeparationOverRotation: 6,
+  minimumSpawnCells: 6,
+  minimumSiteCells: 8,
+});
+
+/** Measured walking geometry for one arena; also used by the map-select UI. */
+export function measureArenaLayout(definition, grid = createArenaGrid(definition)) {
+  const spawnCells = { ATK: openCellsIn(grid, definition.combat.spawns.ATK), DEF: openCellsIn(grid, definition.combat.spawns.DEF) };
+  const attack = walkField(grid, spawnCells.ATK);
+  const defend = walkField(grid, spawnCells.DEF);
+  const sites = definition.combat.sites.map(site => {
+    const cells = openCellsIn(grid, site);
+    return { id: site.id, cells: cells.length, attack: fieldCost(attack, cells), defend: fieldCost(defend, cells) };
+  });
+  const [first, second] = definition.combat.sites.map(site => openCellsIn(grid, site));
+  return {
+    sites,
+    spawnCells: { ATK: spawnCells.ATK.length, DEF: spawnCells.DEF.length },
+    siteSeparation: fieldCost(walkField(grid, first), second),
+    spawnSeparation: fieldCost(attack, spawnCells.DEF),
+  };
+}
+
 export function topologySignature(definition) {
   return createArenaGrid(definition).map(row => row.join("")).join("|");
 }
@@ -244,11 +313,65 @@ export function validateArenaDefinition(definition) {
     for (const hazard of definition.hazards) if (zonesOverlap(spawn, hazard)) errors.push(`${team} spawn overlaps hazard ${hazard.id}`);
   }
   for (const site of definition.combat.sites || []) if (!zoneHasOpenCell(grid, site)) errors.push(`site ${site.id} has no open cell`);
-  if ((definition.combat.subspaces || []).length < 3) errors.push("fewer than three combat subspaces");
+  if ((definition.combat.subspaces || []).length < 4) errors.push("fewer than four combat subspaces");
   if (!(definition.topology.landmark?.type)) errors.push("missing landmark");
-  if (!(definition.traversal.mechanics || []).length) errors.push("missing traversal mechanic");
-  if (!definition.hazards.length) errors.push("missing hazard");
+  if ((definition.traversal.mechanics || []).length < 3) errors.push("fewer than three traversal mechanics");
+  if ((definition.topology.blocks || []).length < 5) errors.push("fewer than five cover blocks");
+  if (definition.hazards.length < 2) errors.push("fewer than two hazards");
+  if (definition.interactables.length < 2) errors.push("fewer than two interactables");
   if (!(definition.bossCompatibility.safeSpawnZones || []).some(value => zoneHasOpenCell(grid, value, definition.bossCompatibility.minimumClearance || 0))) errors.push("no boss-safe spawn zone");
+  for (const value of [...definition.hazards, ...definition.interactables]) {
+    if (!zoneHasOpenCell(grid, value)) errors.push(`${value.id} has no walkable cell`);
+  }
+  for (const site of definition.combat.sites || []) {
+    for (const hazard of definition.hazards) {
+      if (!zonesOverlap(hazard, site)) continue;
+      if (openCellsIn(grid, site).every(cell => pointInZone(cell.x + 0.5, cell.y + 0.5, hazard))) errors.push(`hazard ${hazard.id} fully covers site ${site.id}`);
+    }
+    for (const [team, spawn] of Object.entries(definition.combat.spawns || {})) {
+      if (zonesOverlap(site, spawn)) errors.push(`${team} spawn overlaps site ${site.id}`);
+    }
+  }
+  errors.push(...validateArenaWalkingGeometry(definition, grid));
+  return errors;
+}
+
+/**
+ * The playable half of an arena definition: can both squads actually run this
+ * map as a plant/defuse round, or is one site effectively inside a spawn?
+ */
+export function validateArenaWalkingGeometry(definition, grid = createArenaGrid(definition)) {
+  const errors = [];
+  const rules = ARENA_LAYOUT_RULES;
+  const layout = measureArenaLayout(definition, grid);
+
+  // One connected walkable space: an island of floor is unreachable content.
+  const walkable = [];
+  for (let y = 0; y < grid.length; y++) for (let x = 0; x < grid[0].length; x++) if (grid[y][x] === 0) walkable.push({ x, y });
+  if (walkable.length && walkField(grid, [walkable[0]]).size !== walkable.length) errors.push("walkable space is fragmented");
+
+  for (const [team, count] of Object.entries(layout.spawnCells)) {
+    if (count < rules.minimumSpawnCells) errors.push(`${team} spawn has only ${count} open cells`);
+  }
+  for (const site of layout.sites) {
+    if (site.cells < rules.minimumSiteCells) errors.push(`site ${site.id} has only ${site.cells} open cells`);
+    if (!Number.isFinite(site.attack) || !Number.isFinite(site.defend)) { errors.push(`site ${site.id} is unreachable from a spawn`); continue; }
+    if (site.attack < rules.attackToSite.min) errors.push(`site ${site.id} is only ${site.attack} cells from the attacker spawn`);
+    if (site.attack > rules.attackToSite.max) errors.push(`site ${site.id} is ${site.attack} cells from the attacker spawn`);
+    if (site.defend < rules.defendToSite.min) errors.push(`site ${site.id} is only ${site.defend} cells from the defender spawn`);
+    if (site.defend > rules.defendToSite.max) errors.push(`site ${site.id} is ${site.defend} cells from the defender spawn`);
+    if (site.attack - site.defend < rules.minimumApproachCost) errors.push(`site ${site.id} costs attackers nothing to reach (${site.attack} vs ${site.defend})`);
+  }
+  const [first, second] = layout.sites;
+  if (first && second) {
+    if (Math.abs(first.attack - second.attack) > rules.maximumSiteImbalance) errors.push(`attacker site choice is unbalanced (${first.attack} vs ${second.attack})`);
+    if (Math.abs(first.defend - second.defend) > rules.maximumSiteImbalance) errors.push(`defender rotation is unbalanced (${first.defend} vs ${second.defend})`);
+    if (layout.siteSeparation < rules.minimumSiteSeparation) errors.push(`sites are only ${layout.siteSeparation} cells apart`);
+    const rotation = Math.max(first.defend, second.defend);
+    if (layout.spawnSeparation < rules.minimumSpawnSeparation || layout.spawnSeparation < rotation + rules.spawnSeparationOverRotation) {
+      errors.push(`spawns are only ${layout.spawnSeparation} cells apart`);
+    }
+  }
   return errors;
 }
 
