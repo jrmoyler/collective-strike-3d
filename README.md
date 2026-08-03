@@ -2,12 +2,35 @@
 
 A browser-native 5v5 tactical arena built with Three.js. Choose one of 20 Collective AI division operators, buy weapons, use operator abilities and team doctrines, plant or defuse the spike, and fight first-to-six matches against adaptive bot squads.
 
-Ten fully realized combat spaces ship in the offline build: Forge Lattice,
-Neon Canopy, Cryo Relay, Verdant Core, Solar Bastion, Abyssal Vault, Tempest
-Spire, Lunar Excavation, Ember Caldera, and Mirage Terminal. Each arena has its
-own procedural textures, PBR material response, architecture, atmosphere,
-landmarks, lighting, and animated environmental effects while preserving the
-same learnable competitive layout.
+Ten fully realized combat spaces ship in the offline build: Neon Foundry,
+Sunken Archive, Skygrave Bastion, Verdant Overrun, Cryo Rift, Null Cathedral,
+Neon Canopy, Solar Bastion, Lunar Excavation, and Ember Caldera. Each arena has
+its own footprint, spawn-and-site geometry, hazards, interactables, traversal
+mechanics, procedural textures, PBR material response, architecture,
+atmosphere, landmarks, lighting, and animated environmental effects.
+
+Every layout is measured, not eyeballed. `ARENA_LAYOUT_RULES` in
+`src/arena-core.js` defines what a playable plant/defuse map is — how far
+attackers walk to each site, how far defenders rotate, how far apart the sites
+and spawns sit — and the test suite walks the collision grid of all ten arenas
+against it. No arena can ship with a site parked next to a spawn or a defender
+hold that covers both sites at once.
+
+## Reading a fight
+
+Twenty divisions can appear on either side, so division colour never answers
+"do I shoot this?". Faction is carried on its own redundant channel: a
+footprint ring under every operator (calm closed ring for allies, barbed
+pulsing ring for hostiles, white-gold ring with a heading wedge for you), an
+overhead chevron or diamond, issued team livery on the rig itself, and a
+floating callsign plate that names the faction and shows live health. The
+minimap, scoreboard, kill feed and crosshair use the same palette and the same
+glyphs, and the palette follows the colour-vision setting.
+
+Landing a shot confirms four ways at once: a reticle hitmarker that changes
+shape for armour, criticals and eliminations; a floating damage number coloured
+to match; a camera-facing impact burst on the body you hit; and a distinct
+audio tone per hit kind.
 
 Every session opens on a branded title and briefing screen. The wordmark sits
 over a live cinematic orbit of the arena rendered by the same Three.js scene the
@@ -78,6 +101,12 @@ Open `http://localhost:4173/`. Serving the repository root and opening
 - `R`: reload
 - `1–5`: weapon select
 - `6`: cycle Series 03 weapons
+
+Every weapon carries its own silhouette — magazine rake, stock, carry handle,
+scope, bipod and muzzle brake — plus its own livery tint and tracer colour.
+Switching lowers and re-presents the rig's weapon, costs a short ready time,
+moves the HUD weapon rail, and raises a card naming the weapon and its damage,
+rate of fire and magazine.
 - `Tab`: scoreboard
 - `Esc`: pause
 

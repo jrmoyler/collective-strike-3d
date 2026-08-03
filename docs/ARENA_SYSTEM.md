@@ -9,9 +9,9 @@ Every entry in `ARENA_DEFINITIONS` must provide:
 - `identity`: stable ID, display name, biome, silhouette and tactical summary.
 - `topology`: playable floor rectangles, voids, blocking geometry, platforms, ramps, landmark and boundary treatment.
 - `traversal`: authored routes and the arena-specific movement mechanic.
-- `combat`: two sites, team spawn zones, at least three named subspaces, cover density and sightline profile.
-- `hazards`: timed, telegraphed gameplay volumes.
-- `interactables`: conveyors, water, ice slides, covered routes or phase barriers.
+- `combat`: two sites, team spawn zones, at least four named subspaces, cover density and sightline profile.
+- `hazards`: at least two timed, telegraphed gameplay volumes.
+- `interactables`: at least two conveyors, water bodies, ice slides, covered routes or phase barriers.
 - `visuals`: material response, lighting palette, sky/depth treatment and landmark description.
 - `audio`: music tier and ambient sound hooks.
 - `runtimeModifiers`: camera/readability and ambient-event settings.
@@ -24,9 +24,32 @@ Stable IDs are intentional: soundtrack mappings, career stats and existing links
 1. Add a complete definition to `ARENA_DEFINITIONS` and append its ID to `ARENA_ORDER`.
 2. Compose a unique footprint with `floorZones`, then subtract `voids` and add collision with `blocks`.
 3. Place both team spawns, both sites and boss-safe zones on open cells. Keep every hazard clear of spawn zones.
-4. Give the map at least three combat subspaces, a landmark and a unique traversal mechanic.
-5. Add or reuse a landmark renderer in `addLandmark()` only when the existing primitive family cannot express the silhouette.
-6. Run `npm test` and `npm run smoke`. Registry tests reject duplicate footprints, unreachable sites and invalid boss spawns.
+4. Satisfy `ARENA_LAYOUT_RULES` (see below) — this is the part that decides whether the map plays, not just whether it loads.
+5. Give the map at least four combat subspaces, a landmark, three traversal mechanics, two hazards and two interactables.
+6. Add or reuse a landmark renderer in `addLandmark()` only when the existing primitive family cannot express the silhouette.
+7. Run `npm test` and `npm run smoke`. Registry tests reject duplicate footprints, unreachable sites, unfair walking geometry and invalid boss spawns.
+
+## Walking geometry contract
+
+`ARENA_LAYOUT_RULES` in `src/arena-core.js` is the objective definition of a
+playable plant/defuse arena, and `validateArenaWalkingGeometry()` measures every
+definition against it with a breadth-first walk over the collision grid. All
+distances are in grid cells.
+
+| Rule | Value | Why |
+| --- | --- | --- |
+| attacker spawn → each site | 15–32 | attackers cross real ground to touch either site |
+| defender spawn → each site | 5–16 | defenders can set up on either site, and can rotate |
+| approach cost (attack − defend) | ≥ 6 | no site is effectively inside the attacker spawn |
+| site imbalance, per team | ≤ 6 | neither site is the obvious default pick |
+| site separation | ≥ 12 | a single hold cannot cover both sites |
+| spawn separation | ≥ 18 and ≥ defender rotation + 6 | no spawn-to-spawn rush |
+| walkable space | one connected region | no unreachable floor |
+
+`measureArenaLayout()` returns the same numbers if you want to inspect a
+candidate layout while iterating. Before this contract existed, nine of the ten
+arenas spawned one squad next to a site and roughly twenty-five cells from the
+other; `abyss` spawned the defenders on top of site B.
 
 ## Runtime primitives
 
@@ -91,5 +114,11 @@ Arena behavior runs inside the existing simulation tick. It does not create time
 | `verdant` | Verdant Overrun | Root tunnels, ambush pockets, clear lab lanes and reactive spores |
 | `cryo` | Cryo Rift | Split shelves, ice corridors, slides and telegraphed cracking routes |
 | `mirage` | Null Cathedral | Monumental nave, off-axis chambers, galleries and phase barriers |
+| `neon` | Neon Canopy | Closed rooftop ring: two sky bridges, two service spines, one transit core |
+| `solar` | Solar Bastion | Exposed reflector courts against a shaded cooling diagonal |
+| `lunar` | Lunar Excavation | Crater-split bowl forcing a committed east or west rotation |
+| `caldera` | Ember Caldera | Horseshoe terraces around a denied lava throat |
 
-The remaining four definitions retain their stable identities but also use unique footprints, sites, spawns, hazards and traversal rules.
+Every definition uses its own footprint, spawn-and-site configuration, hazard
+set, interactable set and traversal mechanics; the registry tests reject any two
+arenas that share them.

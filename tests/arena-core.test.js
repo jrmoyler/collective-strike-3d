@@ -10,6 +10,9 @@ import {
   createSeededRandom,
   topologySignature,
   validateArenaRegistry,
+  validateArenaWalkingGeometry,
+  measureArenaLayout,
+  ARENA_LAYOUT_RULES,
 } from "../src/arena-core.js";
 import { findBossSpawn } from "../src/boss-mode.js";
 
@@ -64,6 +67,45 @@ test("both team spawns can reach both objective sites on every arena", () => {
         assert.ok(openCells(grid, site).some(cell => visited.has(`${cell.x}:${cell.y}`)), `${id} ${team} can reach site ${site.id}`);
       }
     }
+  }
+});
+
+test("every arena is a playable plant/defuse layout, not a reskinned lattice", () => {
+  for (const id of ARENA_ORDER) {
+    const definition = ARENA_DEFINITIONS[id];
+    assert.deepEqual(validateArenaWalkingGeometry(definition), [], `${id} walking geometry`);
+    const layout = measureArenaLayout(definition);
+    for (const site of layout.sites) {
+      // Attackers must always pay a longer walk than the defenders holding it.
+      assert.ok(site.attack - site.defend >= ARENA_LAYOUT_RULES.minimumApproachCost, `${id} site ${site.id} approach cost`);
+    }
+  }
+});
+
+test("no two arenas share a spawn-and-site configuration", () => {
+  const seen = new Map();
+  for (const id of ARENA_ORDER) {
+    const { spawns, sites } = ARENA_DEFINITIONS[id].combat;
+    const key = JSON.stringify([spawns.ATK, spawns.DEF, ...sites.map(site => [site.x, site.y, site.w, site.h])]);
+    assert.equal(seen.get(key), undefined, `${id} duplicates ${seen.get(key)}`);
+    seen.set(key, id);
+  }
+});
+
+test("arena hazards, interactables and traversal rules are distinct per arena", () => {
+  const hazardKinds = new Map();
+  for (const id of ARENA_ORDER) {
+    const definition = ARENA_DEFINITIONS[id];
+    const signature = [
+      definition.hazards.map(value => value.type).sort().join(","),
+      definition.interactables.map(value => value.type).sort().join(","),
+      definition.traversal.mechanics.slice().sort().join(","),
+    ].join("|");
+    assert.equal(hazardKinds.get(signature), undefined, `${id} plays identically to ${hazardKinds.get(signature)}`);
+    hazardKinds.set(signature, id);
+    assert.ok(definition.hazards.length >= 2, `${id} has telegraphed volumes`);
+    assert.ok(definition.interactables.length >= 2, `${id} has traversal interactables`);
+    assert.ok(definition.combat.subspaces.length >= 4, `${id} has named subspaces`);
   }
 });
 
