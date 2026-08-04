@@ -45,9 +45,20 @@
   ));
   let selectedArenaId = ARENA_ORDER[0];
   let initialized = false;
+  let detailMotion = null;
 
   const screenOpen = () => document.getElementById("arenaSelectScreen")?.classList.contains("open");
   const setText = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = value; };
+
+  function animateArenaDetails() {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || !window.animejs?.createTimeline) return;
+    detailMotion?.revert?.();
+    const { createTimeline, stagger } = window.animejs;
+    detailMotion = createTimeline({ defaults: { duration: 420, ease: "outExpo" } })
+      .add("#arenaIndex, #arenaName, #arenaBiome", { opacity: { from: 0 }, y: { from: 10 } }, 0)
+      .add("#arenaMode, #arenaSummary, #arenaTag", { opacity: { from: 0 }, x: { from: -12 }, delay: stagger(34) }, 70)
+      .add("#arenaDeployBtn", { scale: { from: 0.96 }, opacity: { from: 0.64 }, duration: 520 }, 110);
+  }
 
   function updateArenaDetails(theme) {
     setText("arenaName", theme.name);
@@ -61,6 +72,7 @@
       screen.style.setProperty("--arena-accent", theme.accent);
       screen.style.setProperty("--arena-secondary-local", theme.secondary);
     }
+    if (screenOpen()) animateArenaDetails();
   }
 
   function selectArena(id, options = {}) {

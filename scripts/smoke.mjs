@@ -521,6 +521,15 @@ try {
   if (!bossStats.spawnValid) problems.push("boss spawned at an invalid collision position");
 
   console.log("smoke: restart stability and WebGL recovery");
+  // The first rebuild after the boss probe also clears boss-only visibility
+  // and shader state. Warm that transition once so restart stability compares
+  // equivalent normal-round frames instead of a boss frame to round frames.
+  await page.evaluate(() => {
+    window.CS3D_restartMatch();
+    fx.clear();
+    updateRender(0.016);
+  });
+  await page.waitForTimeout(80);
   const restartProfiles = [];
   for (let restart = 0; restart < 3; restart++) {
     restartProfiles.push(await page.evaluate(() => {
@@ -632,9 +641,30 @@ try {
     ctaHeight: document.getElementById("titleEnterBtn").getBoundingClientRect().height,
   }));
   if (mobileTitle.overflow > 1 || !mobileTitle.railHidden || mobileTitle.ctaHeight < 44) problems.push(`mobile title layout failed: ${JSON.stringify(mobileTitle)}`);
+  await mobilePage.screenshot({ path: path.join(outDir, "07-mobile-title.png") });
   await mobilePage.locator("#titleEnterBtn").tap();
   await mobilePage.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
-  await mobilePage.evaluate(() => { gameState.recover(RUNTIME.GAME_STATES.DEPLOYMENT, "smoke-touch-deploy"); phase = "deployment"; startMatch(); phaseT = 0; updateSim(0.016); curW(me).ammo = Math.max(0, curW(me).mag - 2); me.reloadT = 0; });
+  await mobilePage.locator(".divCard").first().tap();
+  await mobilePage.locator("#deployBtn").tap();
+  await mobilePage.waitForFunction(() => document.getElementById("arenaSelectScreen")?.classList.contains("open"), { timeout: 30_000 });
+  const mobileArena = await mobilePage.evaluate(() => {
+    const actions = document.getElementById("arenaActions").getBoundingClientRect();
+    const keys = [...document.querySelectorAll("#arenaNavLegend .navKey")];
+    return {
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      actionsReachable: actions.left >= 0 && actions.right <= innerWidth && actions.top >= 0 && actions.bottom <= innerHeight,
+      navKeys: keys.length,
+      shapeKeys: keys.filter(key => {
+        const icon = key.querySelector("i")?.getBoundingClientRect();
+        return icon && icon.width >= 10 && icon.height >= 4;
+      }).length,
+    };
+  });
+  if (mobileArena.overflow > 1 || !mobileArena.actionsReachable || mobileArena.navKeys !== 3 || mobileArena.shapeKeys !== 3) problems.push(`mobile arena selection failed: ${JSON.stringify(mobileArena)}`);
+  await mobilePage.screenshot({ path: path.join(outDir, "08-mobile-arena-select.png") });
+  await mobilePage.locator("#arenaDeployBtn").tap();
+  await mobilePage.waitForFunction(() => document.getElementById("hud")?.style.display === "block", { timeout: 30_000 });
+  await mobilePage.evaluate(() => { phaseT = 0; updateSim(0.016); curW(me).ammo = Math.max(0, curW(me).mag - 2); me.reloadT = 0; });
   await mobilePage.locator('[data-action="reload"]').tap();
   const touchState = await mobilePage.evaluate(() => {
     const move = document.getElementById("movePad").getBoundingClientRect(), aim = document.getElementById("aimPad").getBoundingClientRect();
@@ -654,6 +684,7 @@ try {
   });
   console.log("mobile touch:", JSON.stringify(touchState));
   if (touchState.mode !== "touch" || !touchState.reloadStarted || !touchState.controlsVisible || touchState.horizontalOverflow > 1 || touchState.minTarget < 44 || touchState.overlapsPads || !touchState.leftHanded || !touchState.orientationVisible) problems.push(`touch-only layout/input failed: ${JSON.stringify(touchState)}`);
+  await mobilePage.screenshot({ path: path.join(outDir, "09-mobile-gameplay.png") });
   await mobilePage.close();
 
   const remoteRequests = [...requestedUrls].filter(url => !url.startsWith(origin) && !url.startsWith("data:") && !url.startsWith("blob:"));

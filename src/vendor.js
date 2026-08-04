@@ -11,7 +11,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { animate, stagger, utils } from "animejs";
+import { animate, createSpring, createTimeline, engine, stagger, utils, waapi } from "animejs";
 import { BOSS_DNA, BOSS_BY_ID, BOSS_LOCO_CLASSES, resolveBossLocos } from "./boss-dna.js";
 import { BOSS_ABILITIES, runBossAbility } from "./boss-abilities.js";
 import { makeBossRig, updateBossRig } from "./boss-rig.js";
@@ -37,6 +37,7 @@ import {
   validateArenaDefinition,
   validateArenaRegistry
 } from "./arena-core.js";
+import { ARENA_ASSET_VERSION, buildArenaLandmark, buildExclusionReadability } from "./arena-assets.js";
 import {
   arenaActorHeight,
   arenaBlockHeight,
@@ -93,7 +94,7 @@ window.THREE = Object.freeze({
   UnrealBloomPass
 });
 window.anime = animeCompat;
-window.animejs = { animate, stagger, utils };
+window.animejs = Object.freeze({ animate, createSpring, createTimeline, engine, stagger, utils, waapi });
 window.CS3D_VENDOR = {
   three: THREE.REVISION,
   anime: "4.5.0"
@@ -132,6 +133,11 @@ window.CS3D_ARENA_SYSTEM = Object.freeze({
   traceArenaSegment,
   validateArenaDefinition,
   validateArenaRegistry
+});
+window.CS3D_ARENA_ASSETS = Object.freeze({
+  version: ARENA_ASSET_VERSION,
+  buildArenaLandmark,
+  buildExclusionReadability
 });
 window.CS3D_RUNTIME = Object.freeze({
   GAME_STATES,
