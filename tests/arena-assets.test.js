@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { ARENA_DEFINITIONS, ARENA_ORDER } from "../src/arena-core.js";
-import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability, buildForgeContentPass } from "../src/arena-assets.js";
+import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability } from "../src/arena-assets.js";
 
 const theme = Object.freeze({
   id: "forge",
@@ -44,18 +44,21 @@ test("every arena has a distinct action-ready img2threejs landmark", () => {
   assert.equal(signatures.size, 10);
 });
 
-test("forge reference pass skins collision cover and stays instanced and bounded", () => {
-  const definition = ARENA_DEFINITIONS.forge;
-  const result = buildForgeContentPass(definition, theme);
-  assert.equal(result.root.userData.assetPipeline, "forge-strategy-kit-v1");
-  assert.equal(result.root.userData.blockSkinCount, definition.topology.blocks.length);
-  assert.equal(result.root.userData.interactableStateCount, definition.interactables.length);
-  assert.equal(result.root.userData.hazardStateCount, definition.hazards.length);
-  assert.ok(result.root.userData.counts.instances >= 80, "forge has dense repeated content");
-  assert.ok(result.root.userData.counts.drawCallCeiling <= 14, "forge kit draw-call ceiling is bounded");
-  assert.ok(result.root.children.every(child => child.isInstancedMesh), "every repeated kit family is instanced");
-  assert.equal(buildForgeContentPass(ARENA_DEFINITIONS.abyss, { ...theme, id: "abyss" }), null);
-  disposeTree(result.root);
+test("no arena material relies on a transmission pass", () => {
+  // A transmissive material makes the renderer re-render the whole scene into a
+  // transmission target once per object, which is why Sunken Archive measured
+  // 419 arena draw calls before this pass.
+  for (const id of ARENA_ORDER) {
+    const localTheme = { ...theme, id };
+    for (const [label, result] of [["landmark", buildArenaLandmark(ARENA_DEFINITIONS[id], localTheme)], ["living", buildArenaLivingSet(ARENA_DEFINITIONS[id], localTheme)]]) {
+      result.root.traverse(object => {
+        for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+          if (material) assert.ok(!(material.transmission > 0), `${id} ${label} material ${material.name || material.type} uses transmission`);
+        }
+      });
+      disposeTree(result.root);
+    }
+  }
 });
 
 test("living arena kit connects each landmark to combat space with themed PBR assets", () => {

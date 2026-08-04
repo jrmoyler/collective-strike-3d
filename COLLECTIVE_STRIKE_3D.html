@@ -734,7 +734,7 @@ const DNA={
  eon:{name:'EON CORE',loco:'hopper',seed:20,cBot:'#C8BCA4',cTop:'#FFFBEB',accent:'#E8DCC8',eye:'#070C14',scale:.94,body:[.62,.82],head:0,ears:'none',hourglass:true},
  cognara:{name:'COGNARA MIND',loco:'flyer',seed:10,cBot:'#6D1145',cTop:'#E0267E',accent:'#FF85C2',eye:'#F5F5F5',scale:.94,body:[.7,.6],head:.46,arms:.65,tendrils:5,wing:.7,brain:true}
 };
-const ARENA_SYSTEM=window.CS3D_ARENA_SYSTEM||{},ARENA_DEFINITIONS=ARENA_SYSTEM.ARENA_DEFINITIONS||{};
+const ARENA_SYSTEM=window.CS3D_ARENA_SYSTEM||{},ARENA_DEFINITIONS=ARENA_SYSTEM.ARENA_DEFINITIONS||{},ARENA_CONTENT=window.CS3D_ARENA_CONTENT||{};
 const grid=[],walls=[];let arenaBaseGrid=[],arenaDefinition=null;
 let SITE_A={x:2,y:2,w:8,h:6,label:"A"},SITE_B={x:26,y:2,w:8,h:6,label:"B"},SPAWN_ATK={x:15,y:21,w:6,h:3},SPAWN_DEF={x:15,y:2,w:6,h:3};
 function rect(x,y,w,h){walls.push({x,y,w,h});for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)if(grid[j]&&i>=0&&i<MAPW)grid[j][i]=1}
@@ -800,6 +800,48 @@ function announce(text){const node=document.getElementById("a11yStatus");if(node
 function inputLabel(){return actionInput.mode==="gamepad"?"GAMEPAD":actionInput.mode==="touch"?"TOUCH":"KEYBOARD + MOUSE"}
 function runtimeMetrics(){const audio=AUDIO.getState();return{state:gameState.state,phase,renderLoops:loopStarted?1:0,schedulerJobs:gameScheduler.size,inputMode:actionInput.mode,inputListeners:appLifecycle.counts().listeners,players:players.length,rigs:rigs.size,bossRigs:bossRigs.size,tempMeshes:tempMeshes.length,arenaChildren:arenaGroup?.children.length||0,arenaToken:arenaRuntimeState?.token||null,hazards:arenaRuntimeState?.hazards.length||0,drawCalls:renderer?.info.render.calls||0,triangles:renderer?.info.render.triangles||0,geometries:renderer?.info.memory.geometries||0,textures:renderer?.info.memory.textures||0,audioMediaElements:audio.mediaElements,audioTimers:audio.pendingTimers,quality:qualityController.profile}}
 window.CS3D_runtimeMetrics=runtimeMetrics;
+/* Measured arena budget. Draw calls and triangles come from real renderer
+   counters on a stable frame; the arena share is the difference between a frame
+   with the arena visible and the identical frame with it hidden. Geometry and
+   texture counts are the distinct GPU objects actually reachable from the live
+   arena tree, never a declared estimate. */
+const BUDGET_TEXTURE_SLOTS=["map","normalMap","roughnessMap","metalnessMap","emissiveMap","alphaMap","aoMap","bumpMap","displacementMap"];
+function arenaBudget(){
+ if(!arenaGroup||!renderer||!scene||!camera)return null;
+ const geometries=new Set(),textures=new Set();let instancedFamilies=0,instances=0,contentInstancedFamilies=0,contentInstances=0;
+ const contentRoot=arenaGroup.children.find(child=>child.userData?.contentPassId)||null;
+ arenaGroup.traverse(object=>{
+  if(object.geometry)geometries.add(object.geometry);
+  if(object.isInstancedMesh){instancedFamilies++;instances+=object.count}
+  for(const material of(Array.isArray(object.material)?object.material:[object.material])){
+   if(!material)continue;
+   for(const slot of BUDGET_TEXTURE_SLOTS)if(material[slot])textures.add(material[slot])
+  }
+ });
+ contentRoot?.traverse(object=>{if(object.isInstancedMesh){contentInstancedFamilies++;contentInstances+=object.count}});
+ const restore=arenaGroup.visible;
+ arenaGroup.visible=true;renderer.render(scene,camera);
+ const shown={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
+ arenaGroup.visible=false;renderer.render(scene,camera);
+ const hidden={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
+ arenaGroup.visible=restore;renderer.render(scene,camera);
+ return{
+  arena:selectedArenaId,phase,state:gameState.state,
+  directChildren:arenaGroup.children.length,
+  liveDrawCalls:shown.calls,liveTriangles:shown.triangles,
+  arenaDrawCalls:shown.calls-hidden.calls,arenaTriangles:shown.triangles-hidden.triangles,
+  sceneDrawCallsWithoutArena:hidden.calls,
+  arenaGeometries:geometries.size,arenaTextures:textures.size,
+  rendererGeometries:renderer.info.memory.geometries,rendererTextures:renderer.info.memory.textures,
+  instancedFamilies,instances,contentInstancedFamilies,contentInstances,
+  contentPass:arenaGroup.userData.contentPass||null,
+  contentMetadata:arenaGroup.userData.contentBudget||null,
+  hazardBindings:(arenaRuntimeState?.hazards||[]).flatMap(entry=>(entry.bindings||[]).map(binding=>binding.id)),
+  interactableBindings:(arenaRuntimeState?.interactables||[]).flatMap(entry=>(entry.bindings||[]).map(binding=>binding.id)),
+  quality:qualityController.profile
+ }
+}
+window.CS3D_arenaBudget=arenaBudget;
 /* ---------- screen shake ---------- */
 let shakeAmt=0,paused=false;
 function addShake(v){if(SETTINGS.reducedMotion)return;shakeAmt=Math.min(1.5,shakeAmt+v*CFG.shake)}
@@ -1216,7 +1258,30 @@ function arenaMaterial(theme,type="structure",options={}){
  return new THREE.MeshStandardMaterial({color:palette[type]??theme.wall,roughness:type==="floor"?theme.floorRoughness:.54,metalness:type==="floor"?theme.floorMetalness:.32,emissive:type==="accent"?theme.accentHex:type==="secondary"?theme.secondaryHex:theme.wallEmissive,emissiveIntensity:type==="accent"||type==="secondary"?.5:.08,...options})
 }
 function addIdentityBox(value,height,material,y=0){const mesh=new THREE.Mesh(geo.box,material);mesh.scale.set(value.w*TILE*S,height,value.h*TILE*S);mesh.position.set((value.x+value.w/2)*TILE*S,y+height/2,(value.y+value.h/2)*TILE*S);mesh.castShadow=height>.2;mesh.receiveShadow=true;addArena(mesh);return mesh}
-function addArenaRim(value,theme,y=.18){const mat=new THREE.MeshBasicMaterial({color:theme.secondaryHex,transparent:true,opacity:.32,blending:THREE.AdditiveBlending,depthWrite:false}),t=TILE*S,w=value.w*t,h=value.h*t,cx=(value.x+value.w/2)*t,cz=(value.y+value.h/2)*t;for(const [x,z,sx,sz] of [[cx,cz-h/2,w,.09],[cx,cz+h/2,w,.09],[cx-w/2,cz,.09,h],[cx+w/2,cz,.09,h]]){const edge=new THREE.Mesh(geo.box,mat);edge.scale.set(sx,.12,sz);edge.position.set(x,y,z);addArena(edge)}}
+/* Zone rims and cover lights are identical repeated pieces, so they are queued
+   during construction and emitted as one instanced family each. Same visuals,
+   two draw calls instead of the fifty-odd the per-mesh version cost. */
+let arenaRimQueue=[],arenaBlockLightQueue=[];
+function addArenaRim(value,theme,y=.18){const t=TILE*S,w=value.w*t,h=value.h*t,cx=(value.x+value.w/2)*t,cz=(value.y+value.h/2)*t;for(const [x,z,sx,sz] of [[cx,cz-h/2,w,.09],[cx,cz+h/2,w,.09],[cx-w/2,cz,.09,h],[cx+w/2,cz,.09,h]])arenaRimQueue.push([x,y,z,sx,sz])}
+function emitInstancedFamily(name,geometry,material,entries,write){
+ if(!entries.length)return null;
+ const mesh=new THREE.InstancedMesh(geometry,material,entries.length),matrix=new THREE.Matrix4(),rotation=new THREE.Quaternion();
+ mesh.name=name;entries.forEach((entry,index)=>write(mesh,index,entry,matrix,rotation));
+ mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();addArena(mesh);return mesh
+}
+function flushArenaRims(theme){
+ const material=new THREE.MeshBasicMaterial({color:theme.secondaryHex,transparent:true,opacity:.32,blending:THREE.AdditiveBlending,depthWrite:false});
+ emitInstancedFamily("arena-zone-rims",geo.box,material,arenaRimQueue,(mesh,index,[x,y,z,sx,sz],matrix,rotation)=>{matrix.compose(V3(x,y,z),rotation,V3(sx,.12,sz));mesh.setMatrixAt(index,matrix)});
+ arenaRimQueue=[]
+}
+function flushArenaBlockLights(theme){
+ const material=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5});
+ const mesh=emitInstancedFamily("cover-edge-lights",geo.box,material,arenaBlockLightQueue,(target,index,entry,matrix,rotation)=>{
+  matrix.compose(V3(entry.x,entry.y,entry.z),rotation,V3(entry.sx,.06,.08));target.setMatrixAt(index,matrix);target.setColorAt(index,hex(entry.color))
+ });
+ if(mesh){if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;worldBits.push({type:"pulse",o:mesh,base:.25,amp:.35,phase:0})}
+ arenaBlockLightQueue=[]
+}
 function addArenaParticles(theme,definition,rng){
  const baseCount=theme.architecture==="tempest"?240:theme.architecture==="verdant"?420:320,count=Math.max(48,Math.round(baseCount*(RUNTIME.QUALITY_PROFILES[qualityController.profile]?.particles||.65))),pos=new Float32Array(count*3),seed=new Float32Array(count);
  for(let i=0;i<count;i++){pos[i*3]=rng()*WORLD_W*S;pos[i*3+1]=.5+rng()*9;pos[i*3+2]=rng()*WORLD_H*S;seed[i]=rng()*Math.PI*2}
@@ -1247,11 +1312,16 @@ function addLandmark(definition,theme,mats,rng){
  root.userData.landmarkType=mark.type
 }
 function addCombatMarker(site,theme){const t=TILE*S,cx=(site.x+site.w/2)*t,cz=(site.y+site.h/2)*t,w=site.w*t,h=site.h*t,pad=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:0xf59e0b,transparent:true,opacity:.1,depthWrite:false}));pad.rotation.x=-Math.PI/2;pad.position.set(cx,.06,cz);addArena(pad);const ring=new THREE.Mesh(new THREE.TorusGeometry(Math.min(w,h)*.3,.065,8,48),new THREE.MeshBasicMaterial({color:0xf59e0b,transparent:true,opacity:.68,blending:THREE.AdditiveBlending}));ring.rotation.x=Math.PI/2;ring.position.set(cx,.13,cz);addArena(ring);worldBits.push({type:"spinY",o:ring,speed:site.id==="A"?.18:-.18})}
-function initializeArenaRuntime(definition,theme,hazardViews,interactableViews){
- arenaRuntimeState={id:definition.identity.id,elapsed:0,theme,hazards:(definition.hazards||[]).map((value,index)=>({value,view:hazardViews[index],phase:"idle",wasActive:false})),interactables:(definition.interactables||[]).map((value,index)=>({value,view:interactableViews[index],phase:"open",closed:false})),dynamicCells:[],token:`${definition.identity.id}-${performance.now()}`};
- arenaGroup.userData.lifecycleToken=arenaRuntimeState.token
+/* Content-pass visuals are attached to their authored volume by stable id, so a
+   lamp can never drift onto the wrong hazard when definitions are reordered. */
+function initializeArenaRuntime(definition,theme,hazardViews,interactableViews,bindings){
+ const bindingsFor=(list,id)=>(list||[]).filter(binding=>binding.id===id);
+ arenaRuntimeState={id:definition.identity.id,elapsed:0,theme,hazards:(definition.hazards||[]).map((value,index)=>({value,view:hazardViews[index],phase:"idle",wasActive:false,bindings:bindingsFor(bindings?.hazards,value.id)})),interactables:(definition.interactables||[]).map((value,index)=>({value,view:interactableViews[index],phase:"open",closed:false,bindings:bindingsFor(bindings?.interactables,value.id)})),dynamicCells:[],token:`${definition.identity.id}-${performance.now()}`};
+ arenaGroup.userData.lifecycleToken=arenaRuntimeState.token;
+ arenaGroup.userData.hazardBindingIds=(bindings?.hazards||[]).map(binding=>binding.id);
+ arenaGroup.userData.interactableBindingIds=(bindings?.interactables||[]).map(binding=>binding.id)
 }
-function resetArenaRuntimeState(){if(!arenaRuntimeState)return;for(const entry of arenaRuntimeState.interactables)if(entry.value.type==="phase-barrier"&&entry.closed){setDynamicZone(entry.value,false,arenaRuntimeState);entry.closed=false}arenaRuntimeState.elapsed=0;for(const entry of arenaRuntimeState.hazards){entry.phase="idle";entry.view.mesh.material.opacity=.055;entry.view.rim.material.opacity=.12;if(entry.view.volume)entry.view.volume.material.uniforms.uOpacity.value=0}scene.fog.density=arenaRuntimeState.theme.fogDensity*(RUNTIME.QUALITY_PROFILES[qualityController.profile]?.fog||1)}
+function resetArenaRuntimeState(){if(!arenaRuntimeState)return;for(const entry of arenaRuntimeState.interactables){if(entry.value.type==="phase-barrier"&&entry.closed){setDynamicZone(entry.value,false,arenaRuntimeState);entry.closed=false}for(const binding of entry.bindings||[])binding.reset?.()}arenaRuntimeState.elapsed=0;for(const entry of arenaRuntimeState.hazards){entry.phase="idle";entry.view.mesh.material.opacity=.055;entry.view.rim.material.opacity=.12;if(entry.view.volume)entry.view.volume.material.uniforms.uOpacity.value=0;for(const binding of entry.bindings||[])binding.reset?.()}scene.fog.density=arenaRuntimeState.theme.fogDensity*(RUNTIME.QUALITY_PROFILES[qualityController.profile]?.fog||1)}
 function makeWaterSurface(value,theme,t){
  const segments=RUNTIME.QUALITY_PROFILES[qualityController.profile]?.waterSegments||12,geometry=new THREE.PlaneGeometry(value.w*t,value.h*t,segments,segments),uniforms={uTime:{value:0},uDeep:{value:new THREE.Color(theme.fog)},uShallow:{value:new THREE.Color(theme.secondaryHex)},uAccent:{value:new THREE.Color(theme.accentHex)},uOpacity:{value:.68}};
  const material=new THREE.ShaderMaterial({uniforms,transparent:true,depthWrite:false,side:THREE.DoubleSide,vertexShader:`uniform float uTime;varying vec3 vWorldPosition;varying float vWave;void main(){vec3 p=position;float a=sin(position.x*1.35+uTime*1.15),b=cos(position.y*1.7-uTime*.82);vWave=a*.55+b*.45;p.z+=(a+b)*.045;vec4 world=modelMatrix*vec4(p,1.0);vWorldPosition=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`,fragmentShader:`uniform vec3 uDeep;uniform vec3 uShallow;uniform vec3 uAccent;uniform float uOpacity;varying vec3 vWorldPosition;varying float vWave;void main(){vec3 viewDir=normalize(cameraPosition-vWorldPosition);float fresnel=pow(1.0-abs(dot(viewDir,vec3(0.0,1.0,0.0))),2.2);float caustic=.5+.5*sin((vWorldPosition.x+vWorldPosition.z)*3.2+vWave*5.0);vec3 color=mix(uDeep,uShallow,.28+fresnel*.48);color=mix(color,uAccent,caustic*.1);gl_FragColor=vec4(color,uOpacity*(.58+fresnel*.34));}`});
@@ -1265,6 +1335,10 @@ function makeFogVolume(value,theme,t,rng){
 }
 function buildArenaIdentity(definition,theme){
  const rng=ARENA_SYSTEM.createSeededRandom?.(arenaSeed(definition.identity.id))||Math.random,t=TILE*S;
+ /* Built first so every generic layer below can defer to it instead of
+    duplicating background, props, block skins, or interactable direction. */
+ const contentPass=ARENA_CONTENT?.buildArenaContentPass?.(definition,theme,t)||null;
+ const boundInteractables=new Set((contentPass?.bindings.interactables||[]).map(binding=>binding.id));
  arenaGroup.userData.identity=definition.identity.name;arenaGroup.userData.silhouette=definition.identity.silhouette;arenaGroup.userData.topologySignature=ARENA_SYSTEM.topologySignature?.(definition);arenaGroup.userData.subspaces=definition.combat.subspaces.length;arenaGroup.userData.hazardCount=definition.hazards.length;arenaGroup.userData.interactableCount=definition.interactables.length;arenaGroup.userData.ballistics="height-field-v1";arenaGroup.userData.waterSurfaceCount=definition.interactables.filter(value=>value.type==="water").length;arenaGroup.userData.localFogVolumeCount=definition.hazards.filter(value=>value.effect==="visibility"||["steam","spores","mist","dust"].includes(value.type)).length;
  const surfaceMats=window.CS3D_ARENA_ASSETS?.buildArenaMaterialSet?.(theme)||{},mats={floor:surfaceMats.floor||arenaMaterial(theme,"floor"),structure:surfaceMats.structure||arenaMaterial(theme,"structure"),dark:surfaceMats.dark||arenaMaterial(theme,"dark"),accent:surfaceMats.accent||arenaMaterial(theme,"accent"),secondary:surfaceMats.secondary||arenaMaterial(theme,"secondary"),organic:new THREE.MeshStandardMaterial({color:0x173f2a,roughness:.9,metalness:.02,emissive:theme.accentHex,emissiveIntensity:.12}),ice:new THREE.MeshPhysicalMaterial({color:0xbbeaff,roughness:.16,metalness:.05,transparent:true,opacity:.7,transmission:.2,emissive:theme.secondaryHex,emissiveIntensity:.12})};
  const outer=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_W*S*3.5,WORLD_H*S*3.7),new THREE.MeshStandardMaterial({color:theme.outer,roughness:.96,metalness:.02}));outer.rotation.x=-Math.PI/2;outer.position.set(WORLD_W*S/2,-.55,WORLD_H*S/2);outer.receiveShadow=true;addArena(outer);
@@ -1272,25 +1346,56 @@ function buildArenaIdentity(definition,theme){
  for(const value of definition.topology.voids||[]){const pit=addIdentityBox(value,.08,mats.dark,-.44);pit.material=new THREE.MeshBasicMaterial({color:theme.architecture==="cryo"?0x02112a:theme.outer,transparent:true,opacity:.96});addArenaRim(value,theme,-.2)}
  const exclusion=window.CS3D_ARENA_ASSETS?.buildExclusionReadability?.(definition,theme,t);if(exclusion?.root){addArena(exclusion.root);for(const entry of exclusion.animations||[])worldBits.push(entry);arenaGroup.userData.navigationReadability=exclusion.root.userData.navigationReadabilityVersion;arenaGroup.userData.navigationCounts=exclusion.root.userData.counts}
  for(const platform of definition.topology.platforms||[]){const height=platform.elevation||.8;addIdentityBox(platform,height,mats.structure,0);addArenaRim(platform,theme,height+.04)}
- for(const ramp of definition.topology.ramps||[]){const rise=(ramp.to||0)-(ramp.from||0),length=(ramp.w>=ramp.h?ramp.w:ramp.h)*t,mesh=addIdentityBox(ramp,.18,mats.structure,Math.min(ramp.from||0,ramp.to||0));if(ramp.w>=ramp.h)mesh.rotation.z=-Math.atan2(rise,length);else mesh.rotation.x=Math.atan2(rise,length);mesh.position.y=(Math.max(ramp.from||0,ramp.to||0)+Math.min(ramp.from||0,ramp.to||0))/2}
- for(const block of definition.topology.blocks||[]){const height=ARENA_SYSTEM.arenaBlockHeight?.(block)??3.2,mesh=addIdentityBox(block,height,block.kind?mats.dark:mats.structure,0);mesh.userData.collisionProxy=true;mesh.userData.collisionHeight=height;if(definition.identity.id==="forge")mesh.visible=false;for(let i=0;i<Math.min(3,Math.max(1,Math.floor((block.w+block.h)/4)));i++){const light=new THREE.Mesh(geo.box,new THREE.MeshBasicMaterial({color:i%2?theme.secondaryHex:theme.accentHex,transparent:true,opacity:.5}));light.scale.set(Math.max(.3,block.w*t*.22),.06,.08);light.position.set(mesh.position.x,Math.min(height-.2,.8+i*.75),mesh.position.z+block.h*t/2+.05);addArena(light);worldBits.push({type:"pulse",o:light,base:.25,amp:.35,phase:i+block.x})}}
- addLandmark(definition,theme,mats,rng);const living=window.CS3D_ARENA_ASSETS?.buildArenaLivingSet?.(definition,theme,t);if(living?.root){addArena(living.root);for(const entry of living.animations||[])worldBits.push(entry);arenaGroup.userData.livingAssetCount=living.root.userData.assetCount;arenaGroup.userData.arenaConnections=living.root.userData.connectionCount;arenaGroup.userData.materialSystem=living.root.userData.materialSystem}const content=window.CS3D_ARENA_ASSETS?.buildForgeContentPass?.(definition,theme,t);if(content?.root){addArena(content.root);for(const entry of content.animations||[])worldBits.push(entry);arenaGroup.userData.contentPass=content.root.userData.assetPipeline;arenaGroup.userData.contentBudget=content.root.userData.counts}for(const site of definition.combat.sites)addCombatMarker(site,theme);
+ for(const ramp of definition.topology.ramps||[]){const rise=(ramp.to||0)-(ramp.from||0),length=(ramp.w>=ramp.h?ramp.w:ramp.h)*t,mesh=addIdentityBox(ramp,.18,mats.structure,Math.min(ramp.from||0,ramp.to||0));
+  /* Rz(+p) raises the +X end and Rx(-p) raises the +Z end, so the slab tilts
+     the same way the authored elevation field actually rises. */
+  if(ramp.w>=ramp.h)mesh.rotation.z=Math.atan2(rise,length);else mesh.rotation.x=-Math.atan2(rise,length);mesh.position.y=(Math.max(ramp.from||0,ramp.to||0)+Math.min(ramp.from||0,ramp.to||0))/2}
+ for(const block of definition.topology.blocks||[]){const height=ARENA_SYSTEM.arenaBlockHeight?.(block)??3.2,mesh=addIdentityBox(block,height,block.kind?mats.dark:mats.structure,0);mesh.userData.collisionProxy=true;mesh.userData.collisionHeight=height;
+  /* A dedicated content pass supplies a footprint-exact replacement skin, so
+     the authored box is hidden but keeps its collision metadata untouched. */
+  if(contentPass)mesh.visible=false;
+  for(let i=0;i<Math.min(3,Math.max(1,Math.floor((block.w+block.h)/4)));i++)arenaBlockLightQueue.push({x:mesh.position.x,y:Math.min(height-.2,.8+i*.75),z:mesh.position.z+block.h*t/2+.05,sx:Math.max(.3,block.w*t*.22),color:i%2?theme.secondaryHex:theme.accentHex})}
+ flushArenaBlockLights(theme);
+ addLandmark(definition,theme,mats,rng);
+ /* Generic living set is the fallback prop ecology. An arena with a dedicated
+    content pass owns its own block-top detail and landmark family, so running
+    both would duplicate props and pay for them twice. */
+ if(!contentPass){const living=window.CS3D_ARENA_ASSETS?.buildArenaLivingSet?.(definition,theme,t);if(living?.root){addArena(living.root);for(const entry of living.animations||[])worldBits.push(entry);arenaGroup.userData.livingAssetCount=living.root.userData.assetCount;arenaGroup.userData.arenaConnections=living.root.userData.connectionCount;arenaGroup.userData.materialSystem=living.root.userData.materialSystem}}
+ if(contentPass?.root){addArena(contentPass.root);for(const entry of contentPass.animations||[])worldBits.push(entry);arenaGroup.userData.contentPass=contentPass.root.userData.assetPipeline;arenaGroup.userData.contentBudget=contentPass.root.userData.counts;arenaGroup.userData.contentFamilies=contentPass.root.userData.families;arenaGroup.userData.materialSystem="independent-pbr-data-textures-v2";
+  for(const [index,site] of definition.combat.sites.entries()){const light=new THREE.PointLight(index?theme.secondaryHex:theme.accentHex,1.1,28,1.9);light.name=`site-practical-${site.id}`;light.position.set((site.x+site.w/2)*t,4.8,(site.y+site.h/2)*t);addArena(light);worldBits.push({type:"light",o:light,base:.72,amp:.52,phase:index*1.8})}}
+ for(const site of definition.combat.sites)addCombatMarker(site,theme);
  const hazardViews=[];for(const hazard of definition.hazards){const material=new THREE.MeshBasicMaterial({color:theme.accentHex,transparent:true,opacity:.08,depthWrite:false,blending:THREE.AdditiveBlending}),mesh=new THREE.Mesh(new THREE.PlaneGeometry(hazard.w*t,hazard.h*t),material);mesh.rotation.x=-Math.PI/2;mesh.position.set((hazard.x+hazard.w/2)*t,.12,(hazard.y+hazard.h/2)*t);mesh.userData.hazardId=hazard.id;addArena(mesh);const rim=new THREE.Mesh(new THREE.TorusGeometry(Math.min(hazard.w,hazard.h)*t*.32,.055,8,40),material.clone());rim.rotation.x=Math.PI/2;rim.position.copy(mesh.position);rim.position.y=.16;addArena(rim);let volume=null;if(hazard.effect==="visibility"||["steam","spores","mist","dust"].includes(hazard.type)){volume=makeFogVolume(hazard,theme,t,rng);volume.position.set(mesh.position.x,0,mesh.position.z);addArena(volume)}hazardViews.push({mesh,rim,volume});worldBits.push({type:"spinY",o:rim,speed:.12})}
- const interactableViews=[];for(const value of definition.interactables){const group=new THREE.Group();group.position.set((value.x+value.w/2)*t,.14,(value.y+value.h/2)*t);addArena(group);if(value.type==="phase-barrier"){const barrier=new THREE.Mesh(new THREE.PlaneGeometry(value.w*t,3.8),new THREE.MeshBasicMaterial({color:theme.accentHex,transparent:true,opacity:.08,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));barrier.position.y=1.9;barrier.rotation.y=value.w<value.h?Math.PI/2:0;group.add(barrier);interactableViews.push({group,barrier})}else if(value.type==="water"){const water=makeWaterSurface(value,theme,t);group.add(water);interactableViews.push({group,water})}else{for(let i=0;i<4;i++){const arrow=new THREE.Mesh(geo.box,new THREE.MeshBasicMaterial({color:theme.secondaryHex,transparent:true,opacity:.2+i*.08}));arrow.scale.set(Math.max(.25,value.w*t/5),.025,Math.max(.12,value.h*t*.18));arrow.position.set((i-1.5)*(value.w>=value.h?value.w*t/5:0),.02,(i-1.5)*(value.h>value.w?value.h*t/5:0));group.add(arrow);worldBits.push({type:"pulse",o:arrow,base:.12,amp:.35,phase:i})}interactableViews.push({group})}}
- const backgroundMat=new THREE.MeshStandardMaterial({color:theme.wall,roughness:.88,metalness:.08,emissive:theme.wallEmissive,emissiveIntensity:.12});for(let i=0;i<18;i++){const side=i%4,x=side===0?-6-rng()*14:side===1?WORLD_W*S+6+rng()*14:rng()*WORLD_W*S,z=side===2?-7-rng()*14:side===3?WORLD_H*S+7+rng()*14:rng()*WORLD_H*S,h=4+rng()*14,shape=theme.architecture==="verdant"?new THREE.ConeGeometry(1+rng()*2,h,7):geo.box,structure=new THREE.Mesh(shape,backgroundMat);if(shape===geo.box)structure.scale.set(2+rng()*5,h,2+rng()*5);structure.position.set(x,shape===geo.box?h/2:0,z);structure.castShadow=true;addArena(structure);if(theme.architecture==="tempest")worldBits.push({type:"bob",o:structure,baseY:structure.position.y,phase:i})}
+ const interactableViews=[];for(const value of definition.interactables){const group=new THREE.Group();group.position.set((value.x+value.w/2)*t,.14,(value.y+value.h/2)*t);addArena(group);if(value.type==="phase-barrier"){const barrier=new THREE.Mesh(new THREE.PlaneGeometry(value.w*t,3.8),new THREE.MeshBasicMaterial({color:theme.accentHex,transparent:true,opacity:.08,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));barrier.position.y=1.9;barrier.rotation.y=value.w<value.h?Math.PI/2:0;group.add(barrier);interactableViews.push({group,barrier})}else if(value.type==="water"){const water=makeWaterSurface(value,theme,t);group.add(water);interactableViews.push({group,water})}else if(boundInteractables.has(value.id)){/* the content pass owns this lane's direction read */interactableViews.push({group})}else{for(let i=0;i<4;i++){const arrow=new THREE.Mesh(geo.box,new THREE.MeshBasicMaterial({color:theme.secondaryHex,transparent:true,opacity:.2+i*.08}));arrow.scale.set(Math.max(.25,value.w*t/5),.025,Math.max(.12,value.h*t*.18));arrow.position.set((i-1.5)*(value.w>=value.h?value.w*t/5:0),.02,(i-1.5)*(value.h>value.w?value.h*t/5:0));group.add(arrow);worldBits.push({type:"pulse",o:arrow,base:.12,amp:.35,phase:i})}interactableViews.push({group})}}
+ /* Strategy-aware background: an arena with a dedicated content pass already
+    supplies its own authored, instanced skyline family, so the generic
+    silhouettes would double it. Every other arena keeps its current behavior. */
+ arenaGroup.userData.genericBackgroundCount=contentPass?0:18;
+ arenaGroup.userData.genericLivingSet=!contentPass;
+ if(!contentPass){const backgroundMat=new THREE.MeshStandardMaterial({color:theme.wall,roughness:.88,metalness:.08,emissive:theme.wallEmissive,emissiveIntensity:.12});for(let i=0;i<18;i++){const side=i%4,x=side===0?-6-rng()*14:side===1?WORLD_W*S+6+rng()*14:rng()*WORLD_W*S,z=side===2?-7-rng()*14:side===3?WORLD_H*S+7+rng()*14:rng()*WORLD_H*S,h=4+rng()*14,shape=theme.architecture==="verdant"?new THREE.ConeGeometry(1+rng()*2,h,7):geo.box,structure=new THREE.Mesh(shape,backgroundMat);if(shape===geo.box)structure.scale.set(2+rng()*5,h,2+rng()*5);structure.position.set(x,shape===geo.box?h/2:0,z);structure.castShadow=true;addArena(structure);if(theme.architecture==="tempest")worldBits.push({type:"bob",o:structure,baseY:structure.position.y,phase:i})}}
+ flushArenaRims(theme);
  addArenaParticles(theme,definition,rng);const key=new THREE.PointLight(theme.accentHex,1.5,70,1.8);key.position.set(definition.topology.landmark.x*t,10,definition.topology.landmark.y*t);addArena(key);const fill=new THREE.PointLight(theme.secondaryHex,.8,80,1.8);fill.position.set(WORLD_W*S*.2,7,WORLD_H*S*.7);addArena(fill);
- initializeArenaRuntime(definition,theme,hazardViews,interactableViews)
+ initializeArenaRuntime(definition,theme,hazardViews,interactableViews,contentPass?.bindings)
 }
 function setDynamicZone(value,closed,state){
  for(let y=Math.floor(value.y);y<Math.ceil(value.y+value.h);y++)for(let x=Math.floor(value.x);x<Math.ceil(value.x+value.w);x++){if(!grid[y])continue;const occupied=players.some(p=>p.alive&&Math.floor(p.x/TILE)===x&&Math.floor(p.y/TILE)===y);if(closed&&occupied)return false;grid[y][x]=closed?1:(arenaBaseGrid[y]?.[x]??0);if(!state.dynamicCells.some(cell=>cell.x===x&&cell.y===y))state.dynamicCells.push({x,y})}return true
 }
-function arenaMovementMultiplier(p){if(!arenaRuntimeState)return 1;let value=1,tx=p.x/TILE,ty=p.y/TILE;for(const entry of arenaRuntimeState.interactables){if(ARENA_SYSTEM.pointInZone?.(tx,ty,entry.value)&&entry.value.movementMultiplier)value*=entry.value.movementMultiplier}return value}
+function arenaMovementMultiplier(p){if(!arenaRuntimeState||!arenaDefinition)return 1;return ARENA_CONTENT.interactableMovementMultiplier(arenaDefinition,p.x/TILE,p.y/TILE)}
 function applyArenaVolumes(dt,now){
  if(!arenaRuntimeState||phase!=="live")return;const state=arenaRuntimeState;state.elapsed+=dt;let obscured=false;
- for(const entry of state.hazards){const value=entry.value,cycle=value.telegraph+value.active+value.cooldown,t=(state.elapsed+(value.offset||0))%cycle,next=t<value.telegraph?"telegraph":t<value.telegraph+value.active?"active":"idle",active=next==="active";entry.phase=next;entry.view.mesh.material.opacity=active?.34:next==="telegraph"?.18:.055;entry.view.rim.material.opacity=active?.72:next==="telegraph"?.45:.12;entry.view.mesh.material.color.setHex(active?0xef4444:state.theme.accentHex);if(entry.view.volume)entry.view.volume.material.uniforms.uOpacity.value=active?.42:next==="telegraph"?.16:0;if(active&&(value.effect==="visibility"||value.type==="steam"||value.type==="spores"))obscured=true;if(me?.alive&&next!=="idle"&&ARENA_SYSTEM.pointInZone?.(me.x/TILE,me.y/TILE,value)){ui.hazardWarning=`${active?"EXIT":"WARNING"}: ${(value.type||value.effect||"ARENA HAZARD").replaceAll("-"," ").toUpperCase()}`;ui.hazardT=now+.35}
+ for(const entry of state.hazards){const value=entry.value,
+  /* One clock. The plane, rim, fog volume, HUD warning and every content-pass
+     binding resolve their phase from this call inside the same frame. */
+  next=ARENA_CONTENT.hazardPhaseAt(value,state.elapsed),progress=ARENA_CONTENT.hazardPhaseProgress(value,state.elapsed),active=next==="active",telegraph=next==="telegraph",cooldown=next==="cooldown";
+  entry.phase=next;entry.view.mesh.material.opacity=active?.34:telegraph?.18:cooldown?.1:.055;entry.view.rim.material.opacity=active?.72:telegraph?.45:cooldown?.2:.12;entry.view.mesh.material.color.setHex(active?0xef4444:telegraph?0xf59e0b:state.theme.accentHex);if(entry.view.volume)entry.view.volume.material.uniforms.uOpacity.value=active?.42:telegraph?.16:cooldown?.08:0;
+  for(const binding of entry.bindings||[])binding.apply(next,progress);
+  if(active&&(value.effect==="visibility"||value.type==="steam"||value.type==="spores"||value.type==="mist"))obscured=true;if(me?.alive&&(active||telegraph)&&ARENA_SYSTEM.pointInZone?.(me.x/TILE,me.y/TILE,value)){ui.hazardWarning=`${active?"EXIT":"WARNING"}: ${(value.type||value.effect||"ARENA HAZARD").replaceAll("-"," ").toUpperCase()}`;ui.hazardT=now+.35}
   for(const p of players){if(!p.alive||!active||!ARENA_SYSTEM.pointInZone?.(p.x/TILE,p.y/TILE,value))continue;if(value.effect==="slow")p.slowT=Math.max(p.slowT||0,now+.25);if(value.effect==="visibility"||value.type==="steam"||value.type==="spores")p.arenaObscuredUntil=now+.3;if(value.effect==="damage"&&now>=(p.arenaHazardNext||0)){p.arenaHazardNext=now+.5;damage(p,Math.max(1,Math.round((value.damagePerSecond||6)*.5)),null,{arena:true})}if(value.effect==="push"){const nx=p.x+(value.vector?.[0]||0)*(value.strength||20)*dt,ny=p.y+(value.vector?.[1]||0)*(value.strength||20)*dt;if(canOccupyPlayer(p,nx,ny)){p.x=nx;p.y=ny}}}
  }
- for(const entry of state.interactables){const value=entry.value;if(value.type==="phase-barrier"){const cycle=value.telegraph+value.active+value.cooldown,t=(state.elapsed+(value.offset||0))%cycle,wantsClosed=t>=value.telegraph&&t<value.telegraph+value.active,telegraph=t<value.telegraph;if(wantsClosed!==entry.closed){const changed=setDynamicZone(value,wantsClosed,state);if(changed)entry.closed=wantsClosed}entry.view.barrier.material.opacity=entry.closed?.7:telegraph?.3:.06}else if(value.vector){for(const p of players){if(!p.alive||!ARENA_SYSTEM.pointInZone?.(p.x/TILE,p.y/TILE,value))continue;const nx=p.x+(value.vector[0]||0)*(value.strength||20)*dt,ny=p.y+(value.vector[1]||0)*(value.strength||20)*dt;if(canOccupyPlayer(p,nx,ny)){p.x=nx;p.y=ny}}}}
+ for(const entry of state.interactables){const value=entry.value;
+  /* Driven from the simulation clock, so flow freezes exactly when the round
+     freezes — no separate animation loop, no independent lifecycle. */
+  for(const binding of entry.bindings||[])binding.apply(state.elapsed,dt);
+  if(value.type==="phase-barrier"){const cycle=value.telegraph+value.active+value.cooldown,t=(state.elapsed+(value.offset||0))%cycle,wantsClosed=t>=value.telegraph&&t<value.telegraph+value.active,telegraph=t<value.telegraph;if(wantsClosed!==entry.closed){const changed=setDynamicZone(value,wantsClosed,state);if(changed)entry.closed=wantsClosed}entry.view.barrier.material.opacity=entry.closed?.7:telegraph?.3:.06}else if(value.vector){for(const p of players){if(!p.alive||!ARENA_SYSTEM.pointInZone?.(p.x/TILE,p.y/TILE,value))continue;const nx=p.x+(value.vector[0]||0)*(value.strength||20)*dt,ny=p.y+(value.vector[1]||0)*(value.strength||20)*dt;if(canOccupyPlayer(p,nx,ny)){p.x=nx;p.y=ny}}}}
  scene.fog.density=state.theme.fogDensity*(RUNTIME.QUALITY_PROFILES[qualityController.profile]?.fog||1)*(obscured?1.24:1)
 }
 function arenaElevationWorld(x,y){return ARENA_SYSTEM.arenaElevationAt?.(arenaDefinition,x/TILE,y/TILE)||0}

@@ -40,7 +40,19 @@ import {
   validateArenaDefinition,
   validateArenaRegistry
 } from "./arena-core.js";
-import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability, buildForgeContentPass } from "./arena-assets.js";
+import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability } from "./arena-assets.js";
+import {
+  ARENA_CONTENT_VERSION,
+  CONTENT_PASS_ARENAS,
+  HAZARD_PHASES,
+  buildArenaContentPass,
+  hasArenaContentPass,
+  hazardCycleTime,
+  hazardPhaseAt,
+  hazardPhaseProgress,
+  interactableMovementMultiplier,
+  playableBounds
+} from "./arena-content.js";
 import { ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal } from "./divisional-arsenal.js";
 import {
   LATTICE_RANK_COUNT,
@@ -181,8 +193,19 @@ window.CS3D_ARENA_ASSETS = Object.freeze({
   buildArenaLandmark,
   buildArenaLivingSet,
   buildArenaMaterialSet,
-  buildExclusionReadability,
-  buildForgeContentPass
+  buildExclusionReadability
+});
+window.CS3D_ARENA_CONTENT = Object.freeze({
+  version: ARENA_CONTENT_VERSION,
+  CONTENT_PASS_ARENAS,
+  HAZARD_PHASES,
+  buildArenaContentPass,
+  hasArenaContentPass,
+  hazardCycleTime,
+  hazardPhaseAt,
+  hazardPhaseProgress,
+  interactableMovementMultiplier,
+  playableBounds
 });
 window.CS3D_ARSENAL = Object.freeze({ ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal });
 window.CS3D_OPERATIONS = Object.freeze({

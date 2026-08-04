@@ -262,6 +262,142 @@ try {
   }
   const archiveProfile = arenaCoverage.find(profile => profile.id === "abyss");
   if (!archiveProfile || archiveProfile.waterMeshes < 2 || archiveProfile.fogVolumes < 1) problems.push("Sunken Archive is missing shader water or local mist volumes");
+
+  console.log("smoke: arena content passes in the live scene graph");
+  const contentPasses = await page.evaluate((restoreId) => {
+    const passArenas = window.CS3D_ARENA_CONTENT.CONTENT_PASS_ARENAS;
+    const report = { passes: [], generic: [] };
+    for (const id of window.CS3D_ARENA_ORDER) {
+      window.selectArena(id);
+      const definition = window.CS3D_ARENA_DEFINITIONS[id];
+      const proxies = [];
+      const families = new Set();
+      const atmosphere = [];
+      let instancedFamilies = 0;
+      arenaGroup.traverse(object => {
+        if (object.userData?.collisionProxy) proxies.push({ visible: object.visible, height: object.userData.collisionHeight });
+        if (object.userData?.contentFamily) families.add(object.userData.contentFamily);
+        if (object.isInstancedMesh) instancedFamilies++;
+        if (object.userData?.navigationClass === "non-colliding-atmosphere") atmosphere.push(object.count);
+      });
+      const bounds = window.CS3D_ARENA_CONTENT.playableBounds(definition, TILE * S);
+      const entry = {
+        id,
+        hasPass: passArenas.includes(id),
+        contentPass: arenaGroup.userData.contentPass || null,
+        genericBackgroundCount: arenaGroup.userData.genericBackgroundCount,
+        genericLivingSet: arenaGroup.userData.genericLivingSet,
+        proxyCount: proxies.length,
+        expectedProxies: definition.topology.blocks.length,
+        proxiesInvisible: proxies.every(proxy => proxy.visible === false),
+        proxiesVisible: proxies.every(proxy => proxy.visible === true),
+        proxyHeights: proxies.every(proxy => Number.isFinite(proxy.height) && proxy.height > 0),
+        families: [...families],
+        instancedFamilies,
+        atmosphereInstances: atmosphere.reduce((sum, count) => sum + count, 0),
+        hazardBindings: arenaGroup.userData.hazardBindingIds || [],
+        interactableBindings: arenaGroup.userData.interactableBindingIds || [],
+        hazardIds: definition.hazards.map(hazard => hazard.id),
+        interactableIds: definition.interactables.map(value => value.id),
+        bounds,
+      };
+      (entry.hasPass ? report.passes : report.generic).push(entry);
+    }
+    window.selectArena(restoreId);
+    return report;
+  }, arenaId);
+  console.log("content passes:", JSON.stringify(contentPasses.passes.map(entry => ({ id: entry.id, pass: entry.contentPass, families: entry.families.length, instanced: entry.instancedFamilies, atmosphere: entry.atmosphereInstances }))));
+  if (contentPasses.passes.length !== 2) problems.push(`expected forge and abyss content passes, found ${contentPasses.passes.length}`);
+  for (const entry of contentPasses.passes) {
+    if (!entry.contentPass) problems.push(`${entry.id} did not integrate its content pass into the live arena`);
+    if (entry.proxyCount !== entry.expectedProxies) problems.push(`${entry.id} lost collision proxies (${entry.proxyCount}/${entry.expectedProxies})`);
+    if (!entry.proxiesInvisible) problems.push(`${entry.id} left an original block mesh visible under its replacement skin`);
+    if (!entry.proxyHeights) problems.push(`${entry.id} dropped collisionHeight metadata from a skinned block`);
+    if (entry.genericBackgroundCount !== 0) problems.push(`${entry.id} built a duplicate generic skyline alongside its authored one`);
+    if (entry.genericLivingSet) problems.push(`${entry.id} built the generic living set alongside its content pass`);
+    if (entry.instancedFamilies < 10) problems.push(`${entry.id} repeated kit families are not instanced (${entry.instancedFamilies})`);
+    if (entry.atmosphereInstances < 18) problems.push(`${entry.id} background atmosphere is too sparse (${entry.atmosphereInstances})`);
+    if (new Set(entry.hazardBindings).size !== entry.hazardBindings.length) problems.push(`${entry.id} hazard binding ids are not unique`);
+    if (new Set(entry.interactableBindings).size !== entry.interactableBindings.length) problems.push(`${entry.id} interactable binding ids are not unique`);
+    if (!entry.hazardBindings.every(id => entry.hazardIds.includes(id))) problems.push(`${entry.id} has a hazard binding with no authored hazard`);
+    if (!entry.interactableBindings.every(id => entry.interactableIds.includes(id))) problems.push(`${entry.id} has an interactable binding with no authored volume`);
+    if (entry.interactableBindings.length !== entry.interactableIds.length) problems.push(`${entry.id} did not bind every authored interactable`);
+  }
+  for (const entry of contentPasses.generic) {
+    if (entry.contentPass) problems.push(`${entry.id} unexpectedly built a content pass`);
+    if (entry.genericBackgroundCount !== 18 || !entry.genericLivingSet) problems.push(`${entry.id} lost its existing generic background or living set`);
+    if (!entry.proxiesVisible) problems.push(`${entry.id} hid a collision block without a replacement skin`);
+  }
+
+  console.log("smoke: content-pass hazard and interactable state agreement");
+  const stateAgreement = await page.evaluate((restoreId) => {
+    const results = [];
+    for (const id of window.CS3D_ARENA_CONTENT.CONTENT_PASS_ARENAS) {
+      window.selectArena(id);
+      gameState.recover(RUNTIME.GAME_STATES.LIVE, "smoke-content-state");
+      phase = "live";
+      const definition = window.CS3D_ARENA_DEFINITIONS[id];
+      for (const hazard of definition.hazards) {
+        for (const [label, at] of [["telegraph", hazard.telegraph * 0.5], ["active", hazard.telegraph + hazard.active * 0.5], ["cooldown", hazard.telegraph + hazard.active + 0.2]]) {
+          const cycle = hazard.telegraph + hazard.active + hazard.cooldown;
+          arenaRuntimeState.elapsed = at - (hazard.offset || 0) + cycle * 4;
+          applyArenaVolumes(0.016, performance.now() / 1000);
+          const entry = arenaRuntimeState.hazards.find(candidate => candidate.value.id === hazard.id);
+          const expected = window.CS3D_ARENA_CONTENT.hazardPhaseAt(hazard, arenaRuntimeState.elapsed);
+          results.push({
+            id, hazard: hazard.id, label,
+            simulation: entry.phase,
+            expected,
+            bindings: (entry.bindings || []).map(binding => binding.phase),
+            planeOpacity: entry.view.mesh.material.opacity,
+            fogOpacity: entry.view.volume ? entry.view.volume.material.uniforms.uOpacity.value : null,
+          });
+        }
+      }
+      // Conveyor / water flow is driven by the simulation clock only.
+      const frozen = arenaRuntimeState.interactables.flatMap(entry => (entry.bindings || []).map(binding => binding.id));
+      results.push({ id, hazard: null, label: "bindings", simulation: null, expected: null, bindings: frozen });
+      gameState.recover(RUNTIME.GAME_STATES.ARENA_SELECT, "smoke-content-state-done");
+      phase = "mapselect";
+    }
+    window.selectArena(restoreId);
+    return results;
+  }, arenaId);
+  for (const entry of stateAgreement.filter(row => row.hazard)) {
+    if (entry.simulation !== entry.expected) problems.push(`${entry.id}/${entry.hazard} simulation phase ${entry.simulation} disagrees with the authoritative ${entry.expected}`);
+    if (entry.bindings.some(phase => phase !== entry.expected)) problems.push(`${entry.id}/${entry.hazard} visual binding did not follow the ${entry.expected} phase`);
+    if (entry.label === "active" && !(entry.planeOpacity > 0.2)) problems.push(`${entry.id}/${entry.hazard} active plane did not brighten`);
+    if (entry.label === "cooldown" && entry.planeOpacity > 0.2) problems.push(`${entry.id}/${entry.hazard} cooldown still reads as active`);
+  }
+  console.log("content state agreement:", JSON.stringify(stateAgreement.filter(row => row.hazard).map(row => `${row.id}/${row.hazard}:${row.label}=${row.simulation}`)));
+
+  console.log("smoke: content-pass teardown stability");
+  const teardownProfiles = await page.evaluate(() => {
+    const samples = [];
+    for (let attempt = 0; attempt < 4; attempt++) {
+      for (const id of ["forge", "abyss"]) window.CS3D_rebuildArena(id);
+      window.CS3D_rebuildArena("forge");
+      updateRender(0.016);
+      samples.push({
+        geometries: renderer.info.memory.geometries,
+        textures: renderer.info.memory.textures,
+        listeners: appLifecycle.counts().listeners,
+        schedulerJobs: gameScheduler.size,
+        animations: worldBits.length,
+        arenaChildren: arenaGroup.children.length,
+      });
+    }
+    return samples;
+  });
+  console.log("teardown stability:", JSON.stringify(teardownProfiles));
+  for (const field of ["listeners", "schedulerJobs", "animations", "arenaChildren"]) {
+    if (new Set(teardownProfiles.map(sample => sample[field])).size !== 1) problems.push(`${field} drifted across repeated forge/abyss rebuilds: ${teardownProfiles.map(sample => sample[field]).join(", ")}`);
+  }
+  for (const field of ["geometries", "textures"]) {
+    const values = teardownProfiles.slice(1).map(sample => sample[field]);
+    if (Math.max(...values) - Math.min(...values) > 2) problems.push(`${field} grew across repeated forge/abyss rebuilds: ${values.join(", ")}`);
+  }
+  await page.evaluate((restoreId) => window.selectArena(restoreId), arenaId);
   const lifecycle = await page.evaluate((restoreId) => {
     window.selectArena("mirage");
     const barrier = window.CS3D_ARENA_DEFINITIONS.mirage.interactables.find(value => value.type === "phase-barrier");
@@ -541,6 +677,74 @@ try {
   if (!bossStats.hudVisible || !/LOOM HYDRA/i.test(bossStats.hudName)) problems.push("boss HUD did not render the live boss");
   if (!bossStats.spawnValid) problems.push("boss spawned at an invalid collision position");
   if (bossStats.maxHp < 6000 || bossStats.phaseIndex < 1 || !bossStats.phaseDamageApplied || bossStats.reinforcements < 2) problems.push(`boss escalation is incomplete: ${JSON.stringify(bossStats)}`);
+
+  console.log("smoke: conveyor push and water cost agree with their visuals");
+  const volumeAgreement = await page.evaluate((restoreId) => {
+    const results = { conveyors: [], water: [] };
+    window.CS3D_rebuildArena("forge");
+    gameState.recover(RUNTIME.GAME_STATES.LIVE, "smoke-volume-agreement");
+    phase = "live";
+    const subject = players.find(player => player.alive) || players[0];
+    const home = { x: subject.x, y: subject.y };
+    for (const lane of window.CS3D_ARENA_DEFINITIONS.forge.interactables.filter(value => value.type === "conveyor")) {
+      const strip = arenaGroup.getObjectByName(`conveyor-flow-${lane.id}`);
+      subject.x = (lane.x + lane.w / 2) * TILE;
+      subject.y = (lane.y + lane.h / 2) * TILE;
+      const before = { x: subject.x, y: subject.y };
+      applyArenaVolumes(0.05, performance.now() / 1000);
+      const moved = [subject.x - before.x, subject.y - before.y];
+      const axis = Math.abs(lane.vector[0]) >= Math.abs(lane.vector[1]) ? 0 : 1;
+      results.conveyors.push({
+        id: lane.id,
+        vector: [...lane.vector],
+        visualSign: strip?.userData.flowSign ?? null,
+        pushSign: Math.sign(moved[axis]),
+        moved: moved[axis],
+      });
+    }
+    subject.x = home.x;
+    subject.y = home.y;
+
+    window.CS3D_rebuildArena("abyss");
+    gameState.recover(RUNTIME.GAME_STATES.LIVE, "smoke-volume-agreement");
+    phase = "live";
+    const swimmer = players.find(player => player.alive) || players[0];
+    for (const pool of window.CS3D_ARENA_DEFINITIONS.abyss.interactables.filter(value => value.type === "water")) {
+      const boundary = arenaGroup.getObjectByName(`water-boundary-${pool.id}`);
+      swimmer.x = (pool.x + pool.w / 2) * TILE;
+      swimmer.y = (pool.y + pool.h / 2) * TILE;
+      const inside = arenaMovementMultiplier(swimmer);
+      swimmer.x = (pool.x - 0.4) * TILE;
+      const outsideWest = arenaMovementMultiplier(swimmer);
+      swimmer.x = (pool.x + pool.w / 2) * TILE;
+      swimmer.y = (pool.y + pool.h + 0.4) * TILE;
+      const outsideSouth = arenaMovementMultiplier(swimmer);
+      results.water.push({
+        id: pool.id,
+        authored: pool.movementMultiplier,
+        inside,
+        outsideWest,
+        outsideSouth,
+        visual: boundary?.userData.movementMultiplier ?? null,
+      });
+    }
+    gameState.recover(RUNTIME.GAME_STATES.ARENA_SELECT, "smoke-volume-agreement-done");
+    phase = "mapselect";
+    window.CS3D_rebuildArena(restoreId);
+    return results;
+  }, arenaId);
+  console.log("volume agreement:", JSON.stringify(volumeAgreement));
+  for (const lane of volumeAgreement.conveyors) {
+    if (lane.visualSign === null) problems.push(`${lane.id} has no flow strip in the live arena`);
+    if (!(Math.abs(lane.moved) > 0)) problems.push(`${lane.id} applied no conveyor force`);
+    if (lane.pushSign !== lane.visualSign) problems.push(`${lane.id} visual direction ${lane.visualSign} disagrees with the applied push ${lane.pushSign}`);
+  }
+  if (new Set(volumeAgreement.conveyors.map(lane => lane.visualSign)).size !== 2) problems.push("opposed conveyor lanes do not show opposite directions");
+  for (const pool of volumeAgreement.water) {
+    if (pool.inside !== pool.authored) problems.push(`${pool.id} did not apply its authored movement multiplier inside the volume`);
+    if (pool.outsideWest !== 1 || pool.outsideSouth !== 1) problems.push(`${pool.id} movement cost leaked outside the authored volume`);
+    if (pool.visual !== pool.authored) problems.push(`${pool.id} boundary visual advertises the wrong movement cost`);
+  }
 
   console.log("smoke: restart stability and WebGL recovery");
   // The first rebuild after the boss probe also clears boss-only visibility

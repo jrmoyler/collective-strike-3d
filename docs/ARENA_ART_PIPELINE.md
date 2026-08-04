@@ -25,22 +25,42 @@ else.
 
 ## Measured budget we have to stay inside
 
-Taken from the current smoke run, not estimated:
+`npm run budget` (`scripts/arena-budget.mjs`) boots the built game in headless
+Chromium, walks it into a live round, rebuilds each arena, waits for
+`renderer.compile()` and twelve settled frames, and reads real `WebGLRenderer`
+counters. The arena share is the difference between an identical frame with the
+arena visible and with it hidden. **Declared `userData` counts are diagnostics
+and gate nothing** — `root.children.length` is not a draw-call count, and
+treating it as one is how the first Forge pass shipped 24 draw calls over
+ceiling while reporting "10".
 
-| Metric | Now | Ceiling for the art pass |
-| --- | --- | --- |
-| Arena children | 74–115 per arena | 180 |
-| Draw calls, live round | 409–470 | 620 |
-| Triangles, live round | 240k–271k | 420k |
-| Geometries / textures | 76–81 / 13 | 140 / 40 |
-| `dist/index.html` | 338 kB | 420 kB |
-| Total vendored model bytes | 0 | 12 MB across all ten arenas |
+| Metric | Forge | Abyss | Verdant (no pass) | Ceiling |
+| --- | --- | --- | --- | --- |
+| Arena children | 44 | 39 | 51 | 180 |
+| Draw calls, live round | 568 | 555 | 602 | 620 |
+| Triangles, live round | 318k | 318k | 314k | 420k |
+| Arena geometries | 89 | 78 | 139 | 140 |
+| Arena textures | 27 | 24 | 18 | 40 |
+| Total vendored model bytes | 0 | 0 | 0 | 12 MB across all ten arenas |
 
-Two structural rules keep those numbers reachable. Repeated kit pieces must be
-placed with `InstancedMesh`, one draw call per piece type per arena. And every
-new mesh is either static arena geometry owned by `arenaGroup` — and therefore
-released by the existing `teardownArena` / `disposeTree` path — or has a bounded
-lifetime through `tempMeshes`. Nothing new gets its own lifetime.
+Two numbers are worth carrying forward. The **non-arena scene costs ~450 draw
+calls** — ten operator rigs, their weapons and the shadow pass — so an arena has
+roughly 170 draw calls of headroom, not 620. And an arena that has not had a
+content pass yet (Verdant, 139 arena geometries) sits within one geometry of the
+ceiling, so the remaining eight arenas need their pass before they can grow.
+
+Three structural rules keep those numbers reachable.
+
+- Repeated kit pieces are placed with `InstancedMesh`, one draw call per piece
+  type per arena.
+- Every new mesh is either static arena geometry owned by `arenaGroup` — and
+  therefore released by the existing `teardownArena` / `disposeTree` path — or has
+  a bounded lifetime through `tempMeshes`. Nothing new gets its own lifetime.
+- **No material uses `transmission`.** A transmissive `MeshPhysicalMaterial`
+  makes the renderer re-render the whole scene into a transmission target once
+  per object. Fifteen such props cost Sunken Archive 419 arena draw calls and
+  180k triangles per frame. Fake refraction with clearcoat and alpha instead;
+  `tests/arena-assets.test.js` enforces this for every arena.
 
 ## What is safe to layer, and what is not
 
@@ -157,6 +177,39 @@ nothing new enters `dependencies`.
 Every committed GLB is Y-up, real-world scale (1 unit = 1 metre — note the arena
 uses `TILE * S` = 4 units per tile), centred on its footprint, and origin at the
 base so it drops onto the deck without a magic offset.
+
+## The content-pass framework
+
+Arena art now goes through `src/arena-content.js`, not through per-arena calls in
+the runtime.
+
+```
+buildArenaContentPass(definition, theme, tileSize) -> { root, animations, bindings } | null
+CONTENT_PASS_KITS[arenaId]   // data: materials, geometries, atmosphere, hazard types
+kit.families(ctx)            // optional per-arena hook for identity pieces
+```
+
+Shared layers (atmosphere, block skins, platforms and ramps, skirting and decals,
+hazard visuals, interactable visuals) run for every kit and read only authored
+data. `buildArenaIdentity` calls the factory once; an arena with no kit gets
+`null` and keeps its existing generic background, living set and interactable
+arrows unchanged. Adding an arena is a kit entry plus an optional hook — never
+another optional call site.
+
+Visual state is delivered through `bindings`, plain objects keyed by the authored
+hazard or interactable id:
+
+```
+bindings.hazards       -> [{ id, kind, apply(phase, progress), reset() }]
+bindings.interactables -> [{ id, kind, apply(elapsed, dt),      reset() }]
+```
+
+`initializeArenaRuntime` attaches them to the matching runtime entry by id, and
+`applyArenaVolumes` calls them from the existing simulation tick. Hazard phase
+comes from `hazardPhaseAt()` — one pure function, four explicit states (`idle`,
+`telegraph`, `active`, `cooldown`) — which the plane, rim, fog volume, HUD
+warning and every binding all read in the same frame. There is no second clock,
+no new timer and no new requestAnimationFrame loop.
 
 ## Hero arena first
 

@@ -9,6 +9,7 @@ const arenaRuntimePath = path.join(root, "src", "arena-runtime.js");
 const arenaCorePath = path.join(root, "src", "arena-core.js");
 const arenaBallisticsPath = path.join(root, "src", "arena-ballistics.js");
 const arenaAssetsPath = path.join(root, "src", "arena-assets.js");
+const arenaContentPath = path.join(root, "src", "arena-content.js");
 const divisionalArsenalPath = path.join(root, "src", "divisional-arsenal.js");
 const vendorSourcePath = path.join(root, "src", "vendor.js");
 const soundtrackManifestPath = path.join(root, "src", "soundtrack-manifest.js");
@@ -18,6 +19,7 @@ const arenaRuntime = fs.existsSync(arenaRuntimePath) ? fs.readFileSync(arenaRunt
 const arenaCoreSource = fs.existsSync(arenaCorePath) ? fs.readFileSync(arenaCorePath, "utf8") : "";
 const arenaBallisticsSource = fs.existsSync(arenaBallisticsPath) ? fs.readFileSync(arenaBallisticsPath, "utf8") : "";
 const arenaAssetsSource = fs.existsSync(arenaAssetsPath) ? fs.readFileSync(arenaAssetsPath, "utf8") : "";
+const arenaContentSource = fs.existsSync(arenaContentPath) ? fs.readFileSync(arenaContentPath, "utf8") : "";
 const divisionalArsenalSource = fs.existsSync(divisionalArsenalPath) ? fs.readFileSync(divisionalArsenalPath, "utf8") : "";
 const vendorSource = fs.existsSync(vendorSourcePath) ? fs.readFileSync(vendorSourcePath, "utf8") : "";
 const soundtrackManifestSource = fs.existsSync(soundtrackManifestPath) ? fs.readFileSync(soundtrackManifestPath, "utf8") : "";
@@ -106,6 +108,20 @@ assert(/function updateMapSelect\(/.test(html) && /function showArenaDiorama\(/.
 assert(/function ensureMapSelectMarkers\(/.test(html) && /SITE A/.test(html) && /STRIKE SPAWN/.test(html) && /SENTINEL SPAWN/.test(html), "3D site and team-spawn markers are present");
 assert(/buildArenaLandmark/.test(arenaAssetsSource) && /img2threejs-procedural-v1/.test(arenaAssetsSource), "img2threejs procedural landmark factory is present");
 assert(/buildExclusionReadability/.test(arenaAssetsSource) && /semantic-barriers-v1/.test(arenaAssetsSource), "shape-coded non-walkable surface system is present");
+
+// Data-driven arena content-pass framework, and its live integration
+assert(Boolean(arenaContentSource), "arena content-pass framework is present");
+assert(/export function buildArenaContentPass\(/.test(arenaContentSource) && /CONTENT_PASS_KITS/.test(arenaContentSource), "content passes are resolved from a data-driven kit table");
+for (const arena of ["forge", "abyss"]) assert(new RegExp(`\\n\\s{2}${arena}: Object\\.freeze\\(\\{`).test(arenaContentSource), `${arena} declares a content-pass kit`);
+assert(/export function hazardPhaseAt\(/.test(arenaContentSource) && /"cooldown"/.test(arenaContentSource), "hazard phase mapping exposes an explicit cooldown state");
+assert(!/transmission\s*:/.test(arenaAssetsSource) && !/transmission\s*:/.test(arenaContentSource), "no arena material forces a per-object transmission render pass");
+assert(!/https?:\/\//.test(arenaContentSource), "content-pass framework introduces no remote host");
+assert(/ARENA_CONTENT\?*\.?buildArenaContentPass/.test(html), "the content pass is built into the live arena");
+assert(/ARENA_CONTENT\.hazardPhaseAt\(/.test(html) && !/next=t<value\.telegraph\?/.test(html), "the runtime hazard tick reads the authoritative phase mapping");
+assert(/binding\.apply\(next,progress\)/.test(html) && /binding\.apply\(state\.elapsed,dt\)/.test(html), "hazard and interactable visual bindings run inside the existing simulation tick");
+assert(/genericBackgroundCount=contentPass\?0:18/.test(html), "the generic background builder is strategy-aware");
+assert(/if\(contentPass\)mesh\.visible=false/.test(html) && /collisionProxy=true/.test(html) && /collisionHeight=height/.test(html), "skinned blocks keep their collision proxy and height");
+assert(/CS3D_arenaBudget/.test(html) && fs.existsSync(path.join(root, "scripts", "arena-budget.mjs")), "measured browser arena-budget gate is wired");
 assert(/id="arenaNavLegend"/.test(html) && /Walkable deck/.test(html) && /Solid cover/.test(html) && /Void \/ fall/.test(html), "navigation surface legend explains blocked spaces without relying on color alone");
 assert(/createSpring/.test(vendorSource) && /createTimeline/.test(vendorSource) && /anime: "4\.5\.0"/.test(vendorSource), "modern anime.js 4.5 motion APIs are bundled locally");
 assert(/ArrowLeft/.test(arenaRuntime) && /ArrowRight/.test(arenaRuntime) && /confirmArenaSelection/.test(arenaRuntime), "keyboard navigation and deployment confirmation are wired");
