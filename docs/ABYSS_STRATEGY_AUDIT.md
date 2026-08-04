@@ -126,8 +126,8 @@ between an identical frame with the arena visible and with it hidden. Declared
 | Metric | Ceiling | Abyss before | Abyss after | Forge after |
 | --- | --- | --- | --- | --- |
 | Direct arena children | 180 | 95 | **39** | **44** |
-| Live-round draw calls (whole scene) | 620 | 869 ✗ | **555** | **568** |
-| Live-round triangles (whole scene) | 420,000 | 468,514 ✗ | **317,796** | **317,630** |
+| Live-round draw calls (whole scene) | 620 | 869 ✗ | **554** | **568** |
+| Live-round triangles (whole scene) | 420,000 | 468,514 ✗ | **316,452** | **317,630** |
 | Arena geometries | 140 | 124 | **78** | **89** |
 | Arena textures | 40 | 21 | **24** | **27** |
 | Vendored arena model bytes | 12 MB | 0 | **0** | **0** |
@@ -138,7 +138,15 @@ between an identical frame with the arena visible and with it hidden. Declared
 
 Non-arena scene cost (ten operator rigs, weapons, markers, HUD-adjacent 3D) is
 ~450 draw calls and ~288k triangles, so the arena budget is what remains under
-each ceiling. Machine-readable report: `docs/arena-shots/budget.json`.
+each ceiling. Machine-readable report: `docs/arena-shots/budget.json`, regenerated
+on every `npm run budget`.
+
+Whole-scene figures carry roughly ±5 draw calls and ±3k triangles of run-to-run
+variance from live particle and effect state; the arena-attributable figures are
+deterministic because both samples come from the same frame. The gate is the
+whole-scene number, so the margin below each ceiling is what matters, not the
+last digit. Numbers here are SwiftShader at 1280×720 — a real GPU culls
+differently, so treat them as a regression tripwire rather than an absolute.
 
 Teardown is stable: four consecutive forge↔abyss rebuild cycles hold renderer
 geometries at 118, textures at 31, lifecycle listeners at 51, scheduler jobs at
