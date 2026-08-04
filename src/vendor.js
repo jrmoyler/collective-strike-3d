@@ -94,6 +94,19 @@ import {
   saveCareer,
   saveSettings
 } from "./persistence.js";
+import {
+  PARTICLE_BUDGETS,
+  ParticleManager,
+  HAZARD_EFFECT_CREATORS,
+  createHazardEffectsForArena,
+  createForgeSteamEffect,
+  createCryoIceCrackEffect,
+  createCalderaMagmaEffect,
+  createVerdantSporeEffect,
+  createMiragePulseEffect,
+  createNeonRainEffect,
+  createLunarDustEffect
+} from "./cs3d-particles.js";
 
 /* v3-compatible surface used by the existing HUD/menu animations */
 function animeCompat(params) {
@@ -215,4 +228,18 @@ window.CS3D_PERSISTENCE = Object.freeze({
   resetSettings,
   saveCareer,
   saveSettings
+});
+
+window.CS3D_PARTICLES = Object.freeze({
+  PARTICLE_BUDGETS,
+  ParticleManager,
+  HAZARD_EFFECT_CREATORS,
+  createHazardEffectsForArena,
+  createForgeSteamEffect,
+  createCryoIceCrackEffect,
+  createCalderaMagmaEffect,
+  createVerdantSporeEffect,
+  createMiragePulseEffect,
+  createNeonRainEffect,
+  createLunarDustEffect
 });
