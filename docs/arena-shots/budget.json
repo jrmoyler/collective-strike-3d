@@ -1,0 +1,87 @@
+{
+  "generated": "measured-live-round",
+  "ceilings": {
+    "directChildren": 180,
+    "liveDrawCalls": 620,
+    "liveTriangles": 420000,
+    "arenaGeometries": 140,
+    "arenaTextures": 40,
+    "modelBytes": 12582912
+  },
+  "modelBytes": 0,
+  "textureBytes": 0,
+  "arenas": [
+    {
+      "arena": "forge",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 44,
+      "liveDrawCalls": 568,
+      "liveTriangles": 317630,
+      "arenaDrawCalls": 117,
+      "arenaTriangles": 27782,
+      "sceneDrawCallsWithoutArena": 451,
+      "arenaGeometries": 89,
+      "arenaTextures": 27,
+      "rendererGeometries": 126,
+      "rendererTextures": 26,
+      "instancedFamilies": 26,
+      "instances": 878,
+      "contentInstancedFamilies": 18,
+      "contentInstances": 184,
+      "contentPass": "forge-strategy-kit-v2",
+      "contentMetadata": {
+        "directChildren": 20,
+        "families": 18,
+        "instances": 184
+      },
+      "hazardBindings": [
+        "steam-west",
+        "steam-east",
+        "furnace-heat"
+      ],
+      "interactableBindings": [
+        "conveyor-north",
+        "conveyor-south"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "abyss",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 39,
+      "liveDrawCalls": 554,
+      "liveTriangles": 316452,
+      "arenaDrawCalls": 105,
+      "arenaTriangles": 29292,
+      "sceneDrawCallsWithoutArena": 449,
+      "arenaGeometries": 78,
+      "arenaTextures": 24,
+      "rendererGeometries": 112,
+      "rendererTextures": 32,
+      "instancedFamilies": 37,
+      "instances": 1008,
+      "contentInstancedFamilies": 29,
+      "contentInstances": 266,
+      "contentPass": "abyss-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 31,
+        "families": 29,
+        "instances": 266
+      },
+      "hazardBindings": [
+        "memory-surge",
+        "mist-beat"
+      ],
+      "interactableBindings": [
+        "flooded-west",
+        "flooded-east"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    }
+  ],
+  "problems": []
+}

@@ -37,7 +37,7 @@ function dataTexture(data, size, colorSpace) {
 }
 
 /** Independent albedo/roughness/normal signals; no PBR channel aliasing. */
-function proceduralSurfaceSet(baseValue, accentValue, seed, finish = "worn-metal", size = 128) {
+export function proceduralSurfaceSet(baseValue, accentValue, seed, finish = "worn-metal", size = 128) {
   const random = seededNoise(`${seed}:${finish}`), base = color(baseValue), accent = color(accentValue);
   const heights = new Float32Array(size * size), albedo = new Uint8Array(size * size * 4), roughness = new Uint8Array(size * size * 4), normal = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
@@ -127,16 +127,20 @@ function assetMaterials(theme) {
       emissive: theme.secondaryHex,
       emissiveIntensity: 1.16,
     }),
+    /* Refractive glass is deliberately faked with clearcoat + alpha rather than
+       `transmission`: a transmissive material forces the renderer to re-render
+       the whole scene into a transmission target once per object, which cost
+       Sunken Archive more than 300 draw calls and 150k triangles per frame. */
     glass: new THREE.MeshPhysicalMaterial({
       color: theme.secondaryHex,
       roughness: 0.12,
       metalness: 0,
-      transmission: 0.38,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.08,
       transparent: true,
-      opacity: 0.72,
-      thickness: 0.38,
+      opacity: 0.62,
       emissive: theme.secondaryHex,
-      emissiveIntensity: 0.34,
+      emissiveIntensity: 0.44,
     }),
     organic: new THREE.MeshPhysicalMaterial({
       color: 0x163d2d,
@@ -270,18 +274,26 @@ function buildFurnace(ctx) {
   ctx.animations.push({ type: "light", o: glow, base: 3.4, amp: 1.3, phase: 0.8 });
 }
 
+/**
+ * The archive sanctum stands on the authored `sanctum-core` collision block,
+ * which is 4.5 units tall. Every read-critical element therefore starts above
+ * that plinth: at the original heights the prism and orbit were buried inside
+ * the block skin and the hero silhouette disappeared from the overview.
+ */
+const SANCTUM_PLINTH = 4.6;
 function buildSanctum(ctx) {
   const { mats } = ctx;
-  part(ctx, "sanctum-dais", new THREE.CylinderGeometry(4.5, 5.1, 1.1, 8), mats.shell, { position: [0, 0.55, 0], collider: { type: "cylinder", radius: 5.1, height: 1.1 }, group: "foundation" });
-  part(ctx, "sanctum-inlay", new THREE.CylinderGeometry(3.65, 3.65, 0.12, 16), mats.dark, { position: [0, 1.16, 0], group: "foundation" });
+  part(ctx, "sanctum-dais", new THREE.CylinderGeometry(4.5, 5.1, 1.1, 8), mats.shell, { position: [0, SANCTUM_PLINTH + 0.55, 0], collider: { type: "cylinder", radius: 5.1, height: 1.1 }, group: "foundation" });
+  part(ctx, "sanctum-inlay", new THREE.CylinderGeometry(3.65, 3.65, 0.12, 16), mats.dark, { position: [0, SANCTUM_PLINTH + 1.16, 0], group: "foundation" });
   radialParts(ctx, 8, 3.45, (i, a, r) => {
-    part(ctx, `reliquary-${i}`, new THREE.CylinderGeometry(0.42, 0.56, 2.1, 8), i % 2 ? mats.dark : mats.shell, { position: [Math.cos(a) * r, 2.05, Math.sin(a) * r], group: "reliquaries" });
-    part(ctx, `reliquary-cap-${i}`, new THREE.SphereGeometry(0.52, 10, 8), mats.secondary, { position: [Math.cos(a) * r, 3.15, Math.sin(a) * r], scale: [1, 0.38, 1], relief: true, group: "reliquaries" });
+    part(ctx, `reliquary-${i}`, new THREE.CylinderGeometry(0.42, 0.56, 2.1, 8), i % 2 ? mats.dark : mats.shell, { position: [Math.cos(a) * r, SANCTUM_PLINTH + 2.05, Math.sin(a) * r], group: "reliquaries" });
+    part(ctx, `reliquary-cap-${i}`, new THREE.SphereGeometry(0.52, 10, 8), mats.secondary, { position: [Math.cos(a) * r, SANCTUM_PLINTH + 3.15, Math.sin(a) * r], scale: [1, 0.38, 1], relief: true, group: "reliquaries" });
   });
-  const prism = part(ctx, "memory-prism", new THREE.OctahedronGeometry(1.28, 0), mats.glass, { position: [0, 4.2, 0], scale: [0.72, 2.2, 0.72], group: "memory-core" });
-  ctx.animations.push({ type: "spinY", o: prism, speed: 0.16 }, { type: "bob", o: prism, baseY: 4.2, phase: 0.3 });
-  for (let i = 0; i < 4; i++) strut(ctx, `sanctum-pylon-${i}`, [Math.cos(i * Math.PI / 2) * 4.25, 0.8, Math.sin(i * Math.PI / 2) * 4.25], [Math.cos(i * Math.PI / 2) * 3.7, 5.8, Math.sin(i * Math.PI / 2) * 3.7], 0.25, mats.dark, { taper: 0.62, group: "crown" });
-  const ring = part(ctx, "memory-orbit", new THREE.TorusGeometry(2.2, 0.11, 8, 48), mats.secondary, { position: [0, 3.55, 0], rotation: [Math.PI / 2, 0, 0], group: "memory-core" });
+  const prismY = SANCTUM_PLINTH + 4.2;
+  const prism = part(ctx, "memory-prism", new THREE.OctahedronGeometry(1.28, 0), mats.glass, { position: [0, prismY, 0], scale: [0.72, 2.2, 0.72], group: "memory-core" });
+  ctx.animations.push({ type: "spinY", o: prism, speed: 0.16 }, { type: "bob", o: prism, baseY: prismY, phase: 0.3 });
+  for (let i = 0; i < 4; i++) strut(ctx, `sanctum-pylon-${i}`, [Math.cos(i * Math.PI / 2) * 4.25, SANCTUM_PLINTH + 0.8, Math.sin(i * Math.PI / 2) * 4.25], [Math.cos(i * Math.PI / 2) * 3.7, SANCTUM_PLINTH + 5.8, Math.sin(i * Math.PI / 2) * 3.7], 0.25, mats.dark, { taper: 0.62, group: "crown" });
+  const ring = part(ctx, "memory-orbit", new THREE.TorusGeometry(2.2, 0.11, 8, 48), mats.secondary, { position: [0, SANCTUM_PLINTH + 3.55, 0], rotation: [Math.PI / 2, 0, 0], group: "memory-core" });
   ctx.animations.push({ type: "spinY", o: ring, speed: -0.11 });
 }
 
@@ -452,7 +464,8 @@ function livingMaterials(theme, id) {
     hard: new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: LIVING_PROFILES[id].metal, roughness: 0.46, clearcoat: 0.14, clearcoatRoughness: 0.52, emissive: theme.wallEmissive, emissiveIntensity: 0.08, ...hard, normalScale: new THREE.Vector2(0.42, 0.42) }),
     ground: new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.12, roughness: 0.82, emissive: theme.wallEmissive, emissiveIntensity: 0.035, ...ground, normalScale: new THREE.Vector2(0.56, 0.56) }),
     energy: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, metalness: 0.18, roughness: 0.16, clearcoat: 0.74, clearcoatRoughness: 0.12, emissive: theme.accentHex, emissiveIntensity: 2.15 }),
-    glass: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, metalness: 0, roughness: 0.08, transmission: 0.42, transparent: true, opacity: 0.72, thickness: 0.18, emissive: theme.secondaryHex, emissiveIntensity: 0.46 }),
+    /* No `transmission`: see the note on assetMaterials().glass. */
+    glass: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, metalness: 0, roughness: 0.08, clearcoat: 0.92, clearcoatRoughness: 0.06, transparent: true, opacity: 0.64, emissive: theme.secondaryHex, emissiveIntensity: 0.52 }),
   };
 }
 
@@ -551,92 +564,6 @@ export function buildArenaLivingSet(definition, theme, tileSize = ARENA_SIZE.til
   return { root, animations };
 }
 
-/**
- * Reference content pass for Neon Foundry.  All placements are either snapped
- * to collision-backed topology or outside the playable deck.  Repeated parts
- * are instanced so the complete kit costs a bounded number of draw calls.
- */
-export function buildForgeContentPass(definition, theme, tileSize = ARENA_SIZE.tile * 0.1) {
-  if (definition.identity.id !== "forge") return null;
-  const root = new THREE.Group(), animations = [];
-  root.name = "forge-reference-content";
-  const materials = livingMaterials(theme, "forge");
-  const warning = new THREE.MeshBasicMaterial({ color: theme.accentHex, transparent: true, opacity: 0.72, depthWrite: false });
-  const cool = new THREE.MeshBasicMaterial({ color: theme.secondaryHex, transparent: true, opacity: 0.62, depthWrite: false });
-  const addInstances = (name, geometry, material, transforms, navigationClass) => {
-    const mesh = new THREE.InstancedMesh(geometry, material, transforms.length);
-    mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true;
-    if (navigationClass) mesh.userData.navigationClass = navigationClass;
-    transforms.forEach((transform, index) => setInstance(mesh, index, transform.position, transform.scale, transform.rotation || 0));
-    mesh.instanceMatrix.needsUpdate = true; root.add(mesh); return mesh;
-  };
-  const transform = (position, scale, rotation = 0) => ({ position, scale, rotation });
-
-  // Collision-proxy skins: broad furnace jacket, tall rifle cover and low
-  // shotgun cover retain the exact authored footprints and heights.
-  const skins = definition.topology.blocks.map((block, index) => {
-    const height = arenaBlockHeight(block), inset = block.kind === "furnace" ? 0.97 : 0.91;
-    return transform([(block.x + block.w / 2) * tileSize, height / 2, (block.y + block.h / 2) * tileSize], [block.w * tileSize * inset, height, block.h * tileSize * inset], index % 2 ? Math.PI / 2 : 0);
-  });
-  addInstances("collision-proxy-industrial-skins", new THREE.BoxGeometry(1, 1, 1), materials.hard, skins, "solid-cover-skin");
-  const coverBands = definition.topology.blocks.flatMap((block, index) => [0.32, 0.68].map(level => transform(
-    [(block.x + block.w / 2) * tileSize, arenaBlockHeight(block) * level, (block.y + block.h / 2) * tileSize + block.h * tileSize * 0.47],
-    [block.w * tileSize * 0.82, 0.08, 0.12], index % 2 ? Math.PI / 2 : 0
-  )));
-  addInstances("cover-height-readout-bands", new THREE.BoxGeometry(1, 1, 1), warning, coverBands, "cover-height-cue");
-
-  // Platforms and ramps read as one modular gantry family: deck grating,
-  // underside trusses and exposed guard posts preserve vertical crossfire.
-  const decks = definition.topology.platforms.map(platform => transform(
-    [(platform.x + platform.w / 2) * tileSize, platform.elevation + 0.08, (platform.y + platform.h / 2) * tileSize],
-    [platform.w * tileSize * 0.96, 0.14, platform.h * tileSize * 0.96]
-  ));
-  addInstances("gantry-grating-modules", new THREE.BoxGeometry(1, 1, 1), materials.ground, decks, "elevated-rifle-deck");
-  const posts = definition.topology.platforms.flatMap(platform => [[platform.x, platform.y], [platform.x + platform.w, platform.y], [platform.x, platform.y + platform.h], [platform.x + platform.w, platform.y + platform.h]].map(([x, y]) => transform([x * tileSize, platform.elevation / 2, y * tileSize], [0.16, platform.elevation + 1.15, 0.16])));
-  addInstances("gantry-guard-posts", new THREE.BoxGeometry(1, 1, 1), materials.hard, posts);
-  const rampSlats = definition.topology.ramps.flatMap(ramp => Array.from({ length: 6 }, (_, index) => {
-    const u = (index + 0.5) / 6, x = (ramp.x + (ramp.w >= ramp.h ? ramp.w * u : ramp.w / 2)) * tileSize, z = (ramp.y + (ramp.h > ramp.w ? ramp.h * u : ramp.h / 2)) * tileSize;
-    return transform([x, THREE.MathUtils.lerp(ramp.from || 0, ramp.to || 0, u) + 0.12, z], [ramp.w >= ramp.h ? ramp.w * tileSize / 7 : ramp.w * tileSize * 0.82, 0.08, ramp.h > ramp.w ? ramp.h * tileSize / 7 : ramp.h * tileSize * 0.82]);
-  }));
-  addInstances("ramp-tread-modules", new THREE.BoxGeometry(1, 1, 1), materials.ground, rampSlats, "vertical-route");
-
-  // Conveyor rollers make direction and ready-time commitment legible before
-  // entering either pushed lane.
-  for (const [laneIndex, lane] of definition.interactables.entries()) {
-    const count = 12, horizontal = lane.w >= lane.h;
-    const rollers = Array.from({ length: count }, (_, index) => {
-      const u = (index + 0.5) / count;
-      return transform([(lane.x + (horizontal ? lane.w * u : lane.w / 2)) * tileSize, 0.18, (lane.y + (horizontal ? lane.h / 2 : lane.h * u)) * tileSize], [0.18, Math.min(lane.w, lane.h) * tileSize * 0.42, 0.18], horizontal ? Math.PI / 2 : 0);
-    });
-    const rollerMesh = addInstances(`conveyor-${laneIndex}-rollers`, new THREE.CylinderGeometry(1, 1, 1, 10), laneIndex ? cool : warning, rollers, "timing-route");
-    animations.push({ type: "spinY", o: rollerMesh, speed: laneIndex ? -0.48 : 0.48 });
-  }
-
-  // Steam stacks sit on the hazard edge, never in an implied safe cell. Their
-  // lamps are state targets used by the runtime telegraph/active cycle.
-  const steamHazards = definition.hazards.filter(hazard => hazard.type === "steam");
-  const stacks = steamHazards.flatMap(hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y + hazard.h]].map(([x, y]) => transform([x * tileSize, 1.25, y * tileSize], [0.38, 2.5, 0.38])));
-  addInstances("steam-edge-stacks", new THREE.CylinderGeometry(1, 1.18, 1, 10), materials.hard, stacks, "hazard-boundary");
-  const hazardLamps = addInstances("steam-state-lamps", new THREE.SphereGeometry(1, 10, 6), warning, steamHazards.map(hazard => transform([(hazard.x + hazard.w / 2) * tileSize, 2.8, (hazard.y + hazard.h / 2) * tileSize], [0.22, 0.22, 0.22])), "hazard-state");
-  hazardLamps.userData.hazardIds = steamHazards.map(hazard => hazard.id);
-  animations.push({ type: "pulse", o: hazardLamps, base: 0.28, amp: 0.42, phase: 0 });
-
-  // Dense, non-colliding refinery skyline outside the playable footprint.
-  const skyline = Array.from({ length: 18 }, (_, index) => {
-    const side = index % 2, x = side ? (ARENA_SIZE.width + 3 + index % 5) * tileSize : (-3 - index % 5) * tileSize, z = (2 + (index * 7) % 23) * tileSize, height = 5 + index % 6 * 1.4;
-    return transform([x, height / 2 - 0.3, z], [1.2 + index % 3 * 0.5, height, 1.2 + (index + 1) % 3 * 0.45]);
-  });
-  addInstances("background-refinery-towers", new THREE.CylinderGeometry(1, 1.14, 1, 10), materials.ground, skyline, "non-colliding-atmosphere");
-
-  root.userData.assetPipeline = "forge-strategy-kit-v1";
-  root.userData.strategyIdentity = "mid-vertical / rifle gantries / shotgun under-route / utility versus steam";
-  root.userData.counts = { directChildren: root.children.length, instances: skins.length + coverBands.length + decks.length + posts.length + rampSlats.length + stacks.length + skyline.length + 26, drawCallCeiling: root.children.length };
-  root.userData.blockSkinCount = skins.length;
-  root.userData.interactableStateCount = definition.interactables.length;
-  root.userData.hazardStateCount = definition.hazards.length;
-  return { root, animations };
-}
-
 /** Cohesive large-scale materials used by the authored floor, ramps, and cover. */
 export function buildArenaMaterialSet(theme) {
   const id = theme.id || theme.architecture || "arena";
@@ -712,25 +639,28 @@ export function buildExclusionReadability(definition, theme, tileSize = ARENA_SI
     curbs.castShadow = true; curbs.receiveShadow = true;
     root.add(curbs, strips);
   }
-  const coverMaterial = new THREE.MeshPhysicalMaterial({ color: theme.wall, roughness: 0.48, metalness: 0.52, clearcoat: 0.18, emissive: theme.wallEmissive, emissiveIntensity: 0.1 });
-  for (const [index, block] of (definition.topology.blocks || []).entries()) {
-    const coverHeight = arenaBlockHeight(block);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(block.w * tileSize * 0.92, 0.16, block.h * tileSize * 0.92), coverMaterial);
-    cap.name = `cover-cap-${index}`;
-    cap.position.set((block.x + block.w / 2) * tileSize, coverHeight + 0.09, (block.y + block.h / 2) * tileSize);
-    cap.userData.navigationClass = "solid-cover";
-    cap.castShadow = true; cap.receiveShadow = true;
-    root.add(cap);
+  const blocks = definition.topology.blocks || [];
+  if (blocks.length) {
+    const coverMaterial = new THREE.MeshPhysicalMaterial({ color: theme.wall, roughness: 0.48, metalness: 0.52, clearcoat: 0.18, emissive: theme.wallEmissive, emissiveIntensity: 0.1 });
+    const caps = new THREE.InstancedMesh(plateGeometry, coverMaterial, blocks.length);
+    caps.name = "solid-cover-caps";
+    caps.userData.navigationClass = "solid-cover";
+    caps.castShadow = true; caps.receiveShadow = true;
+    blocks.forEach((block, index) => setInstance(caps, index, [(block.x + block.w / 2) * tileSize, arenaBlockHeight(block) + 0.09, (block.y + block.h / 2) * tileSize], [block.w * tileSize * 0.92, 0.16, block.h * tileSize * 0.92]));
+    caps.instanceMatrix.needsUpdate = true;
+    caps.computeBoundingSphere();
+    root.add(caps);
   }
-  for (const [index, zone] of (definition.topology.voids || []).entries()) {
+  const voidCorners = (definition.topology.voids || []).flatMap(zone => [[zone.x, zone.y], [zone.x + zone.w, zone.y], [zone.x, zone.y + zone.h], [zone.x + zone.w, zone.y + zone.h]]);
+  if (voidCorners.length) {
     const markerMaterial = new THREE.MeshBasicMaterial({ color: theme.accentHex, transparent: true, opacity: 0.72, blending: THREE.AdditiveBlending, depthWrite: false });
-    for (const [cx, cy] of [[zone.x, zone.y], [zone.x + zone.w, zone.y], [zone.x, zone.y + zone.h], [zone.x + zone.w, zone.y + zone.h]]) {
-      const beacon = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.8, 5), markerMaterial);
-      beacon.name = `void-beacon-${index}`;
-      beacon.position.set(cx * tileSize, 0.82, cy * tileSize);
-      beacon.userData.navigationClass = "void-warning-beacon";
-      root.add(beacon);
-    }
+    const beacons = new THREE.InstancedMesh(new THREE.ConeGeometry(0.16, 0.8, 5), markerMaterial, voidCorners.length);
+    beacons.name = "void-warning-beacons";
+    beacons.userData.navigationClass = "void-warning-beacon";
+    voidCorners.forEach(([cx, cy], index) => setInstance(beacons, index, [cx * tileSize, 0.82, cy * tileSize], [1, 1, 1]));
+    beacons.instanceMatrix.needsUpdate = true;
+    beacons.computeBoundingSphere();
+    root.add(beacons);
   }
   root.userData.counts = { perimeterCells: plates.perimeter.length, voidCells: plates.void.length, boundaryEdges: edges.length, coverBlocks: definition.topology.blocks.length };
   return { root, animations: [] };

@@ -11,8 +11,9 @@
     "build": "npm run vendor && npm run fonts && npm run arena && node scripts/build.mjs",
     "audio:check": "node scripts/audio-smoke.mjs",
     "smoke": "node scripts/smoke.mjs",
+    "budget": "node scripts/arena-budget.mjs",
     "rigs": "node scripts/rig-sheet.mjs",
-    "check": "npm run test && npm run build && npm run audio:check && npm run smoke"
+    "check": "npm run test && npm run build && npm run audio:check && npm run smoke && npm run budget"
   },
   "engines": {
     "node": ">=20"

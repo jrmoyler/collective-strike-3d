@@ -66,6 +66,37 @@ Topology primitives are rectangles expressed in collision-grid units. The browse
 
 Implemented gameplay volumes include `steam`, `heat`, `surge`, `mist`, `wind`, `bramble`, `spores`, `cracking-ice`, `null-pulse`, `dust` and `transit-wake`. Interactables include `conveyor`, `water`, `ice-slide`, `covered-route`, `recovery-field`, `proximity-pulse` and `phase-barrier`.
 
+## Arena content passes
+
+An arena can additionally declare a **content pass**: the strategic art layer
+that turns authored gameplay data into something a player can read. Passes live
+in `src/arena-content.js` and are resolved by data, not by per-arena branches in
+the runtime.
+
+`buildArenaContentPass(definition, theme, tileSize)` returns
+`{ root, animations, bindings }` for an arena with a kit in `CONTENT_PASS_KITS`,
+and `null` for one without. When it returns a pass, `buildArenaIdentity` skips
+the generic background silhouettes, the generic living set and the generic
+interactable arrows, and hides the authored block meshes — which keep
+`userData.collisionProxy` and `userData.collisionHeight` untouched. When it
+returns `null`, every one of those generic layers runs exactly as before.
+
+`bindings` are plain objects keyed by the authored hazard or interactable id.
+`initializeArenaRuntime` attaches each binding to the runtime entry with the
+matching id; `applyArenaVolumes` drives them from the existing simulation tick.
+Hazard phase always comes from `hazardPhaseAt(hazard, elapsed)` — one pure
+function with four states (`idle`, `telegraph`, `active`, `cooldown`) — so the
+hazard plane, the rim, the fog volume, the HUD warning, the slow/damage window
+and every content-pass visual describe the same phase in the same frame. Content
+passes add no clock, timer, listener or render loop of their own.
+
+Passes shipped: `forge` (`forge-strategy-kit-v2`), `abyss`
+(`abyss-strategy-kit-v1`). See `docs/FORGE_STRATEGY_AUDIT.md`,
+`docs/ABYSS_STRATEGY_AUDIT.md` and the matching prop ecosystem contracts.
+
+Budget is proved in the browser by `npm run budget`, never by declared
+`userData`. See `docs/ARENA_ART_PIPELINE.md` for the measured table.
+
 ## Elevation, cover and projectiles
 
 `traceArenaSegment()` is the single height-aware obstruction path for weapons, bot vision, crosshair acquisition, doctrine lanes and boss melee reach. It samples the authored platform/ramp surface, deterministic block heights, dynamic barriers and arena boundaries. Voids remain non-walkable but no longer behave like invisible projectile walls.
