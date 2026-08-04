@@ -30,6 +30,27 @@ export const PLAYLISTS = Object.freeze({
   }),
 });
 
+export const BOSS_PHASE_THRESHOLDS = Object.freeze([0.75, 0.5, 0.25]);
+
+export function bossPhaseForHealth(hp, maxHp) {
+  const ratio = Math.max(0, Math.min(1, Number(hp) / Math.max(1, Number(maxHp))));
+  return BOSS_PHASE_THRESHOLDS.reduce((phase, threshold) => phase + Number(ratio <= threshold), 0);
+}
+
+export function createBossBalance({ hpMult = 4, difficulty = "tactical", squadSize = 5, source = "boss" } = {}) {
+  const difficultyScale = difficulty === "elite" ? 1.2 : difficulty === "rookie" ? 0.86 : 1;
+  const squadScale = 1 + Math.max(0, Math.min(4, squadSize - 1)) * 0.08;
+  const sourceScale = source === "apex" ? 1.12 : source === "wave" ? 1.06 : 1;
+  const maxHp = Math.round(1150 * hpMult * difficultyScale * squadScale * sourceScale);
+  return Object.freeze({
+    maxHp,
+    armor: Math.round(maxHp * 0.085),
+    damageScale: +(difficultyScale * (0.96 + Math.max(0, squadSize - 1) * 0.025)).toFixed(2),
+    phaseThresholds: BOSS_PHASE_THRESHOLDS,
+    reinforcementCounts: Object.freeze([0, 2, 2, 3]),
+  });
+}
+
 export function normalizeSquad(selectedIds, operatorIds, primaryId, size = 5) {
   const allowed = new Set(operatorIds);
   const result = [];
@@ -174,4 +195,3 @@ export function shouldStartApexChallenge({
   if (scoreDEF >= firstTo) return 'DEF';
   return null;
 }
-

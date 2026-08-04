@@ -17,10 +17,13 @@ import { BOSS_ABILITIES, runBossAbility } from "./boss-abilities.js";
 import { makeBossRig, updateBossRig } from "./boss-rig.js";
 import {
   PLAYLISTS,
+  BOSS_PHASE_THRESHOLDS,
+  bossPhaseForHealth,
   buildWavePlan,
   canOccupyCircle,
   cellsForCircle,
   chooseRandomBoss,
+  createBossBalance,
   findBossSpawn,
   normalizeSquad,
   shouldStartApexChallenge
@@ -37,7 +40,18 @@ import {
   validateArenaDefinition,
   validateArenaRegistry
 } from "./arena-core.js";
-import { ARENA_ASSET_VERSION, buildArenaLandmark, buildExclusionReadability } from "./arena-assets.js";
+import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability } from "./arena-assets.js";
+import { ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal } from "./divisional-arsenal.js";
+import {
+  LATTICE_RANK_COUNT,
+  OPERATIONS_VERSION,
+  XP_PER_LATTICE_RANK,
+  applyOperationReport,
+  createOperationBoard,
+  latticeRank,
+  latticeRankProgress,
+  normalizeOperations
+} from "./operations.js";
 import {
   arenaActorHeight,
   arenaBlockHeight,
@@ -105,6 +119,8 @@ window.CS3D_BOSS = Object.freeze({
   BOSS_LOCO_CLASSES,
   BOSS_ABILITIES,
   PLAYLISTS,
+  BOSS_PHASE_THRESHOLDS,
+  bossPhaseForHealth,
   resolveBossLocos,
   runBossAbility,
   makeBossRig,
@@ -113,6 +129,7 @@ window.CS3D_BOSS = Object.freeze({
   canOccupyCircle,
   cellsForCircle,
   chooseRandomBoss,
+  createBossBalance,
   findBossSpawn,
   normalizeSquad,
   shouldStartApexChallenge
@@ -137,7 +154,20 @@ window.CS3D_ARENA_SYSTEM = Object.freeze({
 window.CS3D_ARENA_ASSETS = Object.freeze({
   version: ARENA_ASSET_VERSION,
   buildArenaLandmark,
+  buildArenaLivingSet,
+  buildArenaMaterialSet,
   buildExclusionReadability
+});
+window.CS3D_ARSENAL = Object.freeze({ ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal });
+window.CS3D_OPERATIONS = Object.freeze({
+  LATTICE_RANK_COUNT,
+  OPERATIONS_VERSION,
+  XP_PER_LATTICE_RANK,
+  applyOperationReport,
+  createOperationBoard,
+  latticeRank,
+  latticeRankProgress,
+  normalizeOperations
 });
 window.CS3D_RUNTIME = Object.freeze({
   GAME_STATES,

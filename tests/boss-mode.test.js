@@ -7,6 +7,8 @@ import {
   canOccupyCircle,
   cellsForCircle,
   chooseRandomBoss,
+  createBossBalance,
+  bossPhaseForHealth,
   findBossSpawn,
   normalizeSquad,
   shouldStartApexChallenge,
@@ -23,6 +25,16 @@ test('normalizeSquad preserves the controlled operator, removes duplicates, and 
     ),
     ['operator_2', 'operator_4', 'operator_9', 'operator_12', 'operator_13'],
   );
+});
+
+test('boss balance scales for a full squad and exposes three escalation gates', () => {
+  const tactical = createBossBalance({ hpMult: 4, difficulty: 'tactical', squadSize: 5 });
+  const elite = createBossBalance({ hpMult: 4, difficulty: 'elite', squadSize: 5, source: 'apex' });
+  assert.ok(tactical.maxHp >= 6000);
+  assert.ok(elite.maxHp > tactical.maxHp);
+  assert.ok(tactical.armor >= tactical.maxHp * 0.08);
+  assert.deepEqual([1, 0.74, 0.49, 0.24, 0].map(ratio => bossPhaseForHealth(ratio * tactical.maxHp, tactical.maxHp)), [0, 1, 2, 3, 3]);
+  assert.deepEqual(tactical.reinforcementCounts, [0, 2, 2, 3]);
 });
 
 test('wave plan uses every unselected operator exactly once before the final boss', () => {

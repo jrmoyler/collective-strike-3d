@@ -124,7 +124,7 @@ try {
   if (brief.stats !== 5 || brief.spectrum !== 20) problems.push(`title hero data is incomplete: ${JSON.stringify(brief)}`);
   if (brief.operators !== 20 || brief.arenas !== 10 || brief.bosses !== 12 || brief.playlists !== 3) problems.push(`landing roster panels are incomplete: ${JSON.stringify(brief)}`);
   if (brief.difficulties !== 3 || brief.controls < 10 || brief.doctrineRows !== 20) problems.push(`landing reference panels are incomplete: ${JSON.stringify(brief)}`);
-  if (brief.seriesRows !== 21 || brief.baseWeapons !== 4 || brief.survivalPanels !== 4) problems.push(`landing arsenal or survivability panels are incomplete: ${JSON.stringify(brief)}`);
+  if (brief.seriesRows !== 41 || brief.baseWeapons !== 4 || brief.survivalPanels !== 4) problems.push(`landing arsenal or survivability panels are incomplete: ${JSON.stringify(brief)}`);
   if (brief.horizontalOverflow > 1) problems.push(`title screen has ${brief.horizontalOverflow}px horizontal overflow`);
   await page.screenshot({ path: path.join(outDir, "00-title.png") });
 
@@ -338,6 +338,18 @@ try {
   console.log("smoke: round booted");
   if (captureGameplay) await page.screenshot({ path: path.join(outDir, "03-round-start.png") });
 
+  const buyGate = await page.evaluate(() => {
+    const hostile = players.find(player => player.alive && player.team !== me.team);
+    const bot = players.find(player => player.alive && !player.human);
+    const before = { hp: hostile.hp, ammo: curW(me).ammo, kills: players.reduce((sum, player) => sum + player.kills, 0), ability: me.abilityT, doctrine: me.doctrineT };
+    fireWeapon(me, hostile.x, hostile.y);
+    useAbility(me, hostile);
+    useDoctrine(me, hostile);
+    botThink(bot, 0.5);
+    return { phase, hpStable: hostile.hp === before.hp, ammoStable: curW(me).ammo === before.ammo, killsStable: players.reduce((sum, player) => sum + player.kills, 0) === before.kills, cooldownsStable: me.abilityT === before.ability && me.doctrineT === before.doctrine, botIdle: !bot.target && bot.vx === 0 && bot.vy === 0 };
+  });
+  if (buyGate.phase !== "buy" || !buyGate.hpStable || !buyGate.ammoStable || !buyGate.killsStable || !buyGate.cooldownsStable || !buyGate.botIdle) problems.push(`buy phase allowed combat: ${JSON.stringify(buyGate)}`);
+
   // Software-rendered frames are slow, so burn the remaining buy timer rather
   // than waiting out eight seconds of clamped delta time.
   await page.evaluate(() => { phaseT = 0.05; });
@@ -420,7 +432,9 @@ try {
     phase,
     liveRound: round,
     doctrineCount: Object.keys(SIGNATURES).length,
-    series03Count: Object.keys(ADDITIONAL_WEAPONS).length,
+    series03Count: Object.values(ADDITIONAL_WEAPONS).filter(w => w.series === "03").length,
+    ascendantCount: Object.values(ADDITIONAL_WEAPONS).filter(w => w.series === "ASCENDANT").length,
+    additionalCount: Object.keys(ADDITIONAL_WEAPONS).length,
     arsenalCount: Object.keys(ARSENAL_ROSTER).length,
     doctrineForms: new Set(Object.values(ARSENAL_ROSTER).map(w => w.form)).size,
     equippedSeries03: me.cur.startsWith("series03_"),
@@ -444,7 +458,8 @@ try {
   if (!stats.holdingWeapon) problems.push("some rigs are missing weapon arms");
   if (stats.doctrineCount !== 20) problems.push(`expected 20 doctrine weapons, found ${stats.doctrineCount}`);
   if (stats.series03Count !== 21) problems.push(`expected 21 Series 03 weapons, found ${stats.series03Count}`);
-  if (stats.arsenalCount !== 41) problems.push(`expected 41 total arsenal weapons, found ${stats.arsenalCount}`);
+  if (stats.ascendantCount !== 20 || stats.additionalCount !== 41) problems.push(`expected 20 Ascendant and 41 additional weapons, found ${stats.ascendantCount} and ${stats.additionalCount}`);
+  if (stats.arsenalCount !== 61) problems.push(`expected 61 total doctrine weapons, found ${stats.arsenalCount}`);
   if (stats.doctrineForms < 15) problems.push(`expected at least 15 doctrine forms, found ${stats.doctrineForms}`);
   if (!stats.equippedSeries03) problems.push("slot 6 did not equip a Series 03 weapon");
   if (!stats.doctrineTriggered) problems.push("Series 03 special did not trigger");
@@ -497,6 +512,8 @@ try {
     updateRender(0.016);
     renderHUD();
     drawMinimap();
+    const hpBefore = activeBoss?.hp || 0;
+    if (activeBoss) damageBoss(activeBoss, activeBoss.maxHp * 0.36, me, { doctrine: true });
     const bossRig = activeBoss ? bossRigs.get(activeBoss.id) : null;
     return {
       playlistButtons,
@@ -509,6 +526,10 @@ try {
       hudVisible: document.getElementById("bossHud")?.classList.contains("on") || false,
       hudName: document.getElementById("bossName")?.textContent || "",
       spawnValid: Boolean(activeBoss && bossCanOccupy(activeBoss, activeBoss.x, activeBoss.y)),
+      maxHp: activeBoss?.maxHp || 0,
+      phaseIndex: activeBoss?.phaseIndex || 0,
+      phaseDamageApplied: Boolean(activeBoss && activeBoss.hp < hpBefore),
+      reinforcements: players.filter(player => player.alive && player.team !== myTeam).length,
     };
   });
   console.log("boss runtime:", JSON.stringify(bossStats));
@@ -519,6 +540,7 @@ try {
   if (!(bossStats.occupancyCells > 1)) problems.push("boss collision does not occupy multiple cells");
   if (!bossStats.hudVisible || !/LOOM HYDRA/i.test(bossStats.hudName)) problems.push("boss HUD did not render the live boss");
   if (!bossStats.spawnValid) problems.push("boss spawned at an invalid collision position");
+  if (bossStats.maxHp < 6000 || bossStats.phaseIndex < 1 || !bossStats.phaseDamageApplied || bossStats.reinforcements < 2) problems.push(`boss escalation is incomplete: ${JSON.stringify(bossStats)}`);
 
   console.log("smoke: restart stability and WebGL recovery");
   // The first rebuild after the boss probe also clears boss-only visibility
@@ -599,6 +621,9 @@ try {
   if (deathState.alive || deathState.state !== "spectating" || !deathState.spectateVisible || !deathState.selected) problems.push(`death/spectating flow failed: ${JSON.stringify(deathState)}`);
   await page.evaluate(() => { window.CS3D_restartMatch(); phaseT = 0; updateSim(0.016); scoreATK = myTeam === "ATK" ? FIRST_TO : 0; scoreDEF = myTeam === "DEF" ? FIRST_TO : 0; endGame(); });
   await page.waitForFunction(() => document.getElementById("endScreen")?.style.display === "grid" && gameState.state === "results");
+  const reportState = await page.evaluate(() => ({ stats: document.querySelectorAll("#endStats .resultStat").length, contracts: document.querySelectorAll("#endContracts .contract").length, rank: document.getElementById("operationSummary").textContent, next: document.getElementById("nextOperationBtn").offsetParent !== null, arena: document.getElementById("changeArenaBtn").offsetParent !== null }));
+  if (reportState.stats !== 5 || reportState.contracts !== 3 || !/OPERATION RANK/.test(reportState.rank) || !reportState.next || !reportState.arena) problems.push(`after-action report is incomplete: ${JSON.stringify(reportState)}`);
+  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "07-results.png") });
   await page.locator("#rematchBtn").click();
   await page.waitForFunction(() => document.getElementById("hud")?.style.display === "block" && gameState.state === "buy");
   const rematchState = await page.evaluate(() => ({ arena: window.CS3D_selectedArenaId, playlist: selectedPlaylist, division: myDiv.id, scoreATK, scoreDEF, players: players.length }));
@@ -670,6 +695,11 @@ try {
     const move = document.getElementById("movePad").getBoundingClientRect(), aim = document.getElementById("aimPad").getBoundingClientRect();
     const buttons = [...document.querySelectorAll(".touchBtn")].map(button => button.getBoundingClientRect());
     const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    const visibleRect = id => {
+      const element = document.getElementById(id);
+      return element && getComputedStyle(element).display !== "none" ? element.getBoundingClientRect() : null;
+    };
+    const overlays = [visibleRect("spikeMsg"), visibleRect("coachPrompt")].filter(Boolean);
     SETTINGS.touchLeftHanded = true; applyUserSettings();
     return {
       mode: actionInput.mode,
@@ -678,12 +708,13 @@ try {
       horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       minTarget: Math.min(...buttons.map(button => Math.min(button.width, button.height))),
       overlapsPads: buttons.some(button => overlaps(button, move) || overlaps(button, aim)),
+      overlaysTouchTargets: overlays.some(overlay => buttons.some(button => overlaps(overlay, button)) || overlaps(overlay, move) || overlaps(overlay, aim)),
       leftHanded: document.body.classList.contains("touch-left"),
       orientationVisible: getComputedStyle(document.getElementById("orientationGuide")).display !== "none",
     };
   });
   console.log("mobile touch:", JSON.stringify(touchState));
-  if (touchState.mode !== "touch" || !touchState.reloadStarted || !touchState.controlsVisible || touchState.horizontalOverflow > 1 || touchState.minTarget < 44 || touchState.overlapsPads || !touchState.leftHanded || !touchState.orientationVisible) problems.push(`touch-only layout/input failed: ${JSON.stringify(touchState)}`);
+  if (touchState.mode !== "touch" || !touchState.reloadStarted || !touchState.controlsVisible || touchState.horizontalOverflow > 1 || touchState.minTarget < 44 || touchState.overlapsPads || touchState.overlaysTouchTargets || !touchState.leftHanded || !touchState.orientationVisible) problems.push(`touch-only layout/input failed: ${JSON.stringify(touchState)}`);
   await mobilePage.screenshot({ path: path.join(outDir, "09-mobile-gameplay.png") });
   await mobilePage.close();
 

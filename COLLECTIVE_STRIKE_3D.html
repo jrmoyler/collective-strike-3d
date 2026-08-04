@@ -249,7 +249,7 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 #doctrine{margin-top:7px;padding-top:7px;border-top:1px solid rgba(155,173,210,.14);color:var(--muted);font-size:10px;letter-spacing:.07em}#doctrine b{color:#fbbf24}#doctrine.ready{color:#f8fafc;text-shadow:0 0 12px rgba(212,168,67,.55)}
 #bottomRight{position:absolute;right:18px;bottom:18px;text-align:right;min-width:208px;padding:14px 16px;border-radius:12px}
 #ammo{font:800 calc(36px * var(--ui-scale)) "JetBrains Mono";line-height:1}#ammo small{font-size:calc(15px * var(--ui-scale));color:var(--muted)}#weaponName,#cash{margin-top:6px;font-size:calc(10px * var(--ui-scale));color:var(--muted);letter-spacing:.2em;text-transform:uppercase}#cash{font-size:calc(15px * var(--ui-scale));color:var(--gold);font-family:"JetBrains Mono";letter-spacing:.04em}
-#feed{position:absolute;top:18px;right:18px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}.feedRow{padding:6px 12px;border-radius:8px;background:rgba(6,10,22,.78);border:1px solid var(--line);font-size:12px;animation:feedIn .2s both}@keyframes feedIn{from{opacity:0;transform:translateX(18px)}}
+#feed{position:absolute;top:88px;right:18px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;width:min(360px,calc(100vw - 36px));pointer-events:none}.feedRow{max-width:100%;padding:6px 12px;border-radius:8px;background:rgba(6,10,22,.82);border:1px solid var(--line);font-size:11px;line-height:1.35;text-align:right;white-space:normal;overflow-wrap:anywhere;animation:feedIn .2s both}@keyframes feedIn{from{opacity:0;transform:translateX(18px)}}
 #banner{position:absolute;top:25%;left:50%;transform:translateX(-50%);text-align:center;font-size:34px;font-weight:800;letter-spacing:.22em;text-shadow:0 0 24px rgba(0,0,0,.9);opacity:0}#banner.show{animation:banner 2.7s ease both}@keyframes banner{0%{opacity:0;transform:translate(-50%,18px)}12%,78%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-10px)}}
 #crosshair{position:absolute;width:52px;height:52px;left:50%;top:50%;transform:translate(-50%,-50%);display:none;filter:drop-shadow(0 2px 4px #000);will-change:left,top}#crosshair span{position:absolute;background:#f8fafc;box-shadow:0 0 8px rgba(0,0,0,.8);transition:background .1s,transform .1s,opacity .1s}#crosshair .h{width:14px;height:2px;top:25px}#crosshair .v{width:2px;height:14px;left:25px}.l1{left:0}.l2{right:0}.l3{top:0}.l4{bottom:0}.dot{left:23px;top:23px;width:6px;height:6px;border-radius:50%;outline:1px solid rgba(0,0,0,.55)}#crosshair.live .l1{transform:translateX(var(--ch-gap,5px))}#crosshair.live .l2{transform:translateX(calc(-1 * var(--ch-gap,5px)))}#crosshair.live .l3{transform:translateY(var(--ch-gap,5px))}#crosshair.live .l4{transform:translateY(calc(-1 * var(--ch-gap,5px)))}#crosshair.target span{background:#ef4444}#crosshair.hit span{background:#facc15}.aimRing{position:absolute;inset:11px;border:1px solid rgba(248,250,252,.55);border-radius:50%;opacity:.7}.aimName{position:absolute;left:50%;top:58px;transform:translateX(-50%);font:800 10px "JetBrains Mono";letter-spacing:.18em;color:#ef4444;text-shadow:0 2px 8px #000;white-space:nowrap;opacity:0}#crosshair.target .aimName{opacity:1}
 #damageVignette{position:absolute;inset:-20px;pointer-events:none;background:radial-gradient(circle at center,transparent 45%,rgba(239,68,68,.45));opacity:0;transition:opacity .18s}#damageVignette.show{opacity:1}
@@ -294,6 +294,7 @@ h1{font-size:clamp(30px,4vw,50px);line-height:.92;letter-spacing:.08em}
 @media (max-width:680px){#weaponRail{display:none}}
 #buyMenu{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;width:min(720px,92vw);padding:22px;border-radius:14px;display:none}#buyMenu.open{display:block}#buyMenu h3{color:var(--gold);font-size:13px;letter-spacing:.24em;margin-bottom:12px}.buyGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.buy{padding:12px;border-radius:10px;border:1px solid var(--line);background:rgba(15,23,42,.56);cursor:pointer}.buy:hover{border-color:var(--gold)}.buy.cant{opacity:.35;pointer-events:none}.buy b{display:block}.buy span{color:var(--muted);font-size:11px}.buy.signature{grid-column:1/-1;border-color:color-mix(in srgb,var(--sig) 68%,transparent);background:linear-gradient(110deg,color-mix(in srgb,var(--sig) 18%,rgba(15,23,42,.7)),rgba(15,23,42,.5));box-shadow:inset 3px 0 var(--sig)}.buy.signature span{display:block;margin-top:4px}
 #endScreen{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:radial-gradient(circle at 50% 36%,color-mix(in srgb,var(--arena-secondary) 18%,transparent),transparent 36%),rgba(3,6,14,.94);text-align:center;backdrop-filter:blur(8px)}#endCard{width:min(620px,92vw);padding:42px;border-radius:18px;background:linear-gradient(145deg,rgba(15,23,42,.9),rgba(4,8,18,.96));border:1px solid rgba(212,168,67,.32);box-shadow:0 40px 120px rgba(0,0,0,.55)}#endScreen h2{font-size:54px;letter-spacing:.2em}#endSub{margin-top:9px;color:var(--muted);letter-spacing:.12em}#endRewards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px}.reward{padding:13px 8px;border-radius:9px;background:rgba(15,23,42,.7);border:1px solid var(--line)}.reward b{display:block;color:var(--gold);font:800 18px "JetBrains Mono"}.reward span{display:block;margin-top:4px;color:var(--muted);font:700 8px "JetBrains Mono";letter-spacing:.16em}#endScreen button{margin-top:26px;padding:14px 44px;border:0;border-radius:10px;background:linear-gradient(160deg,#eccb72,#bd8b2c);font-weight:800;letter-spacing:.18em;cursor:pointer}
+#endCard{width:min(820px,94vw);max-height:92vh;overflow:auto;padding:30px 34px}#endScreen h2{font-size:clamp(34px,6vw,54px)}#endStats{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}.resultStat{padding:10px 6px;border-radius:8px;background:rgba(7,12,26,.72);border:1px solid rgba(155,173,210,.14)}.resultStat b{display:block;color:#f8fafc;font:800 15px "JetBrains Mono"}.resultStat span{display:block;margin-top:3px;color:var(--muted);font:700 7px "JetBrains Mono";letter-spacing:.14em}.operationPanel{margin-top:14px;padding:14px;text-align:left;border-radius:11px;background:linear-gradient(120deg,rgba(212,168,67,.1),rgba(56,189,248,.05));border:1px solid rgba(212,168,67,.25)}#operationSummary{color:var(--gold);font:800 11px "JetBrains Mono";letter-spacing:.15em}.operationTrack{height:5px;margin:9px 0 12px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden}.operationTrack i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--arena-secondary));box-shadow:0 0 14px var(--gold)}#endContracts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.contract{padding:9px;border-radius:7px;background:rgba(3,7,16,.54);font:700 8px "JetBrains Mono";color:var(--muted)}.contract b{display:block;margin-bottom:4px;color:#e2e8f0;font-size:9px}.contract.done{border:1px solid rgba(134,239,172,.35);color:#86efac}#endActions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}#endActions button{margin-top:16px;padding:12px 19px;background:rgba(15,23,42,.85);color:#f8fafc;border:1px solid var(--line)}#endActions button.primary{background:linear-gradient(160deg,#eccb72,#bd8b2c);color:#090b12;border:0}@media(max-width:680px){#endStats{grid-template-columns:repeat(3,1fr)}#endContracts{grid-template-columns:1fr}#endCard{padding:22px 16px}}
 #minimap{position:absolute;top:16px;left:18px;padding:7px;border-radius:12px}
 #minimap canvas{display:block;border-radius:7px;opacity:.94}
 #bossHud{position:absolute;left:50%;top:82px;transform:translateX(-50%);width:min(520px,70vw);padding:10px 14px 11px;border-radius:10px;background:linear-gradient(120deg,rgba(30,8,30,.92),rgba(8,13,26,.9));border:1px solid rgba(255,103,203,.45);box-shadow:0 18px 55px rgba(0,0,0,.38),0 0 30px rgba(224,38,126,.16);display:none}
@@ -382,8 +383,8 @@ body[data-colorblind=deuteranopia]{--red:#f97316;--green:#60a5fa}body[data-color
 @media (max-width:1180px){#menu{grid-template-columns:minmax(420px,1fr) .4fr minmax(240px,.5fr)}#divGrid{grid-template-columns:repeat(2,minmax(154px,1fr))}.pv{display:none}.divCard{min-height:94px}#arenaSelectScreen{grid-template-columns:minmax(235px,28vw) 1fr minmax(286px,33vw);padding:20px}.arenaCard{min-height:62px}.arenaCard .arenaRec{display:none}}
 @media (max-width:980px){#menu{display:none;grid-template-columns:1fr;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(5,8,18,.91);overflow:auto}#menuPanel{min-height:max-content}#previewHero,#previewCopy{display:none}#divGrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));overflow:visible}.ds,.pv{display:none}.buyGrid{grid-template-columns:1fr}#topBar{top:max(8px,env(safe-area-inset-top))}#topBar .scoreCell{min-width:86px;padding:7px 10px}#bottomLeft,#bottomRight{bottom:max(12px,env(safe-area-inset-bottom))}#bottomLeft{left:max(12px,env(safe-area-inset-left));min-width:190px}#bottomRight{right:max(12px,env(safe-area-inset-right));min-width:150px}#hp,#ammo{font-size:28px}#arenaSelectScreen{grid-template-columns:1fr minmax(285px,38vw);grid-template-rows:auto 1fr auto;padding:16px}#arenaInfo{grid-column:1;max-width:290px}#arenaRail{grid-column:2}#arenaDioramaLabel{display:none}#arenaKeyboardHint{display:none}}
 @media (max-width:680px){#hint{bottom:8px;font-size:9px;letter-spacing:.12em}#bottomLeft,#bottomRight{max-width:46vw;min-width:0}#topBar .scoreCell{min-width:70px;padding:6px 8px}.scoreCell.mid{min-width:92px}.score{font-size:21px}.label{font-size:8px}#arenaSelectScreen{display:none;overflow:auto;grid-template-columns:1fr;grid-template-rows:auto minmax(220px,36vh) auto auto;padding:14px 14px calc(92px + env(safe-area-inset-bottom));background:linear-gradient(rgba(3,6,14,.58),rgba(3,6,14,.92))}#arenaSelectScreen.open{display:grid}#arenaSelectHeader{grid-row:1}#arenaInfo{grid-column:1;grid-row:3;max-width:none;align-self:auto}#arenaRail{grid-column:1;grid-row:4;min-height:360px}#arenaActions{position:fixed;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:2;grid-template-columns:auto 1fr auto;padding:8px;border-radius:12px;background:rgba(3,6,14,.88);backdrop-filter:blur(12px)}#arenaNavCluster{justify-self:center}#arenaBackBtn,#arenaDeployBtn{min-width:0;padding:11px 13px;font-size:8px}#arenaDeployBtn{justify-self:end}.arenaMetaGrid{grid-template-columns:1fr}#arenaSummary{font-size:10px}#arenaNavLegend{grid-template-columns:1fr}}
-@media (pointer:coarse){#touchControls.active{display:block}#hint{display:none}#minimap{transform:scale(.76);transform-origin:top left}#bottomLeft,#bottomRight{bottom:158px;background:rgba(6,10,22,.72)}#reloadWrap{bottom:266px}#objectiveChip{top:78px}.aimName{display:none}}
-@media (pointer:coarse) and (orientation:portrait){body.game-active #orientationGuide{display:flex}#movePad,#aimPad{width:112px;height:112px}#touchActions{left:50%;right:auto;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);grid-template-columns:repeat(2,44px);gap:6px}.touchBtn,.touchBtn[data-action=reload],.touchBtn[data-action=pause],.touchBtn[data-action=weapon6]{width:44px;height:44px;font-size:8px}#bottomLeft,#bottomRight{bottom:220px}#reloadWrap{bottom:340px}}
+@media (pointer:coarse){#touchControls.active{display:block}#hint{display:none}#minimap{transform:scale(.76);transform-origin:top left}#feed{top:118px;right:10px;width:min(300px,68vw)}.feedRow{font-size:9px;padding:5px 8px}#bottomLeft,#bottomRight{bottom:158px;background:rgba(6,10,22,.72)}#reloadWrap{bottom:266px}#objectiveChip{top:78px}.aimName{display:none}}
+@media (pointer:coarse) and (orientation:portrait){body.game-active #orientationGuide{display:flex}#feed,#minimap,#coachPrompt{display:none}#topBar{top:62px;transform:translateX(-50%) scale(.82);transform-origin:top center}#objectiveChip{top:118px;max-width:76vw}#spikeMsg{top:154px;bottom:auto;max-width:82vw;padding:6px 12px;font-size:8px;line-height:1.35;text-align:center}#movePad,#aimPad{width:112px;height:112px}#touchActions{left:50%;right:auto;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);grid-template-columns:repeat(2,44px);gap:6px}.touchBtn,.touchBtn[data-action=reload],.touchBtn[data-action=pause],.touchBtn[data-action=weapon6]{width:44px;height:44px;font-size:8px}#bottomLeft,#bottomRight{bottom:220px}#reloadWrap{bottom:340px}}
 @media (pointer:coarse) and (max-height:520px){#movePad,#aimPad{width:112px;height:112px;bottom:max(8px,env(safe-area-inset-bottom))}#movePad{left:max(8px,env(safe-area-inset-left))}#aimPad{right:max(8px,env(safe-area-inset-right))}#touchActions{right:130px;bottom:max(9px,env(safe-area-inset-bottom));grid-template-columns:repeat(3,46px);gap:7px}.touchBtn{width:46px;height:46px;font-size:9px}body.touch-left #movePad{right:max(8px,env(safe-area-inset-right))}body.touch-left #aimPad{left:max(8px,env(safe-area-inset-left))}body.touch-left #touchActions{left:130px}#bottomLeft,#bottomRight{bottom:108px;padding:8px 10px}#minimap{display:none}#coachPrompt{bottom:8px}}
 @media (max-width:560px){.pauseGrid,.tutorialGrid{grid-template-columns:1fr}.modalActions,#endActions{flex-direction:column}#pausePanel{padding:20px}.sbTeam .sbHead,.sbRow{grid-template-columns:1fr 44px 44px 44px}.sbTeam .sbHead span:last-child,.sbRow span:last-child{display:none}}
 @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
@@ -432,11 +433,11 @@ body[data-colorblind=deuteranopia]{--red:#f97316;--green:#60a5fa}body[data-color
     </section>
     <section class="tSec tReveal" id="tArsenal" data-brief="04" data-title="ARSENAL">
       <div class="tHead"><b>04</b><h2>The arsenal</h2><i></i></div>
-      <p class="tLede">Four buyable base weapons cover the economy, every operator brings one doctrine weapon with a Q special, and Series 03 adds a shared pool you cycle with 6. Damage figures below are the real values the runtime fires with.</p>
+      <p class="tLede">Four buyable base weapons cover the economy, every operator brings an original signature and a newly forged Ascendant divisional weapon, and Series 03 adds a shared pool. Slot 6 cycles the expanded armory; every damage figure below is live runtime data.</p>
       <div class="tCards" id="tWeaponCards"></div>
       <h3 class="tSubHead">Doctrine weapons</h3>
       <div class="tCards wide" id="tDoctrineTables"></div>
-      <h3 class="tSubHead">Arsenal Series 03</h3>
+      <h3 class="tSubHead">Series 03 + Ascendant armory</h3>
       <div class="tCards wide" id="tSeriesTables"></div>
     </section>
     <section class="tSec tReveal" id="tArenas" data-brief="05" data-title="ARENAS">
@@ -575,7 +576,7 @@ body[data-colorblind=deuteranopia]{--red:#f97316;--green:#60a5fa}body[data-color
   <div id="touchControls">
     <div id="movePad"><i class="touchNub"></i></div>
     <div id="aimPad"><i class="touchNub"></i></div>
-    <div id="touchActions"><button class="touchBtn" data-action="ability" aria-label="Ability">E</button><button class="touchBtn primary" data-action="fire" aria-label="Fire">FIRE</button><button class="touchBtn" data-action="doctrine" aria-label="Doctrine special">Q</button><button class="touchBtn" data-action="interact" aria-label="Plant, defuse, or interact">ACT</button><button class="touchBtn" data-action="armory" aria-label="Open armory">BUY</button><button class="touchBtn" data-action="reload" aria-label="Reload">R</button><button class="touchBtn" data-action="weapon6" aria-label="Cycle Series 03 weapons">SWAP</button><button class="touchBtn" data-action="pause" aria-label="Pause">Ⅱ</button></div>
+    <div id="touchActions"><button class="touchBtn" data-action="ability" aria-label="Ability">E</button><button class="touchBtn primary" data-action="fire" aria-label="Fire">FIRE</button><button class="touchBtn" data-action="doctrine" aria-label="Doctrine special">Q</button><button class="touchBtn" data-action="interact" aria-label="Plant, defuse, or interact">ACT</button><button class="touchBtn" data-action="armory" aria-label="Open armory">BUY</button><button class="touchBtn" data-action="reload" aria-label="Reload">R</button><button class="touchBtn" data-action="weapon6" aria-label="Cycle divisional armory weapons">SWAP</button><button class="touchBtn" data-action="pause" aria-label="Pause">Ⅱ</button></div>
   </div>
 </div>
 <div id="scoreboard" class="glass"><h3>MATCH SCOREBOARD</h3><div id="sbBody"></div></div>
@@ -605,7 +606,7 @@ body[data-colorblind=deuteranopia]{--red:#f97316;--green:#60a5fa}body[data-color
   <div id="runtimeDiagnostics"></div>
 </div></div>
 <div id="buyMenu" class="glass"><h3>ARMORY GRID</h3><div class="buyGrid" id="buyGrid"></div></div>
-<div id="endScreen"><div id="endCard"><h2 id="endTitle">VICTORY</h2><p id="endSub"></p><div id="endRewards"></div><div id="endActions"><button type="button" class="primary" id="rematchBtn">REMATCH</button><button type="button" id="resultsMenuBtn">RETURN TO MENU</button></div></div></div>
+<div id="endScreen"><div id="endCard"><h2 id="endTitle">VICTORY</h2><p id="endSub"></p><div id="endRewards"></div><div id="endStats"></div><div class="operationPanel"><div id="operationSummary"></div><div class="operationTrack"><i id="operationBar"></i></div><div id="endContracts"></div></div><div id="endActions"><button type="button" class="primary" id="nextOperationBtn">NEXT OPERATION</button><button type="button" id="rematchBtn">REMATCH</button><button type="button" id="changeArenaBtn">CHANGE ARENA</button><button type="button" id="resultsMenuBtn">OPERATORS</button></div></div></div>
 <div id="onboarding" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
   <div class="modalCard"><div class="eyebrow" id="tutorialStep">Field orientation / 1 of 4</div><h2 id="tutorialTitle">HOW TO PLAY</h2><p id="tutorialIntro">Move, aim, and fire while your squad contests two objective sites.</p><div class="tutorialGrid" id="tutorialGrid"></div><div class="modalActions"><button type="button" id="tutorialSkip">SKIP</button><button type="button" id="tutorialPrev">BACK</button><button type="button" class="primary" id="tutorialNext">NEXT</button></div></div>
 </div>
@@ -673,9 +674,9 @@ const SIGNATURES={
  eon:{id:"signature",n:"CHRONOS",type:"TEMPORAL VIAL",form:"vial",dmg:30,delay:.25,mag:18,res:72,spread:.022,auto:true,glow:"#67E8F9",stats:[42,48,78,93],special:{n:"LIFESPAN DILATION",d:"A temporal field accelerates allied cooldowns and stretches hostile attacks.",eff:"Allies receive continuous healing and status resistance."}},
  cognara:{id:"signature",n:"PSYCHE",type:"MIRROR PRISM",form:"prism",dmg:36,delay:.2,mag:16,res:64,spread:.018,auto:true,glow:"#F9A8D4",stats:[52,58,70,95],special:{n:"EMPATHY MIRROR",d:"Mirrors the highest-threat enemy and exposes its cognitive weak points.",eff:"Revealed targets take 25% more damage from all sources."}}
 };
-/* Arsenal Series 03 is additive: all 20 PR #3 doctrine weapons remain intact.
-   These 21 entries add the parent AEGIS relic and one alternative weapon for
-   every division, bringing the complete roster to 41 signature/relic options. */
+/* Arsenal Series 03 remains additive: all 20 original doctrine weapons stay
+   intact, these 21 relics remain available, and the runtime bundle adds one
+   Ascendant weapon for every division below this registry. */
 function series03(id,n,type,form,owner,glow,stats,specialType,sn,sd,se){
  const power=stats[0],speed=stats[1],range=stats[2];
  return{id,n,type,form,owner,glow,stats,specialType,series:"03",
@@ -707,6 +708,8 @@ const ADDITIONAL_WEAPONS={
  series03_aethel:series03("series03_aethel","AETHEL","HOURGLASS SCYTHE · NOVA","scythe","eon","#FFF7D6",[60,42,72,88],"NOVA","TIME NOVA","Cream-gold rings ripple outward as moments of stolen time.","Enemies in range are slowed 35% for 5s."),
  series03_kineton:series03("series03_kineton","KINETON","PLASMA DRIVER · SMART RIFLE","rifle","animus","#67E8F9",[78,71,95,64],"SWARM","SWARM DIRECTIVE","Six autonomous micro-drones acquire targets and fire coordinated volleys.","Weak-point lock grants 50% critical chance for 5s.")
 };
+const ARSENAL_RUNTIME=window.CS3D_ARSENAL||{},ASCENDANT_WEAPONS=ARSENAL_RUNTIME.ASCENDANT_WEAPONS||{},ASCENDANT_BY_ID=ARSENAL_RUNTIME.ASCENDANT_BY_ID||{};
+Object.assign(ADDITIONAL_WEAPONS,ASCENDANT_BY_ID);
 const ARSENAL_ROSTER={...SIGNATURES,...ADDITIONAL_WEAPONS};
 const DIV_BY_ID=Object.fromEntries(DIVS.map(d=>[d.id,d]));
 const DNA={
@@ -745,6 +748,7 @@ function applyArenaDefinition(id){
 const nearestTo=(arr,pt)=>{let b=null,bd=Infinity;for(const q of arr){const dq=dist(q,pt);if(dq<bd){bd=dq;b=q}}return b};
 const V3=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),hex=c=>new THREE.Color(c);
 const BOSS_RUNTIME=window.CS3D_BOSS||{},BOSS_DNA=BOSS_RUNTIME.BOSS_DNA||[],BOSS_BY_ID=BOSS_RUNTIME.BOSS_BY_ID||{},PLAYLISTS=BOSS_RUNTIME.PLAYLISTS||{};
+const OPERATIONS=window.CS3D_OPERATIONS||{};
 const AUDIO=window.CS3D_AUDIO;
 const RUNTIME=window.CS3D_RUNTIME,INPUT_RUNTIME=window.CS3D_INPUT,PERSISTENCE=window.CS3D_PERSISTENCE;
 const gameState=RUNTIME.createGameStateMachine(RUNTIME.GAME_STATES.LOADING),gameScheduler=new RUNTIME.GameScheduler(),appLifecycle=new RUNTIME.LifecycleRegistry();
@@ -752,7 +756,7 @@ const actionInput=INPUT_RUNTIME.createActionInput(),qualityController=new RUNTIM
 let scene,camera,renderer,raycaster,ground,aimPlane,clock=new THREE.Clock(),composer=null,bloomPass=null,previewLight=null,previewRim=null,arenaGroup=null,previewPad=null,mapSelectMarkers=null;
 let previewSnap=true;
 let players=[],me=null,myTeam="ATK",myDiv=null,phase="loading",phaseT=0,round=1,scoreATK=0,scoreDEF=0,bomb={state:"carried"},aim={x:WORLD_W/2,y:WORLD_H/2},mouse={x:innerWidth/2,y:innerHeight/2,down:false,fired:false},keys={},rigs=new Map(),preview=null,previewId=null,fx,menuOrbit=0,dioramaOrbit=0,buyOpen=false,tempMeshes=[],worldBits=[],arenaRuntimeState=null,titleActive=false,titleOrbit=0;
-let selectedPlaylist="standard",selectedSquad=[],encounterKind="standard",wavePlan=[],waveIndex=0,pendingWaveIndex=null,activeBoss=null,bossRigs=new Map(),lastBossId=null,apexComplete=false,apexWinner=null,lastPlayerAbilityId=null,matchFinalized=false,matchOutcomeOverride=null,bossOutcome="",resultCueQueued=false,matchBlueprint=null,matchSpawnRng=null;
+let selectedPlaylist="standard",selectedSquad=[],encounterKind="standard",wavePlan=[],waveIndex=0,pendingWaveIndex=null,activeBoss=null,bossRigs=new Map(),lastBossId=null,apexComplete=false,apexWinner=null,lastPlayerAbilityId=null,matchFinalized=false,matchOutcomeOverride=null,bossOutcome="",resultCueQueued=false,matchBlueprint=null,matchSpawnRng=null,matchStartedAt=0;
 const ui={hitT:0,damageT:0,killT:0,streak:0,streakT:0,lastKillT:0};
 const touchMove={x:0,y:0},padMove={x:0,y:0};
 let lastPadButtons=[],activePadIndex=null,qualityScale=Math.min(devicePixelRatio,1.5),qualityClock=0,qualityFrames=0,qualitySum=0,loopHandle=0,loopStarted=false;
@@ -976,7 +980,7 @@ function cycleAdditional(p){const ids=availableAdditions(p.div.id).map(w=>w.id).
 const WEAPON_SLOTS=[{key:"pistol",slot:"1"},{key:"smg",slot:"2"},{key:"rifle",slot:"3"},{key:"sniper",slot:"4"},{key:"signature",slot:"5"}];
 function weaponClassLabel(w){
  if(!w)return "";
- if(isDoctrineWeapon(w))return w.series==="03"?"SERIES 03":"DIVISION ISSUE";
+ if(isDoctrineWeapon(w))return w.series==="03"?"SERIES 03":w.series==="ASCENDANT"?"ASCENDANT":"DIVISION ISSUE";
  return w.id==="sniper"?"ANTI-MATERIEL":w.id==="rifle"?"ASSAULT":w.id==="smg"?"CLOSE QUARTERS":"SIDEARM";
 }
 function equipWeapon(p,id){
@@ -1011,7 +1015,7 @@ function renderWeaponRail(){
   return node;
  }));
 }
-function makePlayer(team,id,human,name){const sp=spawn(team),div=DIV_BY_ID[id],signature=doctrineWeapon(id),weapons=addAdditionalLoadout({pistol:{...WEAPONS.pistol,ammo:12,reserve:48},signature},id);const p={id:Math.random().toString(36).slice(2),team,div,human,name,x:sp.x,y:sp.y,angle:team==="ATK"?-Math.PI/2:Math.PI/2,hp:100,armor:0,alive:true,money:800,kills:0,deaths:0,cur:"signature",weapons,fireT:0,reloadT:0,abilityT:0,doctrineT:0,revealT:0,slowT:0,speedUntil:0,fireUntil:0,critUntil:0,phaseUntil:0,boostShots:0,usedWind:false,target:null,pathT:0,deadT:0};p.hp=maxHp(p);if(id==="terra")p.armor=25;return p}
+function makePlayer(team,id,human,name){const sp=spawn(team),div=DIV_BY_ID[id],signature=doctrineWeapon(id),weapons=addAdditionalLoadout({pistol:{...WEAPONS.pistol,ammo:12,reserve:48},signature},id),ascendant=`ascendant_${id}`;const p={id:Math.random().toString(36).slice(2),team,div,human,name,x:sp.x,y:sp.y,angle:team==="ATK"?-Math.PI/2:Math.PI/2,hp:100,armor:0,alive:true,money:800,kills:0,deaths:0,cur:weapons[ascendant]?ascendant:"signature",weapons,fireT:0,reloadT:0,abilityT:0,doctrineT:0,revealT:0,slowT:0,speedUntil:0,fireUntil:0,critUntil:0,phaseUntil:0,boostShots:0,usedWind:false,target:null,pathT:0,deadT:0,matchStats:{shots:0,hits:0,damage:0,bossDamage:0,objectives:0,roundWins:0,doctrines:0,bossKills:0}};p.hp=maxHp(p);if(id==="terra")p.armor=25;return p}
 function combatTargets(p){const targets=players.filter(q=>q.alive&&q.team!==p.team);if(activeBoss?.alive&&activeBoss.team!==p.team)targets.push(activeBoss);return targets}
 function bossOccupancyCells(boss=activeBoss,x=boss?.x,y=boss?.y){if(!boss||!BOSS_RUNTIME.cellsForCircle)return[];return BOSS_RUNTIME.cellsForCircle({x,y,radius:boss.radius,tile:TILE,mapW:MAPW,mapH:MAPH})}
 function bossCanOccupy(boss,x,y){return !!BOSS_RUNTIME.canOccupyCircle&&BOSS_RUNTIME.canOccupyCircle({x,y,radius:boss.radius,tile:TILE,grid})}
@@ -1019,9 +1023,15 @@ function clearBoss(){
  if(activeBoss){const r=bossRigs.get(activeBoss.id);if(r?.root){scene.remove(r.root);disposeTree(r.root)}bossRigs.delete(activeBoss.id)}
  activeBoss=null;document.getElementById("bossHud")?.classList.remove("on")
 }
-function makeBossEntity(dna,x,y){
- const hpScale=selectedDifficulty==="elite"?1.18:selectedDifficulty==="rookie"?.86:1,max=Math.round(260*(dna.hpMult||4)*hpScale);
- return{id:"boss_"+dna.id+"_"+Math.random().toString(36).slice(2),bossId:dna.id,isBoss:true,dna,name:dna.name,team:"BOSS",div:{id:"boss",n:dna.name,c:dna.accent||dna.cTop,role:"APEX",ab:dna.signature},x,y,angle:Math.PI/2,vx:0,vy:0,hp:max,maxHp:max,armor:Math.round((dna.hpMult||4)*8),alive:true,radius:Math.round(22+(dna.scale||1.8)*18),hitT:0,hitAng:0,slowT:0,abilityT:0,abilityCd:{},pendingAbility:null,nextAbility:performance.now()/1000+2.2,attackT:0,damageScale:selectedDifficulty==="elite"?1.18:selectedDifficulty==="rookie"?.82:1,lastAbilityName:"ACQUIRING TARGET"}
+function makeBossEntity(dna,x,y,source="boss"){
+ const balance=BOSS_RUNTIME.createBossBalance?.({hpMult:dna.hpMult||4,difficulty:selectedDifficulty,squadSize:players.filter(p=>p.alive&&p.team===myTeam).length,source})||{maxHp:Math.round(1150*(dna.hpMult||4)),armor:420,damageScale:1,reinforcementCounts:[0,2,2,3]},max=balance.maxHp;
+ return{id:"boss_"+dna.id+"_"+Math.random().toString(36).slice(2),bossId:dna.id,isBoss:true,dna,name:dna.name,team:"BOSS",div:{id:"boss",n:dna.name,c:dna.accent||dna.cTop,role:"APEX",ab:dna.signature},x,y,angle:Math.PI/2,vx:0,vy:0,hp:max,maxHp:max,armor:balance.armor,maxArmor:balance.armor,alive:true,radius:Math.round(22+(dna.scale||1.8)*18),hitT:0,hitAng:0,slowT:0,abilityT:0,abilityCd:{},pendingAbility:null,nextAbility:performance.now()/1000+2.2,attackT:0,damageScale:balance.damageScale,lastAbilityName:"PHASE I / ACQUIRING TARGET",phaseIndex:0,reinforcementCounts:balance.reinforcementCounts}
+}
+function spawnBossReinforcements(count,phaseIndex){
+ const hostile="BOSS",pool=DIVS.filter(d=>!players.some(p=>p.alive&&p.div.id===d.id));for(let i=0;i<count&&pool.length;i++){const d=pool.splice(Math.floor(Math.random()*pool.length),1)[0],unit=makePlayer(hostile,d.id,false,`APEX ECHO ${phaseIndex}.${i+1}`);unit.hp=Math.round(maxHp(unit)*(1.15+phaseIndex*.12));unit.armor=20+phaseIndex*12;unit.damageUntil=Infinity;unit.damageBuff=.08+phaseIndex*.06;players.push(unit);makeRig(unit)}
+}
+function advanceBossPhase(boss,phaseIndex){
+ boss.phaseIndex=phaseIndex;boss.armor=Math.min(boss.maxArmor,boss.armor+boss.maxArmor*.42);boss.nextAbility=Math.min(boss.nextAbility,performance.now()/1000+1.15);boss.damageScale*=1.1;spawnBossReinforcements(boss.reinforcementCounts?.[phaseIndex]||0,phaseIndex);boss.lastAbilityName=`PHASE ${phaseIndex+1} / ESCALATION`;showBanner(`APEX PHASE ${phaseIndex+1}`);feed(`Armor restored / reinforcements inbound / damage escalating`,boss.dna.accent);fx.ring(boss.x,boss.y,boss.dna.accent,3+phaseIndex*.55);addShake(.62)
 }
 function arenaSeed(text){let value=2166136261;for(const char of String(text)){value^=char.charCodeAt(0);value=Math.imul(value,16777619)}return value>>>0}
 function findArenaBossSpawn(radius,team,bossId){
@@ -1037,7 +1047,7 @@ function startBossEncounter(team,{source="boss",bossId=null}={}){
  if(!dna){feed("Boss roster unavailable","#ef4444");return}
  lastBossId=chosen;
  const radius=Math.round(22+(dna.scale||1.8)*18),point=findArenaBossSpawn(radius,team,chosen);if(!point){console.error(`[boss] no safe spawn for ${chosen} in ${selectedArenaId}`);bossOutcome="ARENA SPAWN VALIDATION FAILED";matchOutcomeOverride=false;return endGame()}
- activeBoss=makeBossEntity(dna,point.x,point.y);
+ activeBoss=makeBossEntity(dna,point.x,point.y,source);
  if(source==="wave")AUDIO.playMusic("final_boss");else AUDIO.playBossMusic(chosen);
  const rig=BOSS_RUNTIME.makeBossRig(activeBoss,{THREE,scene,S});bossRigs.set(activeBoss.id,rig);
  bomb={state:"inactive",carrier:null,x:0,y:0,timer:0};clearSpikeMesh();
@@ -1082,12 +1092,12 @@ function updateBoss(dt,now){
  const boss=activeBoss;if(!boss?.alive||phase!=="live")return;const targets=players.filter(p=>p.alive&&p.team!==boss.team);
  if(!targets.length)return encounterDefeat();
  const target=nearestTo(targets,boss),td=dist(boss,target);boss.angle=Math.atan2(target.y-boss.y,target.x-boss.x);
- const fast=boss.dna.loco==="storm"||boss.dna.loco==="phase",speed=(fast?132:boss.dna.loco==="colossus"?62:86)*(boss.slowT>now?.58:1),keep=boss.dna.loco==="orbital"||boss.dna.loco==="anchor"?230:120;
+ const fast=boss.dna.loco==="storm"||boss.dna.loco==="phase",rage=1+boss.phaseIndex*.12,speed=(fast?132:boss.dna.loco==="colossus"?62:86)*rage*(boss.slowT>now?.58:1),keep=boss.dna.loco==="orbital"||boss.dna.loco==="anchor"?230:120;
  boss.vx=boss.vy=0;if(td>keep){const nx=boss.x+Math.cos(boss.angle)*speed*dt,ny=boss.y+Math.sin(boss.angle)*speed*dt;if(bossCanOccupy(boss,nx,ny)){boss.vx=(nx-boss.x)/dt;boss.vy=(ny-boss.y)/dt;boss.x=nx;boss.y=ny}}
- if(td<210&&actorRayClear(boss,target)&&boss.attackT<=now){boss.attackT=now+(fast?.9:1.35);damage(target,Math.round((18+(boss.dna.hpMult||4)*2.2)*boss.damageScale),boss,{boss:true});fx.ring(target.x,target.y,boss.dna.accent,.8)}
+ if(td<210&&actorRayClear(boss,target)&&boss.attackT<=now){boss.attackT=now+(fast?.9:1.35)/(1+boss.phaseIndex*.1);damage(target,Math.round((18+(boss.dna.hpMult||4)*2.2)*boss.damageScale),boss,{boss:true});fx.ring(target.x,target.y,boss.dna.accent,.8)}
  if(boss.pendingAbility&&me?.alive){const radius=boss.pendingAbility.result.params?.radius||150;if(dist(me,boss)<radius&&actorRayClear(boss,me)){ui.hazardWarning=`BOSS ATTACK: ${boss.lastAbilityName.toUpperCase()} — MOVE OR BREAK SIGHT`;ui.hazardT=now+.2}}
  if(boss.pendingAbility&&boss.pendingAbility.at<=now){applyBossAbility(boss.pendingAbility.result,now);boss.pendingAbility=null}
- if(!boss.pendingAbility&&boss.nextAbility<=now){const slot=boss.dna.hybrid&&Math.random()<.35?"secondary":"primary",result=BOSS_RUNTIME.runBossAbility?.(boss,{players,now,fx,grid,lastPlayerAbilityId},slot);boss.nextAbility=now+3.4+rnd(0,2.4);if(result&&!result.skipped){boss.lastAbilityName=result.name;boss.pendingAbility={result,at:now+(result.params?.telegraphMs||900)/1000};for(let i=0;i<3;i++)scheduleGame(()=>{if(boss.alive&&boss.pendingAbility)fx.ring(boss.x,boss.y,boss.dna.accent,Math.max(1,(result.params?.radius||150)/90))},i*220);showBanner(result.name);feed(`${result.telegraph} / MOVE OR BREAK LINE OF SIGHT`,boss.dna.accent)}}
+ if(!boss.pendingAbility&&boss.nextAbility<=now){const slot=boss.dna.hybrid&&Math.random()<.35?"secondary":"primary",result=BOSS_RUNTIME.runBossAbility?.(boss,{players,now,fx,grid,lastPlayerAbilityId},slot);boss.nextAbility=now+(3.4+rnd(0,2.4))/(1+boss.phaseIndex*.16);if(result&&!result.skipped){boss.lastAbilityName=result.name;boss.pendingAbility={result,at:now+(result.params?.telegraphMs||900)/1000};for(let i=0;i<3;i++)scheduleGame(()=>{if(boss.alive&&boss.pendingAbility)fx.ring(boss.x,boss.y,boss.dna.accent,Math.max(1,(result.params?.radius||150)/90))},i*220);showBanner(result.name);feed(`${result.telegraph} / MOVE OR BREAK LINE OF SIGHT`,boss.dna.accent)}}
 }
 /* Every point of damage you personally deal resolves through here, so a shot,
    an ability tick and a doctrine wave all confirm in the same visual language:
@@ -1101,10 +1111,10 @@ function confirmHit(target,amount,kind){
  if(kind==="elimination"||kind==="critical")addShake(kind==="elimination"?.14:.06);
 }
 function damageBoss(boss,dmg,src,flags={}){
- if(!boss?.alive)return;const now=performance.now()/1000,armorHit=boss.armor>0;let d=dmg;if(boss.armor>0){d*=.72;boss.armor=Math.max(0,boss.armor-dmg*.08)}boss.hp-=d;boss.hitT=now+.3;if(src){boss.hitAng=Math.atan2(boss.y-src.y,boss.x-src.x);if(src!==me)fx.sparks(boss.x,boss.y,boss.dna.accent,16,1.5)}if(src===me)confirmHit(boss,d,boss.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"boss");if(boss.hp<=0)finishBoss(src)
+ if(!boss?.alive)return;const now=performance.now()/1000,armorHit=boss.armor>0;let d=dmg;if(boss.armor>0){d*=.78;boss.armor=Math.max(0,boss.armor-dmg*.5)}boss.hp-=d;if(src===me){me.matchStats.damage+=d;me.matchStats.bossDamage+=d}boss.hitT=now+.3;if(src){boss.hitAng=Math.atan2(boss.y-src.y,boss.x-src.x);if(src!==me)fx.sparks(boss.x,boss.y,boss.dna.accent,16,1.5)}if(src===me)confirmHit(boss,d,boss.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"boss");const nextPhase=BOSS_RUNTIME.bossPhaseForHealth?.(boss.hp,boss.maxHp)??boss.phaseIndex;while(boss.hp>0&&nextPhase>boss.phaseIndex)advanceBossPhase(boss,boss.phaseIndex+1);if(boss.hp<=0)finishBoss(src)
 }
 function finishBoss(src){
- const boss=activeBoss;if(!boss?.alive)return;boss.alive=false;boss.hp=0;const r=bossRigs.get(boss.id);if(r)r.root.visible=false;fx.ring(boss.x,boss.y,boss.dna.accent,4);fx.sparks(boss.x,boss.y,boss.dna.accent,70,3);showBanner("APEX NEUTRALIZED");if(src===me)awardMatchXP(180,"APEX ELIMINATION");
+ const boss=activeBoss;if(!boss?.alive)return;boss.alive=false;boss.hp=0;const r=bossRigs.get(boss.id);if(r)r.root.visible=false;fx.ring(boss.x,boss.y,boss.dna.accent,4);fx.sparks(boss.x,boss.y,boss.dna.accent,70,3);showBanner("APEX NEUTRALIZED");if(src===me){me.matchStats.bossKills++;awardMatchXP(180,"APEX ELIMINATION")}
  resultCueQueued=true;AUDIO.playStinger("boss_defeat",{nextTrackKey:"results"});
  if(encounterKind==="wave"&&waveIndex<wavePlan.length-1){setGamePhase("end","boss-wave-cleared");phaseT=4;pendingWaveIndex=waveIndex+1;return}
  if(encounterKind==="apex"){apexComplete=true;bossOutcome=`${apexWinner} DEFEATED ${boss.name}`;setGamePhase("end","apex-cleared");phaseT=3;return}
@@ -1255,7 +1265,7 @@ function makeFogVolume(value,theme,t,rng){
 function buildArenaIdentity(definition,theme){
  const rng=ARENA_SYSTEM.createSeededRandom?.(arenaSeed(definition.identity.id))||Math.random,t=TILE*S;
  arenaGroup.userData.identity=definition.identity.name;arenaGroup.userData.silhouette=definition.identity.silhouette;arenaGroup.userData.topologySignature=ARENA_SYSTEM.topologySignature?.(definition);arenaGroup.userData.subspaces=definition.combat.subspaces.length;arenaGroup.userData.hazardCount=definition.hazards.length;arenaGroup.userData.interactableCount=definition.interactables.length;arenaGroup.userData.ballistics="height-field-v1";arenaGroup.userData.waterSurfaceCount=definition.interactables.filter(value=>value.type==="water").length;arenaGroup.userData.localFogVolumeCount=definition.hazards.filter(value=>value.effect==="visibility"||["steam","spores","mist","dust"].includes(value.type)).length;
- const mats={floor:arenaMaterial(theme,"floor"),structure:arenaMaterial(theme,"structure"),dark:arenaMaterial(theme,"dark"),accent:arenaMaterial(theme,"accent"),secondary:arenaMaterial(theme,"secondary"),organic:new THREE.MeshStandardMaterial({color:0x173f2a,roughness:.9,metalness:.02,emissive:theme.accentHex,emissiveIntensity:.12}),ice:new THREE.MeshPhysicalMaterial({color:0xbbeaff,roughness:.16,metalness:.05,transparent:true,opacity:.7,transmission:.2,emissive:theme.secondaryHex,emissiveIntensity:.12})};
+ const surfaceMats=window.CS3D_ARENA_ASSETS?.buildArenaMaterialSet?.(theme)||{},mats={floor:surfaceMats.floor||arenaMaterial(theme,"floor"),structure:surfaceMats.structure||arenaMaterial(theme,"structure"),dark:surfaceMats.dark||arenaMaterial(theme,"dark"),accent:surfaceMats.accent||arenaMaterial(theme,"accent"),secondary:surfaceMats.secondary||arenaMaterial(theme,"secondary"),organic:new THREE.MeshStandardMaterial({color:0x173f2a,roughness:.9,metalness:.02,emissive:theme.accentHex,emissiveIntensity:.12}),ice:new THREE.MeshPhysicalMaterial({color:0xbbeaff,roughness:.16,metalness:.05,transparent:true,opacity:.7,transmission:.2,emissive:theme.secondaryHex,emissiveIntensity:.12})};
  const outer=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_W*S*3.5,WORLD_H*S*3.7),new THREE.MeshStandardMaterial({color:theme.outer,roughness:.96,metalness:.02}));outer.rotation.x=-Math.PI/2;outer.position.set(WORLD_W*S/2,-.55,WORLD_H*S/2);outer.receiveShadow=true;addArena(outer);
  for(const floor of definition.topology.floorZones){addIdentityBox(floor,.32,mats.floor,-.32);addArenaRim(floor,theme)}
  for(const value of definition.topology.voids||[]){const pit=addIdentityBox(value,.08,mats.dark,-.44);pit.material=new THREE.MeshBasicMaterial({color:theme.architecture==="cryo"?0x02112a:theme.outer,transparent:true,opacity:.96});addArenaRim(value,theme,-.2)}
@@ -1263,7 +1273,7 @@ function buildArenaIdentity(definition,theme){
  for(const platform of definition.topology.platforms||[]){const height=platform.elevation||.8;addIdentityBox(platform,height,mats.structure,0);addArenaRim(platform,theme,height+.04)}
  for(const ramp of definition.topology.ramps||[]){const rise=(ramp.to||0)-(ramp.from||0),length=(ramp.w>=ramp.h?ramp.w:ramp.h)*t,mesh=addIdentityBox(ramp,.18,mats.structure,Math.min(ramp.from||0,ramp.to||0));if(ramp.w>=ramp.h)mesh.rotation.z=-Math.atan2(rise,length);else mesh.rotation.x=Math.atan2(rise,length);mesh.position.y=(Math.max(ramp.from||0,ramp.to||0)+Math.min(ramp.from||0,ramp.to||0))/2}
  for(const block of definition.topology.blocks||[]){const height=ARENA_SYSTEM.arenaBlockHeight?.(block)??3.2,mesh=addIdentityBox(block,height,block.kind?mats.dark:mats.structure,0);mesh.userData.collisionProxy=true;mesh.userData.collisionHeight=height;for(let i=0;i<Math.min(3,Math.max(1,Math.floor((block.w+block.h)/4)));i++){const light=new THREE.Mesh(geo.box,new THREE.MeshBasicMaterial({color:i%2?theme.secondaryHex:theme.accentHex,transparent:true,opacity:.5}));light.scale.set(Math.max(.3,block.w*t*.22),.06,.08);light.position.set(mesh.position.x,Math.min(height-.2,.8+i*.75),mesh.position.z+block.h*t/2+.05);addArena(light);worldBits.push({type:"pulse",o:light,base:.25,amp:.35,phase:i+block.x})}}
- addLandmark(definition,theme,mats,rng);for(const site of definition.combat.sites)addCombatMarker(site,theme);
+ addLandmark(definition,theme,mats,rng);const living=window.CS3D_ARENA_ASSETS?.buildArenaLivingSet?.(definition,theme,t);if(living?.root){addArena(living.root);for(const entry of living.animations||[])worldBits.push(entry);arenaGroup.userData.livingAssetCount=living.root.userData.assetCount;arenaGroup.userData.arenaConnections=living.root.userData.connectionCount;arenaGroup.userData.materialSystem=living.root.userData.materialSystem}for(const site of definition.combat.sites)addCombatMarker(site,theme);
  const hazardViews=[];for(const hazard of definition.hazards){const material=new THREE.MeshBasicMaterial({color:theme.accentHex,transparent:true,opacity:.08,depthWrite:false,blending:THREE.AdditiveBlending}),mesh=new THREE.Mesh(new THREE.PlaneGeometry(hazard.w*t,hazard.h*t),material);mesh.rotation.x=-Math.PI/2;mesh.position.set((hazard.x+hazard.w/2)*t,.12,(hazard.y+hazard.h/2)*t);mesh.userData.hazardId=hazard.id;addArena(mesh);const rim=new THREE.Mesh(new THREE.TorusGeometry(Math.min(hazard.w,hazard.h)*t*.32,.055,8,40),material.clone());rim.rotation.x=Math.PI/2;rim.position.copy(mesh.position);rim.position.y=.16;addArena(rim);let volume=null;if(hazard.effect==="visibility"||["steam","spores","mist","dust"].includes(hazard.type)){volume=makeFogVolume(hazard,theme,t,rng);volume.position.set(mesh.position.x,0,mesh.position.z);addArena(volume)}hazardViews.push({mesh,rim,volume});worldBits.push({type:"spinY",o:rim,speed:.12})}
  const interactableViews=[];for(const value of definition.interactables){const group=new THREE.Group();group.position.set((value.x+value.w/2)*t,.14,(value.y+value.h/2)*t);addArena(group);if(value.type==="phase-barrier"){const barrier=new THREE.Mesh(new THREE.PlaneGeometry(value.w*t,3.8),new THREE.MeshBasicMaterial({color:theme.accentHex,transparent:true,opacity:.08,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));barrier.position.y=1.9;barrier.rotation.y=value.w<value.h?Math.PI/2:0;group.add(barrier);interactableViews.push({group,barrier})}else if(value.type==="water"){const water=makeWaterSurface(value,theme,t);group.add(water);interactableViews.push({group,water})}else{for(let i=0;i<4;i++){const arrow=new THREE.Mesh(geo.box,new THREE.MeshBasicMaterial({color:theme.secondaryHex,transparent:true,opacity:.2+i*.08}));arrow.scale.set(Math.max(.25,value.w*t/5),.025,Math.max(.12,value.h*t*.18));arrow.position.set((i-1.5)*(value.w>=value.h?value.w*t/5:0),.02,(i-1.5)*(value.h>value.w?value.h*t/5:0));group.add(arrow);worldBits.push({type:"pulse",o:arrow,base:.12,amp:.35,phase:i})}interactableViews.push({group})}}
  const backgroundMat=new THREE.MeshStandardMaterial({color:theme.wall,roughness:.88,metalness:.08,emissive:theme.wallEmissive,emissiveIntensity:.12});for(let i=0;i<18;i++){const side=i%4,x=side===0?-6-rng()*14:side===1?WORLD_W*S+6+rng()*14:rng()*WORLD_W*S,z=side===2?-7-rng()*14:side===3?WORLD_H*S+7+rng()*14:rng()*WORLD_H*S,h=4+rng()*14,shape=theme.architecture==="verdant"?new THREE.ConeGeometry(1+rng()*2,h,7):geo.box,structure=new THREE.Mesh(shape,backgroundMat);if(shape===geo.box)structure.scale.set(2+rng()*5,h,2+rng()*5);structure.position.set(x,shape===geo.box?h/2:0,z);structure.castShadow=true;addArena(structure);if(theme.architecture==="tempest")worldBits.push({type:"bob",o:structure,baseY:structure.position.y,phase:i})}
@@ -1413,7 +1423,10 @@ function buildSignatureMesh(parent,sig,mats){
   if(form==="scepter")weaponPart(parent,geo.torus,trim,[.36,.36,.36],[0,0,.84],[Math.PI/2,0,0]);
   profile.grip=[0,0,-.56];profile.fore=[0,0,.02];profile.muzzle=[0,0,1.22];profile.scale=.84;
  }
- for(let i=0;i<3;i++){const fin=weaponPart(parent,new THREE.OctahedronGeometry(1),trim,[.055,.075,.055],[(i-1)*.18,.12,.28+i*.18]);fin.userData.weaponSpin=(i%2?1:-1)*(1+i*.3)}
+ const finishRings=sig.orbitRings||1,finishFins=sig.fins||3,finishProngs=sig.prongs||2;
+ for(let i=0;i<finishRings;i++){const band=weaponPart(parent,geo.torus,i%2?energy:trim,[.14+i*.035,.14+i*.035,.14+i*.035],[0,.01,.18+i*.24],[Math.PI/2,0,0]);band.userData.weaponSpin=(i%2?-1:1)*(1.1+i*.2)}
+ for(let i=0;i<finishFins;i++){const a=i/finishFins*Math.PI*2,fin=weaponPart(parent,new THREE.OctahedronGeometry(1),i%2?metal:trim,[.045,.085,.12],[Math.cos(a)*.18,.1+Math.sin(a)*.09,.32+(i%3)*.2],[a*.16,0,a]);fin.userData.weaponSpin=(i%2?1:-1)*(1+i*.22)}
+ if(sig.series==="ASCENDANT")for(let i=0;i<finishProngs;i++){const a=i/finishProngs*Math.PI*2;weaponPart(parent,geo.cone,i%2?trim:energy,[.055,.22,.055],[Math.cos(a)*.2,Math.sin(a)*.2,.92],[Math.PI/2,0,-a])}
  return profile
 }
 function makeWeapon(accent,signature,additions=[]){
@@ -2171,9 +2184,9 @@ function makeFX(){
  }
 }
 function fireWeapon(p,tx,ty){
- const w=curW(p),now=performance.now()/1000;if((p.swapT||0)>now)return;if(p.reloadT>0||w.ammo<=0){if(p.human&&w.ammo<=0){if(p===me&&now-(ui.dryT||0)>.3){ui.dryT=now;SND.dry()}reload(p)}return}
+ if(phase!=="live")return;const w=curW(p),now=performance.now()/1000;if((p.swapT||0)>now)return;if(p.reloadT>0||w.ammo<=0){if(p.human&&w.ammo<=0){if(p===me&&now-(ui.dryT||0)>.3){ui.dryT=now;SND.dry()}reload(p)}return}
  const hostileTime=p.slowFireUntil>now?.7:1,fm=(p.div.id==='signal'?1.08:1)*(p.fireUntil>now?1.4:1)*hostileTime;if(now-p.fireT<w.delay/fm)return;p.fireT=now;w.ammo--;
- if(p===me){ui.hasFired=true;p.spawnGuardUntil=0}
+ if(p===me){ui.hasFired=true;p.spawnGuardUntil=0;p.matchStats.shots++}
  let spread=w.spread*((Math.abs(p.vx||0)+Math.abs(p.vy||0))>20?1.7:1);if(!p.human)spread+=difficulty().spread;
  if(p.controlUntil>now)spread*=.65;
  if(p.controlDebuffUntil>now)spread*=1.65;
@@ -2187,6 +2200,7 @@ function fireWeapon(p,tx,ty){
  else SND.shot(shotVoice,clamp(1-dist(p,me)/650,0,1)*.5);
  fx.blasterBolt(p,ang,hd,doctrine?(w.glow||p.div.c):(hit?hit.div.c:'#cbd5e1'),endHeight);
  if(hit){
+  if(p===me)p.matchStats.hits++;
   let shotDamage=w.dmg,critical=false;
   if(p.critUntil>now&&Math.random()<.5){shotDamage*=1.65;critical=true;fx.ring(hit.x,hit.y,w.glow||p.div.c,.7)}
   if(p.boostShots>0){shotDamage*=1.35;p.boostShots--}
@@ -2197,6 +2211,21 @@ function fireWeapon(p,tx,ty){
  if(w.ammo<=0)reload(p)
 }
 function applyDoctrineHit(p,q,w,now){
+ if(w.series==="ASCENDANT"){
+  if(w.onHit==="link")q.linkedUntil=now+6;
+  else if(w.onHit==="tithe"){q.titheUntil=now+8;q.titheTeam=p.team}
+  else if(["slow","time","jam"].includes(w.onHit)){q.slowT=now+4;if(w.onHit==="jam")q.slowFireUntil=now+6}
+  else if(["reveal","mirror"].includes(w.onHit)){q.revealT=now+7;q.markUntil=now+7;q.markMul=w.onHit==="mirror"?1.25:1.15}
+  else if(w.onHit==="breach")q.armor=Math.max(0,q.armor-12);
+  else if(w.onHit==="toxin")q.toxinUntil=now+6;
+  else if(w.onHit==="seed"){q.seedOnDeathUntil=now+7;q.seedTeam=p.team}
+  else if(w.onHit==="crit")p.critUntil=now+4;
+  else if(w.onHit==="haste")p.fireUntil=now+4;
+  else if(w.onHit==="refund")p.armor=Math.min(100,p.armor+3);
+  else if(w.onHit==="signal"){q.signalMarkUntil=now+7;q.signalMarkStart=now;q.signalTeam=p.team}
+  else if(w.onHit==="verdict"){q.markUntil=now+7;q.markMul=1.25;q.slowT=now+5}
+  return
+ }
  if(w.series==="03"){
   if(w.id==="series03_synapse")q.linkedUntil=now+6;
   else if(w.id==="series03_engine"){q.titheUntil=now+8;q.titheTeam=p.team}
@@ -2228,7 +2257,7 @@ function damage(q,dmg,src,flags={}){if(q?.isBoss)return damageBoss(q,dmg,src,fla
  if(src&&q.signalMarkUntil>now&&q.signalTeam===src.team&&actorRayClear(src,q))d*=1+clamp((now-(q.signalMarkStart||now))*.055,0,.38);
  if(q.resistUntil>now)d*=.82;
  if(q.armor>0){d*=.55;q.armor=Math.max(0,q.armor-dmg*.35)}
- q.hp-=d;if(q.refundUntil>now)q.refundPool=(q.refundPool||0)+d*.4;q.lastDmg=now;q.hitT=now+.28;
+ q.hp-=d;if(src===me)me.matchStats.damage+=d;if(q.refundUntil>now)q.refundPool=(q.refundPool||0)+d*.4;q.lastDmg=now;q.hitT=now+.28;
  if(src){q.hitAng=Math.atan2(q.y-src.y,q.x-src.x);if(src.div.id==="nexus")q.revealT=now+2}
  if(src===me)confirmHit(q,d,q.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"hit");
  else if(src)fx.sparks(q.x,q.y,teamLook(src).css,9,1.2);
@@ -2270,6 +2299,7 @@ function useSeries03Weapon(p,w,tp,allies,enemies,near,now){
   else if(w.id==="series03_ledger")near(enemies,p.x,p.y,390).forEach(q=>damage(q,Math.max(10,q.hp*.1),p,{doctrine:true}));
   else if(w.id==="series03_community")near(allies,p.x,p.y,390).forEach(q=>q.armor=Math.min(100,q.armor+Math.round(maxHp(q)*.15)));
   else if(w.id==="series03_aethel")near(enemies,p.x,p.y,410).forEach(q=>q.slowT=now+5);
+  else if(w.series==="ASCENDANT"){near(enemies,p.x,p.y,390).forEach(q=>{damage(q,24,p,{doctrine:true});applyDoctrineHit(p,q,w,now)});near(allies,p.x,p.y,390).forEach(q=>q.armor=Math.min(100,q.armor+14))}
  }else if(st==="BEAM"){
   const laneEnemies=enemies.filter(q=>inDoctrineLane(p,q,tp)),laneAllies=allies.filter(q=>inDoctrineLane(p,q,tp,90));
   doctrineWave(p,p.x,p.y,250,c);fx.blasterBolt(p,Math.atan2(tp.y-p.y,tp.x-p.x),Math.min(560,Math.hypot(tp.x-p.x,tp.y-p.y)),c);
@@ -2281,18 +2311,19 @@ function useSeries03Weapon(p,w,tp,allies,enemies,near,now){
   else if(w.id==="series03_loom")near(allies,p.x,p.y,390).forEach(q=>q.cooldownBoostUntil=now+6);
   else if(w.id==="series03_kindle")near(allies,p.x,p.y,390).forEach(q=>q.linkRegenUntil=now+6);
   else if(w.id==="series03_caravan")near(allies,p.x,p.y,430).forEach(q=>q.teamSpeedUntil=now+6);
+  else if(w.series==="ASCENDANT"){near(allies,p.x,p.y,410).forEach(q=>{q.damageUntil=now+7;q.damageBuff=Math.max(q.damageBuff||0,.14);q.teamSpeedUntil=now+7});near(enemies,p.x,p.y,410).forEach(q=>q.slowT=now+3)}
  }
 }
 function useDoctrine(p,targetPoint=null){
- const now=performance.now()/1000,w=curW(p);if(!p.alive||p.doctrineT>now||p.silencedUntil>now)return;
+ const now=performance.now()/1000,w=curW(p);if(phase!=="live"||!p.alive||p.doctrineT>now||p.silencedUntil>now)return;
  if(!isDoctrineWeapon(w)){if(p===me)feed("Equip slot 5 or 6 to fire a doctrine weapon",p.div.c);return}
- if(p===me)ui.usedDoctrine=true;
+ if(p===me){ui.usedDoctrine=true;p.matchStats.doctrines++}
  const tp=targetPoint?{x:targetPoint.x,y:targetPoint.y}:{x:aim.x,y:aim.y};
  const allies=players.filter(q=>q.alive&&q.team===p.team),enemies=combatTargets(p);
  const near=(list,x,y,r)=>list.filter(q=>Math.hypot(q.x-x,q.y-y)<r);
- if(w.series==="03"){
+ if(w.series==="03"||w.series==="ASCENDANT"){
   useSeries03Weapon(p,w,tp,allies,enemies,near,now);
-  p.doctrineT=now+26;if(p===me){showBanner(w.special.n);feed(w.special.eff,w.glow)}SND.ability();return
+  p.doctrineT=now+(w.cooldown||26);if(p===me){showBanner(w.special.n);feed(w.special.eff,w.glow)}SND.ability();return
  }
  const id=p.div.id,c=w.glow||p.div.c;doctrineWave(p,["nexus","terra","obsidian","gaia","juris","cognara"].includes(id)?tp.x:p.x,["nexus","terra","obsidian","gaia","juris","cognara"].includes(id)?tp.y:p.y,280,c);
  if(id==="zenflow"){
@@ -2336,7 +2367,7 @@ function abilityFx(id,p,tp){
  if(id==="animus")fx.ring(p.x,p.y,"#a5f3fc",1.7);
 }
 function useAbility(p,targetPoint=null){
- const now=performance.now()/1000;if(p.abilityT>now||p.div.id==="eon"||p.silencedUntil>now)return;
+ const now=performance.now()/1000;if(phase!=="live"||p.abilityT>now||p.div.id==="eon"||p.silencedUntil>now)return;
  if(p===me)ui.usedAbility=true;
  let id=p.div.id;if(id==="cognara")id=DIVS[Math.floor(Math.random()*(DIVS.length-1))].id;
  if(p===me)lastPlayerAbilityId=id;
@@ -2392,10 +2423,10 @@ function updateChannel(p,dt,want){
   if(mode==="plant"){
    bomb.state="planted";bomb.x=p.x;bomb.y=p.y;bomb.timer=SPIKE_TIMER;bomb.beepT=0;
    setSpikeWorld(p.x,p.y,true);showBanner("SPIKE PLANTED");SND.chirp(true);addShake(.3);
-   feed(`${p.name} planted the spike`,"#f59e0b");if(p===me)awardMatchXP(65,"OBJECTIVE PLANT");
+   feed(`${p.name} planted the spike`,"#f59e0b");if(p===me){p.matchStats.objectives++;awardMatchXP(65,"OBJECTIVE PLANT")}
   }else{
    bomb.state="defused";clearSpikeMesh();SND.chirp(false);
-   feed(`${p.name} defused the spike`,"#38bdf8");if(p===me)awardMatchXP(85,"OBJECTIVE DEFUSE");
+   feed(`${p.name} defused the spike`,"#38bdf8");if(p===me){p.matchStats.objectives++;awardMatchXP(85,"OBJECTIVE DEFUSE")}
    endRoundWin("DEF","SPIKE DEFUSED");
   }
   if(p===me&&gameState.state===RUNTIME.GAME_STATES.PLANT)transitionState(RUNTIME.GAME_STATES.LIVE,"channel-complete");
@@ -2406,7 +2437,7 @@ function updateChannel(p,dt,want){
 function endRoundWin(team,reason){
  if(phase!=="live")return;
  if(team==="ATK")scoreATK++;else scoreDEF++;round++;
- if(team===myTeam)awardMatchXP(42,"ROUND WIN");
+ if(team===myTeam){me.matchStats.roundWins++;awardMatchXP(42,"ROUND WIN")}
  SND.stinger(team===myTeam);
  const winner=BOSS_RUNTIME.shouldStartApexChallenge?.({playlistId:selectedPlaylist,scoreATK,scoreDEF,firstTo:FIRST_TO,apexComplete});
  if(winner){showBanner(reason);return startApexChallenge(winner)}
@@ -2448,7 +2479,7 @@ function botMoveTo(p,target,dt){
  while(p.path.length>1&&dist(p,p.path[0])<TILE*.42)p.path.shift();
  const beforeX=p.x,beforeY=p.y,node=p.path[0];move(p,node.x-p.x,node.y-p.y,dt);const moved=Math.hypot(p.x-beforeX,p.y-beforeY);p.navStill=moved<.2?(p.navStill||0)+dt:0;if(p.navStill>1.1){p.path=[];p.pathGoal=null;p.goal=null;p.navStill=0;p.pathRecoveries=(p.pathRecoveries||0)+1}
 }
-function botThink(p,dt){const now=performance.now()/1000,skill=difficulty();let target=null,td=1e9;
+function botThink(p,dt){const now=performance.now()/1000,skill=difficulty();if(phase!=="live"){p.target=null;p.vx=p.vy=0;p.botChan=false;return}let target=null,td=1e9;
  for(const e of combatTargets(p))if(canSee(p,e)||e.revealT>now){const d=dist(p,e);if(d<td){td=d;target=e}}
  if(target!==p.target){p.target=target;p.reactUntil=now+skill.reaction*rnd(.72,1.25);p.strafeDir=Math.random()<.5?-1:1}
  p.botChan=false;
@@ -2493,12 +2524,16 @@ function restartMatch(){
 function rematch(){
  if(!myDiv)return returnToMenu();const selected=myDiv;teardownMatch();matchBlueprint=null;myDiv=selected;gameState.recover(RUNTIME.GAME_STATES.DEPLOYMENT,"rematch");phase="deployment";startMatch();announce("Rematch started")
 }
+function nextOperation(){
+ if(!myDiv)return returnToMenu();const selected=myDiv,current=ARENA_ORDER.indexOf(window.CS3D_selectedArenaId||selectedArenaId),step=1+((CAREER.operations?.cycle||0)%(ARENA_ORDER.length-1)),next=ARENA_ORDER[(Math.max(0,current)+step)%ARENA_ORDER.length];teardownMatch();matchBlueprint=null;myDiv=selected;window.selectArena?.(next);selectedArenaId=next;gameState.recover(RUNTIME.GAME_STATES.DEPLOYMENT,"next-operation");phase="deployment";startMatch();announce(`Next operation deployed to ${ARENAS[next]?.name||next}`)
+}
+function changeArenaAfterMatch(){returnToMenu();window.openArenaSelect?.();announce("Choose the next arena")}
 function returnToMenu(){
  const selected=myDiv||DIVS[0];teardownMatch({removeArena:true});matchBlueprint=null;gameState.recover(RUNTIME.GAME_STATES.OPERATOR_SELECT,"return-menu");phase="menu";myDiv=selected;document.getElementById("arenaSelectScreen").classList.remove("open");document.getElementById("menu").style.display="grid";AUDIO.playMusic("main_menu");const card=document.querySelector(`[data-division="${selected.id}"]`)||document.querySelector(".divCard");if(card)selectDiv(selected,card);announce("Returned to operator selection")
 }
 window.CS3D_restartMatch=restartMatch;window.CS3D_returnToMenu=returnToMenu;
 function startMatch({reuseBlueprint=false}={}){
- const arenaId=window.CS3D_selectedArenaId||selectedArenaId||"forge";gameScheduler.cancelTag("match");if(window.buildArenaFor)window.buildArenaFor(arenaId);players=[];clearBoss();matchFinalized=false;matchOutcomeOverride=null;bossOutcome="";resultCueQueued=false;apexComplete=false;apexWinner=null;scoreATK=scoreDEF=0;round=1;document.body.classList.add("game-active");
+ const arenaId=window.CS3D_selectedArenaId||selectedArenaId||"forge";gameScheduler.cancelTag("match");if(window.buildArenaFor)window.buildArenaFor(arenaId);players=[];clearBoss();matchFinalized=false;matchOutcomeOverride=null;bossOutcome="";resultCueQueued=false;apexComplete=false;apexWinner=null;scoreATK=scoreDEF=0;round=1;matchStartedAt=performance.now();document.body.classList.add("game-active");
  matchSpawnRng=ARENA_SYSTEM.createSeededRandom?.(arenaSeed(`spawns:${arenaId}:${selectedPlaylist}:${myTeam}:${myDiv.id}:${selectedDifficulty}`))||Math.random;
  AUDIO.playArenaMusic(arenaId);
  if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;
@@ -2523,7 +2558,7 @@ function startRound(){resetArenaRuntimeState();for(const p of players){const sp=
  bomb={state:"carried",carrier:(myTeam==="ATK"&&Math.random()<.45)?me:atk[Math.floor(Math.random()*atk.length)],x:0,y:0,timer:0,beepT:0};
  setGamePhase("buy","round-buy");phaseT=BUY_TIME;showBanner("BUY PHASE");
  feed(bomb.carrier===me?"You carry the spike. Plant on a site.":"Spike carried by "+bomb.carrier.name,"#f59e0b");
- feed("Slot 5 equips your doctrine weapon. Slot 6 cycles Series 03. Q unleashes the equipped special.","#d4a843")}
+ feed("Your divisional Ascendant is equipped. Slot 5 selects the signature; slot 6 cycles Series 03 and Ascendant weapons. Q unleashes the equipped special.","#d4a843")}
 function checkRound(){
  if(phase!=="live")return;
  if(encounterKind!=="standard"){
@@ -2538,10 +2573,11 @@ function checkRound(){
  if(!d)return endRoundWin("ATK",bomb.state==="planted"?"SITE SECURED":"STRIKE ROUND");
  if(!a&&bomb.state!=="planted")return endRoundWin("DEF","SENTINEL ROUND")
 }
-function endGame(){if(matchFinalized)return;matchFinalized=true;setGamePhase("gameover","match-results");document.body.classList.remove("game-active");document.getElementById("endScreen").style.display="grid";const scoreWon=(myTeam==="ATK"?scoreATK:scoreDEF)>=(myTeam==="ATK"?scoreDEF:scoreATK),won=matchOutcomeOverride===null?scoreWon:matchOutcomeOverride,before=careerLevel(),completion=Math.round((won?180:90)*difficulty().xp);me.matchXp=(me.matchXp||0)+completion;document.getElementById("endTitle").textContent=won?"VICTORY":"DEFEAT";const resultLine=selectedPlaylist==="standard"?`Final ${scoreATK} - ${scoreDEF}`:`${PLAYLISTS[selectedPlaylist]?.name||"ENCOUNTER"} / ${bossOutcome||`WAVE ${waveIndex+1}`}`;document.getElementById("endSub").textContent=`${resultLine} / ${me.kills} eliminations as ${me.div.n} / ${difficulty().n}`;
- CAREER.matches++;if(won)CAREER.wins++;CAREER.kills+=me.kills;CAREER.deaths+=me.deaths;CAREER.xp=(CAREER.xp||0)+me.matchXp;CAREER.bestStreak=Math.max(CAREER.bestStreak||0,me.bestStreak||0);CAREER.mastery=CAREER.mastery||{};CAREER.mastery[me.div.id]=(CAREER.mastery[me.div.id]||0)+me.matchXp;const arenaId=window.CS3D_selectedArenaId||selectedArenaId;CAREER.arenaWins=CAREER.arenaWins||{};if(won)CAREER.arenaWins[arenaId]=(CAREER.arenaWins[arenaId]||0)+1;const after=careerLevel();saveCareer();
- document.getElementById("endRewards").innerHTML=`<div class="reward"><b>+${me.matchXp}</b><span>MATCH XP</span></div><div class="reward"><b>${me.kills}</b><span>ELIMINATIONS</span></div><div class="reward"><b>LV ${after}</b><span>${after>before?"LEVEL UP":"CAREER LEVEL"}</span></div>`;
- SND.setAmb(false);if(!won){resultCueQueued=true;AUDIO.playStinger("player_defeat",{nextTrackKey:"results"})}else if(!resultCueQueued){resultCueQueued=true;AUDIO.playStinger("boss_defeat",{nextTrackKey:"results"})}}
+function endGame(){if(matchFinalized)return;matchFinalized=true;setGamePhase("gameover","match-results");document.body.classList.remove("game-active");document.getElementById("endScreen").style.display="grid";const scoreWon=(myTeam==="ATK"?scoreATK:scoreDEF)>=(myTeam==="ATK"?scoreDEF:scoreATK),won=matchOutcomeOverride===null?scoreWon:matchOutcomeOverride,before=careerLevel(),completion=Math.round((won?180:90)*difficulty().xp),stats=me.matchStats,duration=Math.max(1,Math.round((performance.now()-matchStartedAt)/1000));me.matchXp=(me.matchXp||0)+completion;document.getElementById("endTitle").textContent=won?"VICTORY":"DEFEAT";const resultLine=selectedPlaylist==="standard"?`Final ${scoreATK} - ${scoreDEF}`:`${PLAYLISTS[selectedPlaylist]?.name||"ENCOUNTER"} / ${bossOutcome||`WAVE ${waveIndex+1}`}`;document.getElementById("endSub").textContent=`${resultLine} / ${me.kills} eliminations as ${me.div.n} / ${difficulty().n}`;
+ CAREER.matches++;if(won)CAREER.wins++;CAREER.kills+=me.kills;CAREER.deaths+=me.deaths;CAREER.xp=(CAREER.xp||0)+me.matchXp;CAREER.bestStreak=Math.max(CAREER.bestStreak||0,me.bestStreak||0);CAREER.mastery=CAREER.mastery||{};CAREER.mastery[me.div.id]=(CAREER.mastery[me.div.id]||0)+me.matchXp;CAREER.weaponMastery=CAREER.weaponMastery||{};CAREER.weaponMastery[me.cur]=(CAREER.weaponMastery[me.cur]||0)+me.matchXp;const arenaId=window.CS3D_selectedArenaId||selectedArenaId;CAREER.arenaWins=CAREER.arenaWins||{};if(won)CAREER.arenaWins[arenaId]=(CAREER.arenaWins[arenaId]||0)+1;const operation=OPERATIONS.applyOperationReport?.(CAREER.operations,{...stats,kills:me.kills,won},{seed:`${arenaId}:${me.div.id}`});if(operation)CAREER.operations=operation.state;const after=careerLevel();saveCareer();
+ document.getElementById("endRewards").innerHTML=`<div class="reward"><b>+${me.matchXp}</b><span>MATCH XP</span></div><div class="reward"><b>${me.kills}</b><span>ELIMINATIONS</span></div><div class="reward"><b>LV ${after}</b><span>${after>before?"LEVEL UP":"CAREER LEVEL"}</span></div>`;const accuracy=stats.shots?Math.round(stats.hits/stats.shots*100):0,mins=Math.floor(duration/60),secs=String(duration%60).padStart(2,"0");document.getElementById("endStats").innerHTML=`<div class="resultStat"><b>${Math.round(stats.damage)}</b><span>DAMAGE</span></div><div class="resultStat"><b>${accuracy}%</b><span>ACCURACY</span></div><div class="resultStat"><b>${stats.objectives}</b><span>OBJECTIVES</span></div><div class="resultStat"><b>${Math.round(stats.bossDamage)}</b><span>APEX DAMAGE</span></div><div class="resultStat"><b>${mins}:${secs}</b><span>DURATION</span></div>`;
+ const progress=operation?.progress||OPERATIONS.latticeRankProgress?.(CAREER.operations?.xp||0)||{rank:1,current:0,required:300,ratio:0};document.getElementById("operationSummary").textContent=`OPERATION RANK ${progress.rank} / 200 · +${(operation?.matchXp||0)+(operation?.contractXp||0)} LATTICE XP${operation?.rankAfter>operation?.rankBefore?" · RANK ADVANCED":""}`;document.getElementById("operationBar").style.width=`${Math.round(progress.ratio*100)}%`;document.getElementById("endContracts").innerHTML=(CAREER.operations?.contracts||[]).map(contract=>`<div class="contract ${contract.complete?"done":""}"><b>${contract.label}</b>${contract.progress} / ${contract.target} · +${contract.reward} XP</div>`).join("");
+ SND.setAmb(false);document.getElementById("nextOperationBtn").focus({preventScroll:true});announce(`${won?"Victory":"Defeat"}. After action report ready.`);if(!won){resultCueQueued=true;AUDIO.playStinger("player_defeat",{nextTrackKey:"results"})}else if(!resultCueQueued){resultCueQueued=true;AUDIO.playStinger("boss_defeat",{nextTrackKey:"results"})}}
 function updateSim(dt){if(phase==="menu"||phase==="mapselect"||phase==="gameover")return;const now=performance.now()/1000;applyArenaVolumes(dt,now);
  if(!(phase==="live"&&bomb.state==="planted"))phaseT-=dt;
  if(phase==="buy"&&phaseT<=0){setGamePhase("live","buy-complete");grantSpawnGuard(me);phaseT=encounterKind==="wave"&& !activeBoss?75:ROUND_TIME;showBanner(activeBoss?"APEX LIVE":encounterKind==="wave"?`WAVE ${waveIndex+1} LIVE`:"LIVE")}
@@ -2699,10 +2735,10 @@ function renderTacticalHUD(nowS,w){
  const coach=document.getElementById("coachPrompt");let coachText="";
  if(round<=2&&me.alive&&SETTINGS.tutorialCompleted){
   const touch=actionInput.mode==="touch",pad=actionInput.mode==="gamepad";
-  if(phase==="buy")coachText=touch?"BUY opens the armory / choose your doctrine":pad?"Y opens the armory / D-pad selects weapons":"B opens armory / 5 signature / 6 Series 03";
+  if(phase==="buy")coachText=touch?"BUY opens the armory / Ascendant equipped":pad?"Y opens the armory / D-pad selects weapons":"B opens armory / 5 signature / 6 expanded armory";
   else if(!ui.hasMoved)coachText=touch?"Use the movement pad to move":pad?"Use the left stick to move":"Use WASD to move";
   else if(!ui.hasFired)coachText=touch?"Right pad aims / FIRE engages":pad?"Right stick aims / RT fires":"Mouse aims / hold click to fire";
-  else if(!ui.switchedWeapon)coachText=touch?"Tap SWAP for a Series 03 weapon":pad?"Use the D-pad to switch weapons":"Press 5 for doctrine or 6 for Series 03";
+  else if(!ui.switchedWeapon)coachText=touch?"Tap SWAP to cycle the divisional armory":pad?"Use the D-pad to switch weapons":"Press 5 for signature or 6 for Series 03 / Ascendant";
   else if(!ui.usedAbility&&me.div.id!=="eon")coachText=touch?"Tap E to deploy your ability":pad?"Press LT to deploy your ability":"Press E to deploy your ability";
   else if(!ui.usedDoctrine)coachText=touch?"Tap Q for your doctrine special":pad?"Press L3 for your doctrine special":"Press Q for your doctrine special";
  }
@@ -2732,7 +2768,7 @@ function renderHUD(){if(!me)return;const nowS=performance.now()/1000;syncTeamHud
  const showT=planted?Math.max(0,bomb.timer):Math.max(0,phaseT);
  clockEl.textContent=`${Math.floor(showT/60)}:${String(Math.floor(showT%60)).padStart(2,"0")}`;
  clockEl.style.color=planted?(bomb.timer<10?"#ef4444":"#f59e0b"):"";
- const bossHud=document.getElementById("bossHud"),bossLive=!!activeBoss?.alive;bossHud.classList.toggle("on",bossLive);if(bossLive){document.getElementById("bossName").textContent=activeBoss.name;document.getElementById("bossAbility").textContent=activeBoss.pendingAbility?`TELEGRAPH / ${activeBoss.lastAbilityName}`:activeBoss.lastAbilityName;document.getElementById("bossBar").style.width=clamp(activeBoss.hp/activeBoss.maxHp*100,0,100)+"%"}
+ const bossHud=document.getElementById("bossHud"),bossLive=!!activeBoss?.alive;bossHud.classList.toggle("on",bossLive);if(bossLive){document.getElementById("bossName").textContent=`${activeBoss.name} / PHASE ${activeBoss.phaseIndex+1}`;document.getElementById("bossAbility").textContent=activeBoss.pendingAbility?`TELEGRAPH / ${activeBoss.lastAbilityName}`:`ARMOR ${Math.ceil(activeBoss.armor)} / ${activeBoss.lastAbilityName}`;document.getElementById("bossBar").style.width=clamp(activeBoss.hp/activeBoss.maxHp*100,0,100)+"%"}
  const sm=document.getElementById("spikeMsg");let smTxt="";
  if(phase==="live"&&me.alive){
   if(bomb.state==="carried"&&bomb.carrier===me)smTxt=inSite(me)?"HOLD F TO PLANT THE SPIKE":"YOU HAVE THE SPIKE - GET TO SITE A OR B";
@@ -2838,7 +2874,7 @@ function applyUserSettings(){
  const target=SETTINGS.quality==="auto"?(renderer?qualityController.profile:preferredAutoQuality()):SETTINGS.quality;if(renderer)applyQualityProfile(target);else qualityController.set(target)
 }
 const TUTORIAL_PAGES=[
- {title:"MOVE, AIM, ENGAGE",intro:"The labels adapt automatically to your active input device.",items:[["MOVE","WASD / left stick / movement pad"],["AIM + FIRE","Mouse / right stick / aim pad, then fire"],["RELOAD","R / gamepad Y / reload button"],["WEAPONS","1–5 standard and doctrine · 6 cycles Series 03"]]},
+ {title:"MOVE, AIM, ENGAGE",intro:"The labels adapt automatically to your active input device.",items:[["MOVE","WASD / left stick / movement pad"],["AIM + FIRE","Mouse / right stick / aim pad, then fire"],["RELOAD","R / gamepad Y / reload button"],["WEAPONS","1–5 standard and signature · 6 cycles Series 03 / Ascendant"]]},
  {title:"ABILITY + DOCTRINE",intro:"Every operator has a role, an active ability, a passive, and a doctrine weapon.",items:[["ABILITY","E / left trigger / E touch button"],["DOCTRINE","Equip slot 5 or 6, then Q / stick click"],["READINESS","HUD timers show the real cooldown"],["EMPTY MAG","A dry click starts reload when reserve ammo remains"]]},
  {title:"OBJECTIVE PLAY",intro:"Tactical mode is won through sites and survival, not color alone.",items:[["ATTACKERS","Carry the spike to A or B and hold Interact to plant"],["DEFENDERS","Hold Interact beside a planted spike to defuse"],["HAZARDS","Warning text, shapes, and telegraphs mark active danger"],["ELEVATION","Platforms, ramps, cover height, and voids affect shots"]]},
  {title:"BOSSES + RECOVERY",intro:"Boss and wave playlists use the same controls with larger telegraphed threats.",items:[["TELEGRAPHS","Move beyond the marked radius or break line of sight"],["ESCAPE","Boss-safe spawns preserve a reachable route"],["PAUSE","Esc / Start freezes AI, hazards, objectives, and scheduled effects"],["RECOVERY","Pause offers restart, controls, settings, and return to menu"]]},
@@ -2857,7 +2893,7 @@ function initSettings(){
  }
  const quality=document.getElementById("vQuality"),colorblind=document.getElementById("vColorblind"),motion=document.getElementById("vReducedMotion"),left=document.getElementById("vTouchLeft");quality.value=SETTINGS.quality;colorblind.value=SETTINGS.colorblind;motion.checked=SETTINGS.reducedMotion;left.checked=SETTINGS.touchLeftHanded;
  quality.onchange=()=>{SETTINGS.quality=quality.value;saveCfg();applyUserSettings()};colorblind.onchange=()=>{SETTINGS.colorblind=colorblind.value;saveCfg();applyUserSettings()};motion.onchange=()=>{SETTINGS.reducedMotion=motion.checked;saveCfg();applyUserSettings()};left.onchange=()=>{SETTINGS.touchLeftHanded=left.checked;saveCfg();applyUserSettings()};
- document.getElementById("resumeBtn").onclick=togglePause;document.getElementById("tutorialBtn").onclick=openTutorial;document.getElementById("restartBtn").onclick=restartMatch;document.getElementById("quitBtn").onclick=returnToMenu;document.getElementById("rematchBtn").onclick=rematch;document.getElementById("resultsMenuBtn").onclick=returnToMenu;
+ document.getElementById("resumeBtn").onclick=togglePause;document.getElementById("tutorialBtn").onclick=openTutorial;document.getElementById("restartBtn").onclick=restartMatch;document.getElementById("quitBtn").onclick=returnToMenu;document.getElementById("nextOperationBtn").onclick=nextOperation;document.getElementById("rematchBtn").onclick=rematch;document.getElementById("changeArenaBtn").onclick=changeArenaAfterMatch;document.getElementById("resultsMenuBtn").onclick=returnToMenu;
  document.getElementById("contextRestartBtn").onclick=()=>{document.getElementById("contextRecovery").classList.remove("on");restartMatch()};document.getElementById("contextMenuBtn").onclick=()=>{document.getElementById("contextRecovery").classList.remove("on");returnToMenu()};
  document.getElementById("resetSettingsBtn").onclick=()=>{if(!confirm("Reset all controls, audio, accessibility, and quality settings?"))return;SETTINGS=PERSISTENCE.resetSettings(localStorage);applyUserSettings();initSettings();announce("Settings reset")};
  document.getElementById("resetCareerBtn").onclick=()=>{if(!confirm("Reset all career XP, wins, mastery, and arena records? This cannot be undone."))return;CAREER=PERSISTENCE.resetCareer(localStorage);renderCareerSummary();announce("Career data reset")};
@@ -2877,7 +2913,7 @@ function renderCareerSummary(){const cl=document.getElementById("careerLine");if
    Every panel below is generated from the same constants the match runs on, so the
    briefing cannot drift away from the game. Operator, playlist, and intensity picks
    made here carry straight into operator select. */
-const TITLE_CONTROLS=[["WASD","Move"],["MOUSE","Aim and fire"],["E","Operator ability"],["Q","Team doctrine"],["F","Plant or defuse"],["R","Reload"],["B","Armory"],["1-5","Weapon slots"],["6","Cycle Series 03"],["TAB","Scoreboard"],["ESC","Pause"],["TOUCH","Twin-stick and gamepad supported"]];
+const TITLE_CONTROLS=[["WASD","Move"],["MOUSE","Aim and fire"],["E","Operator ability"],["Q","Team doctrine"],["F","Plant or defuse"],["R","Reload"],["B","Armory"],["1-5","Weapon slots"],["6","Cycle Series 03 / Ascendant"],["TAB","Scoreboard"],["ESC","Pause"],["TOUCH","Twin-stick and gamepad supported"]];
 const esc=value=>String(value).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function titleArsenalCount(){return Object.keys(WEAPONS).length+Object.keys(SIGNATURES).length+Object.keys(ADDITIONAL_WEAPONS).length}
 function renderTitleCareer(){
@@ -3082,7 +3118,7 @@ function renderSquadSelection(){
 function selectDiv(d,card){
  if(selectedPlaylist==="standard"){selectedSquad=[d.id];myDiv=d}
  else{const at=selectedSquad.indexOf(d.id);if(at>=0&&selectedSquad.length>1)selectedSquad.splice(at,1);else if(at<0&&selectedSquad.length<5)selectedSquad.push(d.id);else if(at<0){const line=document.getElementById("squadLine");line.textContent="SQUAD FULL / DESELECT AN OPERATOR TO CHANGE THE TEAM"}myDiv=DIV_BY_ID[selectedSquad[0]]||d}
- renderSquadSelection();const sig=SIGNATURES[d.id];document.getElementById("previewName").textContent=d.n.toUpperCase();document.getElementById("previewName").style.color=d.c;document.getElementById("previewRole").textContent=`${d.role} / ${d.ab}`;document.getElementById("previewActive").textContent=d.d;document.getElementById("previewPassive").textContent=d.pv;document.getElementById("previewClass").textContent=d.role;document.getElementById("previewWeapon").textContent=`${sig.n} / ${sig.type}`;document.getElementById("previewDoctrine").textContent=`${sig.special.n} — ${sig.special.eff}`;animateIf("#previewCopy .statPill, #previewName, #previewRole",{opacity:[0,1],translateY:[10,0],delay:window.anime&&anime.stagger?anime.stagger(35):0,duration:520,easing:"easeOutExpo"});if(preview){const r=rigs.get(preview.id);if(r){scene.remove(r.root);disposeTree(r.root)}rigs.delete(preview.id)}preview={id:"preview_"+d.id,team:myTeam,div:d,x:WORLD_W*.82,y:WORLD_H*.24,angle:0,alive:true,cur:"signature",weapons:{signature:doctrineWeapon(d.id)},fireKick:0};makeRig(preview,true)
+ renderSquadSelection();const sig=ASCENDANT_WEAPONS[d.id]||SIGNATURES[d.id],slot=sig.id||"signature";document.getElementById("previewName").textContent=d.n.toUpperCase();document.getElementById("previewName").style.color=d.c;document.getElementById("previewRole").textContent=`${d.role} / ${d.ab}`;document.getElementById("previewActive").textContent=d.d;document.getElementById("previewPassive").textContent=d.pv;document.getElementById("previewClass").textContent=d.role;document.getElementById("previewWeapon").textContent=`${sig.n} / ${sig.type}`;document.getElementById("previewDoctrine").textContent=`${sig.special.n} — ${sig.special.eff}`;animateIf("#previewCopy .statPill, #previewName, #previewRole",{opacity:[0,1],translateY:[10,0],delay:window.anime&&anime.stagger?anime.stagger(35):0,duration:520,easing:"easeOutExpo"});if(preview){const r=rigs.get(preview.id);if(r){scene.remove(r.root);disposeTree(r.root)}rigs.delete(preview.id)}preview={id:"preview_"+d.id,team:myTeam,div:d,x:WORLD_W*.82,y:WORLD_H*.24,angle:0,alive:true,cur:slot,weapons:{[slot]:additionalWeapon(slot)||doctrineWeapon(d.id)},fireKick:0};makeRig(preview,true)
 }
 function cycleSpectate(direction){if(me?.alive)return;const available=players.filter(player=>player.alive&&player.team===myTeam);if(!available.length)return;let index=available.findIndex(player=>player.id===ui.spectateId);index=(index+direction+available.length)%available.length;ui.spectateId=available[index].id;announce(`Spectating ${available[index].name}`)}
 function selectWeaponAction(action){

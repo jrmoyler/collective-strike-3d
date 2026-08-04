@@ -2,7 +2,7 @@
  * Renders a close-up turntable frame of every division operator holding each
  * weapon class, so rig changes can be eyeballed without playing a match.
  *
- *   node scripts/rig-sheet.mjs [--out <dir>] [--weapon signature|series03]
+ *   node scripts/rig-sheet.mjs [--out <dir>] [--weapon signature|series03|ascendant]
  */
 import fs from "node:fs";
 import http from "node:http";
@@ -77,9 +77,11 @@ for (const id of ids) {
       const old = rigs.get(preview.id);
       if (old) { old.root.traverse(o => o.material?.dispose?.()); scene.remove(old.root); rigs.delete(preview.id); }
     }
-    const series = wid === "series03" ? availableAdditions(divId).find(w => w.owner === divId) : null;
-    const key = series?.id || wid;
-    const equipped = wid === "signature" ? doctrineWeapon(divId) : series ? additionalWeapon(series.id) : { ...WEAPONS[wid], ammo: WEAPONS[wid].mag, reserve: 90 };
+    const addition = wid === "series03"
+      ? availableAdditions(divId).find(w => w.series === "03" && w.owner === divId)
+      : wid === "ascendant" ? ASCENDANT_WEAPONS[divId] : null;
+    const key = addition?.id || wid;
+    const equipped = wid === "signature" ? doctrineWeapon(divId) : addition ? additionalWeapon(addition.id) : { ...WEAPONS[wid], ammo: WEAPONS[wid].mag, reserve: 90 };
     preview = {
       id: "sheet_" + divId, team: myTeam, div: d, x: WORLD_W * .82, y: WORLD_H * .24,
       angle: 0, alive: true, cur: key,
