@@ -70,6 +70,18 @@ import {
 } from "./game-runtime.js";
 import { ACTIONS, DEFAULT_KEY_BINDINGS, GAMEPAD_BINDINGS, createActionInput, normalizeAxis } from "./input-actions.js";
 import {
+  DAMAGE_WEIGHT,
+  SECOND_WEIGHT,
+  applyWeaponMastery,
+  createWeaponLedger,
+  recordWeaponDamage,
+  recordWeaponTime,
+  recordWeaponXp,
+  setActiveWeapon,
+  weaponEngagement,
+  weaponMasteryAwards
+} from "./weapon-mastery.js";
+import {
   CAREER_KEY,
   DEFAULT_CAREER,
   DEFAULT_SETTINGS,
@@ -179,6 +191,18 @@ window.CS3D_RUNTIME = Object.freeze({
   recoverNavigationPath
 });
 window.CS3D_INPUT = Object.freeze({ ACTIONS, DEFAULT_KEY_BINDINGS, GAMEPAD_BINDINGS, createActionInput, normalizeAxis });
+window.CS3D_MASTERY = Object.freeze({
+  DAMAGE_WEIGHT,
+  SECOND_WEIGHT,
+  applyWeaponMastery,
+  createWeaponLedger,
+  recordWeaponDamage,
+  recordWeaponTime,
+  recordWeaponXp,
+  setActiveWeapon,
+  weaponEngagement,
+  weaponMasteryAwards
+});
 window.CS3D_PERSISTENCE = Object.freeze({
   CAREER_KEY,
   DEFAULT_CAREER,
