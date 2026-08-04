@@ -116,6 +116,15 @@ Runtime architecture, safe extension points, save migrations, teardown ownership
 quality budgets, and browser expectations are documented in
 [`docs/GAMEPLAY_RUNTIME.md`](docs/GAMEPLAY_RUNTIME.md).
 
+## Operators
+
+Every operator is a procedural Specimen Series 21 lifeform: primitive geometry
+assembled from a DNA entry and shaded by one seamless toon skin per creature, with
+a planted-foot stepper, hopper and flyer cycles, two-bone IK, and spring-driven
+tails, ears and antennae. There are no character meshes in the repository and
+there will not be any. The system is documented in
+[`docs/OPERATOR_RIGS.md`](docs/OPERATOR_RIGS.md).
+
 ## Survivability
 
 Operators carry 150 health; Animus Prime runs 190 and Kinetic Edge trades down to

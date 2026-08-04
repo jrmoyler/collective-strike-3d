@@ -1511,22 +1511,98 @@ function twoBoneIK(a,t,l1,l2,pole,outKnee){
  const cosA=clamp((l1*l1+d*d-l2*l2)/(2*l1*d),-1,1),sinA=Math.sqrt(Math.max(0,1-cosA*cosA));
  outKnee.copy(a).addScaledVector(_ikDir,cosA*l1).addScaledVector(_ikPerp,sinA*l1);
 }
+/* ---------- Specimen Series 21 seamless toon skin ----------
+   Every operator is a procedural, DNA-driven lifeform assembled from primitive
+   geometry. One shared shader per creature is what makes the assembly read as a
+   single body: the gradient is evaluated in creature space against uGradSpan, so
+   a sphere torso, a capsule limb and a cone ear all sample the same vertical
+   ramp and the seams between them disappear. Lighting is quantised into three
+   bands, the silhouette is closed with a fresnel rim over a dark contour, and
+   uSelect drives the accent-coloured selection pulse used on the menu podium. */
+const TOON_VERT=`
+  varying vec3 vWorldPos; varying vec3 vNormal; varying vec3 vView;
+  void main(){
+    vec4 wp=modelMatrix*vec4(position,1.0);
+    vWorldPos=wp.xyz;
+    vNormal=normalize(mat3(modelMatrix)*normal);
+    vView=normalize(cameraPosition-wp.xyz);
+    gl_Position=projectionMatrix*viewMatrix*wp;
+  }`;
+const TOON_FRAG=`
+  precision highp float;
+  varying vec3 vWorldPos; varying vec3 vNormal; varying vec3 vView;
+  uniform vec3 uColorBot,uColorTop,uAccent;
+  uniform vec2 uGradSpan;
+  uniform float uSelect;
+  uniform vec3 uLightDir; uniform float uTime;
+  void main(){
+    vec3 n=normalize(vNormal);
+    float g=clamp((vWorldPos.y-uGradSpan.x)*uGradSpan.y,0.0,1.0);
+    vec3 base=mix(uColorBot,uColorTop,smoothstep(0.0,1.0,g));
+    float ndl=dot(n,uLightDir)*0.5+0.5;
+    float band=0.35+0.30*smoothstep(0.30,0.34,ndl)+0.35*smoothstep(0.62,0.66,ndl);
+    float sky=0.10*(n.y*0.5+0.5);
+    vec3 lit=base*(band+sky);
+    lit=mix(lit,base*0.42+uAccent*0.10,smoothstep(0.36,0.28,ndl));
+    float fr=pow(1.0-clamp(dot(n,vView),0.0,1.0),2.4);
+    lit+=uAccent*fr*(0.5+0.9*uSelect)*(0.35+0.65*band);
+    lit*=1.0-0.55*smoothstep(0.72,1.0,fr);
+    vec3 h=normalize(uLightDir+vView);
+    lit+=vec3(0.9)*step(0.972,dot(n,h))*0.55;
+    lit+=uAccent*uSelect*0.12*(0.5+0.5*sin(uTime*7.0));
+    gl_FragColor=vec4(lit,1.0);
+    /* The scene renders through ACES tone mapping into an sRGB target. A hand
+       written shader gets neither for free, so run the same two stages the
+       built-in materials do — without them the operators read washed out and
+       several shades brighter than everything they stand on. */
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }`;
+const globalU={uLightDir:{value:V3(.45,.8,.35).normalize()},uTime:{value:0}};
+function skinMaterial(shared,cBot,cTop,accent){
+ return new THREE.ShaderMaterial({vertexShader:TOON_VERT,fragmentShader:TOON_FRAG,uniforms:{
+  uColorBot:{value:hex(cBot)},uColorTop:{value:hex(cTop)},uAccent:{value:hex(accent)},
+  uGradSpan:shared.uGradSpan,uSelect:shared.uSelect,uLightDir:globalU.uLightDir,uTime:globalU.uTime}});
+}
+/* Critically damped-ish spring used for every piece of secondary motion:
+   tails, ears, antennae and tendrils lag the body instead of following it. */
+class Spring{
+ constructor(v=0){this.v=v;this.vel=0;this.target=v}
+ update(dt,stiff=90,dampK=11){this.vel+=(this.target-this.v)*stiff*dt;this.vel*=Math.exp(-dampK*dt);this.v+=this.vel*dt;return this.v}
+}
 const _camV=new THREE.Vector3(),_camT=new THREE.Vector3(),_camW=new THREE.Vector3(),_pvWhite=new THREE.Color("#ffffff"),_sh=V3(),_grip=V3(),_pole=V3();
+const _legA=V3(),_legB=V3(),_legC=V3(),_legD=V3();
 function makeRig(p,previewMode=false){
  const d=DNA[p.div.id]||DNA.zenflow,color=p.div.c,root=new THREE.Group();root.position.set(p.x*S,arenaElevationWorld(p.x,p.y),p.y*S);scene.add(root);
  const s=d.scale||1,body=new THREE.Group();root.add(body);
  const rngA=mulberry(((d.seed||1)*131+7)>>>0);
- const skin=mat(d.cTop||color,.16),darkSkin=mat(d.cBot||color,.08),accent=mat(d.accent||color,.55);
- skin.roughness=.58;skin.metalness=.14;darkSkin.roughness=.5;darkSkin.metalness=.22;
- const armor=mat(d.cBot||color,.1);armor.roughness=.24;armor.metalness=.74;
+ /* One shared seamless toon skin carries the entire anatomy. Torso, exoshell,
+    head, limbs, feet and appendages all draw with the same material and the
+    same creature-space gradient, so the primitives fuse into one body. Only the
+    deliberately separate surfaces get their own material: the accent trim, the
+    emissive division strips, the eyes, and the issued faction livery. */
+ const shared={uGradSpan:{value:new THREE.Vector2(0,1)},uSelect:{value:0}};
+ const skin=skinMaterial(shared,d.cBot||color,d.cTop||color,d.accent||color);
+ const accent=skinMaterial(shared,d.cTop||color,d.accent||color,d.accent||color);
+ const darkSkin=skin,armor=skin;
  const glowTrim=trimMat(d.accent||color);
+ /* secondary-motion inventory, filled in as the anatomy is assembled */
+ const earMeshes=[],earSprings=[],antennae=[],tailSegs=[],tendrilList=[],wings=[];
+ const tailSpring=new Spring(0);
  const bw=(d.body&&d.body[0])||.55,bl=(d.body&&d.body[1])||.75;
  const torso=new THREE.Mesh(geo.sphere,skin);
  if(d.loco==='quad'||d.loco==='hex')torso.scale.set(bw*s,bw*.82*s,bl*.62*s);
  else if(d.loco==='hopper')torso.scale.set(bw*s,bl*s,bw*.92*s);
  else torso.scale.set(bw*s,bl*s*.72,bw*.85*s);
  if(d.coin)torso.scale.z*=.55;
- torso.position.y=(d.loco==='flyer'?2.05:1.45)*s;torso.castShadow=true;body.add(torso);
+ /* Stand height is solved from the DNA leg length the way the Specimen rig does
+    it, so the planted-foot stepper can actually reach the ground instead of the
+    body floating above a set of swinging legs. */
+ const baseH=d.loco==='biped'?(d.legs||.8)*s*1.02+torso.scale.y*.5
+  :(d.loco==='quad'||d.loco==='hex')?(d.legs||.8)*s*.95+torso.scale.y*.35
+  :d.loco==='hopper'?torso.scale.y*(d.hourglass?1.15:.95)
+  :2.1*s+Math.sin(d.seed||1)*.3;
+ torso.position.y=baseH;torso.castShadow=true;body.add(torso);
  /* Layered exoshell gives each silhouette a manufactured, combat-ready surface
     while preserving the division-specific anatomy underneath. */
  const chest=new THREE.Mesh(geo.dome,armor);
@@ -1552,47 +1628,61 @@ function makeRig(p,previewMode=false){
   if(d.beak){const bk=new THREE.Mesh(geo.cone,accent);bk.scale.set(headSize*.25,headSize*.48,headSize*.25);bk.rotation.x=Math.PI/2;bk.position.set(0,-headSize*.05,headSize*1.05);head.add(bk)}
   if(d.brows){for(const side of[-1,1]){const br=new THREE.Mesh(geo.box,darkSkin);br.scale.set(headSize*.36,headSize*.075,headSize*.12);br.position.set(side*headSize*.3,headSize*.34,headSize*.83);br.rotation.z=-side*.35;head.add(br)}}
   if(d.helmet){const hm=new THREE.Mesh(geo.sphere,new THREE.MeshBasicMaterial({color:hex(d.accent),transparent:true,opacity:.18,depthWrite:false}));hm.scale.setScalar(headSize*1.25);head.add(hm);const hr=new THREE.Mesh(geo.torus,accent);hr.scale.setScalar(headSize*.85);hr.rotation.x=.35;hr.position.y=-headSize*.52;head.add(hr)}
-  if(d.ears==='round'||d.ears==='point'){for(const side of[-1,1]){const e=new THREE.Mesh(d.ears==='point'?geo.cone:geo.sphere,skin);const es=headSize*(d.ears==='point'?.24:.3);e.scale.set(es,d.ears==='point'?es*1.9:es,es*.62);e.position.set(side*headSize*.58,headSize*.72,0);e.rotation.z=-side*.4;head.add(e)}}
+  if(d.ears==='round'||d.ears==='point'){for(const side of[-1,1]){const e=new THREE.Mesh(d.ears==='point'?geo.cone:geo.sphere,skin);const es=headSize*(d.ears==='point'?.24:.3);e.scale.set(es,d.ears==='point'?es*1.9:es,es*.62);e.position.set(side*headSize*.58,headSize*.72,0);e.rotation.z=-side*.4;head.add(e);earMeshes.push(e);earSprings.push(new Spring(0))}}
   if(!d.beak){const jaw=new THREE.Mesh(geo.box,darkSkin);jaw.scale.set(headSize*.6,headSize*.2,headSize*.32);jaw.position.set(0,-headSize*.44,headSize*.58);head.add(jaw)}
   if(!d.brows&&!d.visor){const browPl=new THREE.Mesh(geo.box,armor);browPl.scale.set(headSize*.72,headSize*.11,headSize*.18);browPl.position.set(0,headSize*.44,headSize*.64);head.add(browPl)}
   if(!d.visor&&!d.lens&&!d.beak&&!d.helmet&&!d.brain&&d.ears!=='point'){const crest=new THREE.Mesh(geo.box,glowTrim);crest.scale.set(headSize*.08,headSize*.42,headSize*.66);crest.position.set(0,headSize*.82,-headSize*.08);crest.rotation.x=-.22;head.add(crest)}
  }
- if(d.ears==='antenna'){const y=head?head.position.y+headSize*.9:torso.position.y+torso.scale.y*.9;for(const x of[-.16,.16]){const a=limb(body,x*s,y,.15*s,.025*s,.34*s,.025*s,d.cTop||color);a.rotation.z=x*2;const tip=new THREE.Mesh(geo.sphere,accent);tip.scale.setScalar(.085*s);tip.position.set(x*s-Math.sin(x*2)*.34*s,y+Math.cos(x*2)*.34*s,.15*s);body.add(tip)}}
+ if(d.ears==='antenna'){const y=head?head.position.y+headSize*.9:torso.position.y+torso.scale.y*.9;for(const x of[-.16,.16]){
+  const stalk=new THREE.Mesh(geo.cyl,skin);stalk.scale.set(.025*s,.34*s,.025*s);stalk.position.set(x*s,y,.15*s);stalk.rotation.z=x*2;stalk.castShadow=true;body.add(stalk);
+  const tip=new THREE.Mesh(geo.sphere,accent);tip.scale.setScalar(.085*s);tip.position.set(x*s-Math.sin(x*2)*.34*s,y+Math.cos(x*2)*.34*s,.15*s);body.add(tip);
+  antennae.push({stalk,tip,side:x<0?-1:1,baseZ:x*2,baseX:x*s,baseY:y,len:.34*s,spring:new Spring(0)});
+ }}
  if(headSize===0){for(const x of[-1,1]){const e=new THREE.Mesh(geo.sphere,new THREE.MeshBasicMaterial({color:hex(d.eye||'#fff').multiplyScalar(1.6)}));e.scale.setScalar(.085*s);e.position.set(x*torso.scale.x*.36,torso.position.y+torso.scale.y*.28,torso.scale.z*.9);body.add(e)}}
- if(d.tail==='spring'){for(let i=0;i<3;i++){const tail=new THREE.Mesh(geo.sphere,skin);tail.scale.setScalar((.13-i*.03)*s);const tbx=Math.sin(i*.7)*.1*s,tby=torso.position.y-.12*s;tail.position.set(tbx,tby,-torso.scale.z-.18*s-i*.18*s);tail.userData.tailSeg=i;tail.userData.tbx=tbx;tail.userData.tby=tby;tail.userData.tAmp=.045*s*(i+1);body.add(tail)}}
- if(d.tendrils){for(let i=0;i<d.tendrils;i++){const a=i/d.tendrils*Math.PI*2;for(let j=0;j<3;j++){const td=new THREE.Mesh(geo.sphere,accent);td.scale.setScalar((.1-j*.024)*s);const tbx=Math.cos(a)*(.35+j*.09)*s,tbz=Math.sin(a)*(.35+j*.09)*s;td.position.set(tbx,torso.position.y-torso.scale.y*.55-j*.16*s,tbz);td.userData.tendril=a+j;td.userData.tbx=tbx;td.userData.tbz=tbz;td.userData.tAmp=(.018+j*.02)*s;body.add(td)}}}
- const legN=d.loco==='hex'?6:(d.loco==='quad'?4:(d.loco==='biped'?2:0));
- const legMat=mat(d.cTop||color,.06);legMat.roughness=.55;legMat.metalness=.18;
- /* tapered two-segment legs: hip joint sphere, thigh, knee, shin and an angled foot, all
-    hanging from a per-leg pivot group so the walk-cycle traverse swings the whole limb */
- for(let i=0;i<legN;i++){
-  const side=i%2?-1:1,row=Math.floor(i/2),rows=Math.max(1,legN/2-1),z=(legN>2?(row/rows-.5)*torso.scale.z*1.25:0);
-  const leg=new THREE.Group();leg.position.set(side*torso.scale.x*.72,torso.position.y-torso.scale.y*.58,z);leg.rotation.z=side*.22;leg.userData.walk=i;body.add(leg);
-  const ll=(d.legs||.8)*.62*s;
-  const hip=new THREE.Mesh(geo.sphere,darkSkin);hip.scale.setScalar(.088*s);leg.add(hip);
-  const thigh=new THREE.Mesh(geo.cyl,legMat);thigh.scale.set(.07*s,ll*.52,.062*s);thigh.position.y=-ll*.26;thigh.castShadow=true;leg.add(thigh);
-  const knee=new THREE.Mesh(geo.sphere,darkSkin);knee.scale.setScalar(.062*s);knee.position.y=-ll*.52;leg.add(knee);
-  const shin=new THREE.Mesh(geo.cyl,darkSkin);shin.scale.set(.05*s,ll*.5,.045*s);shin.position.y=-ll*.76;shin.castShadow=true;leg.add(shin);
-  const foot=new THREE.Mesh(geo.box,armor);foot.scale.set(.105*s,.05*s,.17*s);foot.position.set(0,-ll,.05*s);foot.rotation.x=.22;foot.userData.foot=i;foot.userData.footBase=.22;foot.castShadow=true;leg.add(foot);
- }
- if(d.loco==='flyer'){const ws=d.wing||1,wingMain=mat(d.cTop||color,.18),wingUnder=mat(d.cBot||color,.1);
-  /* layered vane wings: three staggered feather planes per side, flapped as one pivot group */
+ if(d.tail==='spring'){for(let i=0;i<3;i++){const tail=new THREE.Mesh(geo.sphere,skin);tail.scale.setScalar((.13-i*.03)*s);tail.position.set(0,torso.position.y-.12*s,-torso.scale.z-.18*s-i*.18*s);body.add(tail);tailSegs.push(tail)}}
+ if(d.tendrils){for(let i=0;i<d.tendrils;i++){const a=i/d.tendrils*Math.PI*2,segs=[];for(let j=0;j<3;j++){const td=new THREE.Mesh(geo.sphere,accent);td.scale.setScalar((.1-j*.024)*s);td.position.set(Math.cos(a)*(.35+j*.09)*s,torso.position.y-torso.scale.y*.55-j*.16*s,Math.sin(a)*(.35+j*.09)*s);body.add(td);segs.push(td)}tendrilList.push({a,segs,phase:rngA()*6})}}
+ /* ---- planted-foot stepper: legs are solved in world space, not swung ----
+    Each leg owns a foot that stays planted on the ground while the body travels
+    over it. When the body outruns the foot by more than a stride, that leg takes
+    a single arcing step to a predicted landing spot. Opposing gait groups never
+    lift together, which is what gives the biped its alternating walk, the quad
+    its diagonal trot and the hex its tripod crawl. The limbs themselves are two
+    capsules fitted to a two-bone IK solve, so knees bend the right way on every
+    body plan without a single authored keyframe. */
+ const legs=[];
+ const mkLeg=(offX,offZ,group)=>{
+  const l=(d.legs||.8)*s*.55;
+  const upper=new THREE.Mesh(RIG_CAP,skin),lower=new THREE.Mesh(RIG_CAP,skin);
+  const hip=new THREE.Mesh(geo.sphere,skin);hip.scale.setScalar(.088*s);
+  const foot=new THREE.Mesh(geo.box,accent);foot.scale.set(.115*s,.055*s,.19*s);
+  upper.castShadow=lower.castShadow=foot.castShadow=true;
+  root.add(upper,lower,hip,foot);
+  legs.push({home:V3(offX,0,offZ),foot:V3(),from:V3(),to:V3(),knee:V3(),hipM:hip,stepping:false,init:false,t:0,group,l1:l,l2:l,upper,lower,footM:foot,r:.082*s*Math.max(.6,d.legs||.8)});
+ };
+ if(d.loco==='biped'){const w=torso.scale.x*.55;mkLeg(-w,0,0);mkLeg(w,0,1)}
+ else if(d.loco==='quad'){const w=torso.scale.x*.62,l=torso.scale.z*.7;mkLeg(-w,l,0);mkLeg(w,l,1);mkLeg(-w,-l,1);mkLeg(w,-l,0)}
+ else if(d.loco==='hex'){const w=torso.scale.x*.78;for(let i=0;i<3;i++){const z=(1-i)*torso.scale.z*.62;mkLeg(-w,z,i%2);mkLeg(w,z,(i+1)%2)}}
+ if(d.loco==='flyer'){const ws=d.wing||1;
+  /* layered vane wings: three staggered feather planes per side, flapped as one
+     pivot group and trailing the leading edge by a fixed phase offset */
   for(const side of[-1,1]){
-   const wingG=new THREE.Group();wingG.position.set(side*torso.scale.x*.62,torso.position.y+torso.scale.y*.22,-.05*s);wingG.userData.wing=side;body.add(wingG);
+   const wingG=new THREE.Group();wingG.position.set(side*torso.scale.x*.62,torso.position.y+torso.scale.y*.22,-.05*s);body.add(wingG);
+   const vanes=[];
    for(let k=0;k<3;k++){
-    const vane=new THREE.Mesh(geo.box,k===0?wingMain:k===1?wingUnder:accent);
+    const vane=new THREE.Mesh(geo.box,k===2?accent:skin);
     vane.scale.set(.6*s*ws*(1-k*.16),.028*s,(.3-k*.055)*s*ws);
     vane.position.set(side*(.32+k*.27)*s*ws,-k*.02*s,-.06*s-k*.11*s*ws);
-    vane.userData.vane=k*.85;vane.userData.vaneSide=side;vane.userData.vaneBase=side*.06*k;
     vane.castShadow=k===0;wingG.add(vane);
+    vanes.push({mesh:vane,phase:k*.85,base:side*.06*k});
    }
+   wings.push({g:wingG,side,vanes});
   }
  }
  if(d.coin||d.hourglass){const ring=new THREE.Mesh(geo.torus,new THREE.MeshBasicMaterial({color:hex(d.accent||color),transparent:true,opacity:.68}));ring.scale.setScalar(.58*s);ring.position.set(0,torso.position.y,0);ring.rotation.x=Math.PI/2;ring.userData.spin=1;body.add(ring)}
  /* ---- weapon arms: every operator now grips what it carries ---- */
  const quadish=d.loco==='quad'||d.loco==='hex';
  const armLen=Math.max(quadish?.95:.72,(d.arms||.8)*1.05)*s;
- const armMat=mat(d.cTop||color,.07),gloveMat=mat(d.accent||color,.24);
+ const armMat=skin,gloveMat=accent;
  const shoulderY=torso.position.y+torso.scale.y*(quadish?.38:d.loco==='flyer'?.06:.2);
  const arms=[];
  for(const side of[1,-1]){
@@ -1602,7 +1692,7 @@ function makeRig(p,previewMode=false){
   upper.castShadow=fore.castShadow=hand.castShadow=true;
   hand.scale.setScalar(.105*s);
   root.add(upper,fore,hand);
-  arms.push({side,anchor,l1:armLen*.54,l2:armLen*.5,upper,fore,hand,knee:V3(),ru:.075*s,rf:.062*s});
+  arms.push({side,anchor,l1:armLen*.54,l2:armLen*.5,upper,fore,hand,knee:V3(),ru:.075*s,rf:.062*s,dangle:new Spring(0)});
  }
  /* ---- faction livery: worn hardware, not a recolour of the division ----
     Division colour still owns the body. Faction owns a fixed set of issued
@@ -1645,8 +1735,17 @@ function makeRig(p,previewMode=false){
  /* silhouette bounds drive menu framing so wide and tall operators both fit */
  body.updateMatrixWorld(true);
  const bb=new THREE.Box3().setFromObject(body);
+ /* The root has not been through a world update yet, so this box is in rig-local
+    space — the deck is y=0. Legs are solved in world space every frame and are
+    therefore absent from it, so fold their reach in by hand: feet land on the
+    deck and spread out to the hip offsets. Without this the menu framing would
+    zoom straight past a standing rig. */
+ const legSpread=legs.reduce((m,l)=>Math.max(m,Math.hypot(l.home.x,l.home.z)),0);
+ bb.min.y=Math.min(bb.min.y,0);
+ bb.min.x=Math.min(bb.min.x,-legSpread);bb.max.x=Math.max(bb.max.x,legSpread);
+ bb.min.z=Math.min(bb.min.z,-legSpread);bb.max.z=Math.max(bb.max.z,legSpread);
  const fitR=Math.max(bb.max.x-bb.min.x,bb.max.y-bb.min.y,bb.max.z-bb.min.z)*.5+hold.d*.55;
- const fitY=(bb.min.y+bb.max.y)*.5-root.position.y;
+ const fitY=(bb.min.y+bb.max.y)*.5;
  /* ---- footprint: the fastest faction read on a top-down camera ----
     Allies get a calm closed ring. Hostiles get an open ring with four
     outward barbs, so the silhouette differs even with colour removed. */
@@ -1686,7 +1785,9 @@ function makeRig(p,previewMode=false){
  const plateTex=new THREE.CanvasTexture(plateCanvas);
  const plate=new THREE.Sprite(new THREE.SpriteMaterial({map:plateTex,transparent:true,depthWrite:false,depthTest:false}));
  plate.scale.set(3.5,.98,1);plate.position.y=topY+.62;plate.renderOrder=6;root.add(plate);
- const rig={root,body,torso,head,weapon,mark,markShape,markBeam,footprint,footRing,footDisc,barbs,heading,plate,plateCanvas,plateCtx:plateCanvas.getContext("2d"),plateTex,plateKey:"",teamParts,liveryMat,arms,hold,muzzleLight,quadish,topY,fitR,fitY,pulse:0,breath:Math.random()*7,greet:0,previewMode,scale:s,dna:d,teamKey:look.key};
+ const rig={root,body,torso,head,weapon,mark,markShape,markBeam,footprint,footRing,footDisc,barbs,heading,plate,plateCanvas,plateCtx:plateCanvas.getContext("2d"),plateTex,plateKey:"",teamParts,liveryMat,arms,hold,muzzleLight,quadish,topY,fitR,fitY,pulse:0,breath:Math.random()*7,greet:0,previewMode,scale:s,dna:d,teamKey:look.key,
+  shared,legs,wings,earMeshes,earSprings,antennae,tailSegs,tailSpring,tendrilList,
+  baseH,bodyY:baseH,squash:1,squashTarget:1,hopY:0,hopPhase:0,flap:Math.random()*6,bank:0,pitch:0,lastHeading:p.angle||0,vy:0,select:0,sq:1,gaitSwing:0};
  rig.applyTeamLook=()=>{
   const next=teamLook(p);
   rig.teamKey=next.key;rig.plateKey="";
@@ -1720,6 +1821,87 @@ function paintNameplate(r,p){
  if(p.armor>0){g.fillStyle="rgba(125,211,252,.85)";g.fillRect(12,52,232*clamp(p.armor/100,0,1),3)}
  r.plateTex.needsUpdate=true;
 }
+/* ---- Specimen locomotion: stepper, hop cycle, flap and secondary springs ----
+   All of it runs off the same two inputs the simulation already produces — world
+   position and velocity — so nothing here can desync from gameplay. */
+function groundAt(worldX,worldZ){return arenaElevationWorld(worldX/S,worldZ/S)}
+function updateLegs(r,dt,speed,heading,vx,vz){
+ const legs=r.legs;if(!legs.length)return 0;
+ const cs=Math.cos(heading),sn=Math.sin(heading);
+ const rp=r.root.position,sc=r.root.scale.x||1,inv=1/sc;
+ /* Stride and cadence both track world speed so the planted foot always lands
+    ahead of the body instead of being dragged along behind it. */
+ const stepDist=clamp(.34*r.scale+speed*.14,.3*r.scale,3.2*r.scale)*sc;
+ const stepDur=clamp(.3-speed*.012,.09,.3);
+ const lift=Math.min(.16*r.scale+speed*.03,.55*r.scale)*sc;
+ const hipY=rp.y+(r.bodyY+(r.dna.loco==='biped'?-r.torso.scale.y*.42:r.torso.scale.y*.05)*r.squash)*sc;
+ let bob=0;
+ for(const leg of legs){
+  const hx=(leg.home.x*cs+leg.home.z*sn)*sc,hz=(-leg.home.x*sn+leg.home.z*cs)*sc;
+  _legA.set(rp.x+hx,0,rp.z+hz);_legA.y=groundAt(_legA.x,_legA.z);
+  if(!leg.init){leg.foot.copy(_legA);leg.init=true}
+  /* the resting target leads the body, so a moving operator plants ahead of itself */
+  _legB.set(_legA.x+vx*.22,_legA.y,_legA.z+vz*.22);
+  if(leg.stepping){
+   leg.t=Math.min(1,leg.t+dt/stepDur);
+   const t=leg.t,arc=Math.sin(t*Math.PI),e=t*t*(3-2*t);
+   leg.foot.lerpVectors(leg.from,leg.to,e);
+   leg.foot.y=lerp(leg.from.y,leg.to.y,e)+arc*lift;
+   bob+=arc;
+   if(leg.t>=1){leg.stepping=false;leg.foot.y=leg.to.y}
+  }else{
+   const err=Math.hypot(_legB.x-leg.foot.x,_legB.z-leg.foot.z);
+   /* opposing gait groups never lift at once unless the leg is badly stranded */
+   const groupBusy=legs.some(o=>o!==leg&&o.group!==leg.group&&o.stepping);
+   if(err>stepDist&&(!groupBusy||err>stepDist*2.2)){
+    leg.stepping=true;leg.t=0;leg.from.copy(leg.foot);
+    leg.to.set(_legB.x+vx*.1,0,_legB.z+vz*.1);leg.to.y=groundAt(leg.to.x,leg.to.z);
+   }
+  }
+  _legC.set(rp.x+hx*.7,hipY,rp.z+hz*.7);
+  const fwdPole=(r.dna.loco!=='biped'&&leg.home.z<0)?-1:1;
+  _legD.set(sn*fwdPole,.15,cs*fwdPole);
+  twoBoneIK(_legC,leg.foot,leg.l1*sc,leg.l2*sc,_legD,leg.knee);
+  _legA.copy(_legC).sub(rp).multiplyScalar(inv);
+  _legB.copy(leg.knee).sub(rp).multiplyScalar(inv);
+  limbFit(leg.upper,_legA,_legB,leg.r);
+  leg.hipM.position.copy(_legA);
+  _legA.copy(leg.knee).sub(rp).multiplyScalar(inv);
+  _legB.copy(leg.foot).sub(rp).multiplyScalar(inv);
+  limbFit(leg.lower,_legA,_legB,leg.r*.85);
+  leg.footM.position.copy(_legB);
+  leg.footM.rotation.y=Math.PI/2-heading;
+ }
+ return bob/legs.length;
+}
+function updateSecondary(r,dt,speed,now){
+ if(r.tailSegs.length){
+  r.tailSpring.target=clamp(-Math.min(speed,3)*.8,-1,0)+Math.sin(now*3+(r.dna.seed||1))*.15;
+  const sw=r.tailSpring.update(dt,50,7)+r.bank*.03,back=-(r.torso.scale.z+.05*r.scale);
+  let px=0,py=r.torso.position.y-.12*r.scale,pz=back;
+  r.tailSegs.forEach((seg,i)=>{pz-=.16*r.scale;py+=sw*.02;px+=sw*.12*r.scale*(i+1);seg.position.set(px,py,pz)});
+ }
+ for(let i=0;i<r.earSprings.length;i++){
+  const spring=r.earSprings[i];
+  spring.target=clamp(-r.vy*.4-Math.min(speed,3)*.2,-.6,.3);
+  r.earMeshes[i].rotation.x=spring.update(dt,120,9);
+ }
+ for(const ant of r.antennae){
+  ant.spring.target=clamp(-r.vy*.5,-.6,.6)+r.bank*.02;
+  const v=ant.spring.update(dt,140,8),ang=ant.baseZ+v*.6;
+  ant.stalk.rotation.z=ang;
+  ant.tip.position.set(ant.baseX-Math.sin(ang)*ant.len,ant.baseY+Math.cos(ang)*ant.len,ant.tip.position.z);
+ }
+ for(const td of r.tendrilList){
+  let px=Math.cos(td.a)*r.torso.scale.x*.6,pz=Math.sin(td.a)*r.torso.scale.z*.6,py=r.torso.position.y-r.torso.scale.y*.5;
+  td.segs.forEach((seg,j)=>{
+   py-=.14*r.scale;
+   px+=Math.sin(now*3.2+td.phase+j)*(.05+j*.03)*r.scale;
+   pz+=Math.cos(now*2.7+td.phase+j)*(.05+j*.03)*r.scale;
+   seg.position.set(px,py,pz);
+  });
+ }
+}
 function updateRig(p,dt){
  let r=rigs.get(p.id);if(!r)r=makeRig(p);const now=performance.now()/1000;
  if(!p.alive){r.root.visible=now-p.deadT<2.4;r.root.rotation.z=Math.min(1,now-p.deadT)*1.35;r.body.scale.setScalar(1);if(r.muzzleLight)r.muzzleLight.intensity=0;if(r.plate)r.plate.visible=false;if(r.footprint)r.footprint.visible=false;if(r.mark)r.mark.visible=false;return}
@@ -1739,23 +1921,74 @@ function updateRig(p,dt){
  }
  r.root.position.set(p.x*S,arenaElevationWorld(p.x,p.y),p.y*S);r.root.rotation.z=0;
  const hit=clamp(((p.hitT||0)-now)/.28,0,1),shake=hit*Math.sin(now*90)*.035;
- r.root.position.x+=Math.cos(p.hitAng||0)*shake;r.root.position.z+=Math.sin(p.hitAng||0)*shake;r.body.scale.setScalar(1+hit*.08);
+ r.root.position.x+=Math.cos(p.hitAng||0)*shake;r.root.position.z+=Math.sin(p.hitAng||0)*shake;
  if(r.liveryMat)r.liveryMat.emissiveIntensity=.75+hit*2.6;
  const a=p.angle,yaw=Math.PI/2-a,cy=Math.sin(a),sy=Math.cos(a);
  const fwdX=Math.cos(a),fwdZ=Math.sin(a),sideX=Math.sin(a),sideZ=-Math.cos(a);
- r.body.rotation.y=yaw+hit*Math.sin(now*70)*.08;
- const moving=Math.hypot(p.vx||0,p.vy||0);
+ const moving=Math.hypot(p.vx||0,p.vy||0),speedW=moving*S,vxW=(p.vx||0)*S,vzW=(p.vy||0)*S;
  r.pulse+=dt*(moving>1?8:2.5);r.breath+=dt;r.greet=Math.max(0,r.greet-dt);
- r.body.position.y=Math.sin(r.pulse)*.035*(moving>1?1:0)+Math.sin(r.breath*1.7)*.011*r.scale+hit*.1;
- r.body.traverse(o=>{const u=o.userData;
-  if(u.walk!==undefined)o.rotation.x=Math.sin(r.pulse+u.walk)*.45;
-  if(u.foot!==undefined)o.rotation.x=u.footBase+Math.sin(r.pulse+u.foot+Math.PI)*.32;
-  if(u.wing)o.rotation.z=u.wing*(.25+Math.sin(now*9)*.55);
-  if(u.vane!==undefined)o.rotation.z=u.vaneBase+Math.sin(now*9-u.vane)*.14*u.vaneSide;
-  if(u.spin)o.rotation.z+=dt;
-  if(u.tendril!==undefined){o.position.x=u.tbx+Math.sin(now*2.6+u.tendril)*u.tAmp;o.position.z=u.tbz+Math.cos(now*2.1+u.tendril)*u.tAmp}
-  if(u.tailSeg!==undefined){o.position.x=u.tbx+Math.sin(now*3.1+u.tailSeg*.7)*u.tAmp;o.position.y=u.tby+Math.sin(now*2.3+u.tailSeg)*u.tAmp*.4}});
- const yawDelta=wrapAng(r.body.rotation.y-(r.lastYaw??r.body.rotation.y));r.lastYaw=r.body.rotation.y;
+ /* Bank comes from how fast the heading is turning; pitch leans into the run. */
+ const turn=wrapAng(a-r.lastHeading)/Math.max(dt,1e-4);r.lastHeading=a;
+ r.bank=damp(r.bank,clamp(-turn*.35,-1,1),5,dt);
+ const loco=r.dna.loco;
+ const prevBodyY=r.bodyY;
+ if(loco==='flyer'){
+  /* flap: wing pivots beat as one group, vanes trail the leading edge */
+  r.flap+=dt*(7+Math.min(speedW,12)*.6+(r.greet>0?6:0));
+  const flap=Math.sin(r.flap);
+  for(const w of r.wings){
+   w.g.rotation.z=w.side*(-.28+flap*(.55+Math.min(speedW,8)*.04));
+   for(const v of w.vanes)v.mesh.rotation.z=v.base+Math.sin(r.flap-v.phase)*.14*w.side;
+  }
+  r.bodyY=damp(r.bodyY,r.baseH+Math.sin(r.flap*.5)*.1*r.scale+(r.greet>0?.5*Math.sin(r.greet*9):0),4,dt);
+  r.pitch=damp(r.pitch,clamp(speedW*.012,0,.3),4,dt);
+  r.squashTarget=1;
+ }else if(loco==='hopper'){
+  /* crouch, air, land: the body compresses on contact and stretches at apex */
+  if(speedW>.6){
+   r.hopPhase+=dt*(5.5+Math.min(speedW,16)*.16);
+   const prevHop=r.hopY;
+   r.hopY=Math.abs(Math.sin(r.hopPhase*Math.PI))*(.42*r.scale+Math.min(speedW,12)*.016);
+   const hopV=(r.hopY-prevHop)/Math.max(dt,1e-4);
+   r.squashTarget=1+clamp(Math.abs(hopV)*.06,0,.3)-(r.hopY<.05?.28:0);
+   if(prevHop>.05&&r.hopY<=.05)fx?.ring?.(p.x,p.y,r.dna.accent||p.div.c,r.scale*.7);
+  }else{
+   r.hopY=Math.max(0,r.hopY-dt*3);
+   r.squashTarget=1+Math.sin(r.breath*2.4)*.03;
+  }
+  r.bodyY=r.baseH*r.squash+r.hopY;
+  r.pitch=damp(r.pitch,0,4,dt);
+ }
+ r.body.rotation.set(0,0,0);
+ r.body.rotateY(yaw+hit*Math.sin(now*70)*.08);
+ r.body.rotateZ(clamp(r.bank*.06,-.35,.35));
+ r.body.rotateX((r.pitch||0)+(loco!=='flyer'?clamp(speedW*.004,0,.12):0));
+ const bob=updateLegs(r,dt,speedW,a,vxW,vzW);
+ if(loco==='biped')r.bodyY=damp(r.bodyY,r.baseH+bob*.1*r.scale+Math.sin(r.breath*2)*.015,14,dt);
+ else if(loco==='quad'||loco==='hex')r.bodyY=damp(r.bodyY,r.baseH+bob*.08*r.scale,14,dt);
+ if(loco!=='hopper')r.squashTarget=1+(loco==='flyer'?0:bob*.06)-(r.greet>0?Math.abs(Math.sin(r.greet*9))*.08:0);
+ r.squash=damp(r.squash,r.squashTarget,18,dt);
+ r.vy=(r.bodyY-prevBodyY)/Math.max(dt,1e-4);
+ /* squash and stretch preserves volume, so the toon silhouette never inflates */
+ const invSq=1/Math.sqrt(Math.max(r.squash,.05)),pop=1+hit*.08,sqY=r.squash*pop;
+ r.body.scale.set(invSq*pop,sqY,invSq*pop);
+ /* the group carries the whole creature, so lift it by whatever the squashed
+    torso no longer covers — otherwise squash would sink the body into the deck */
+ r.body.position.y=r.bodyY-r.torso.position.y*sqY+hit*.1;
+ r.sq=sqY;
+ /* one gait signal feeds the arm dangle and the weapon carry bob */
+ r.gaitSwing=(loco==='flyer'?Math.sin(r.flap)*.5:loco==='hopper'?r.hopY/Math.max(r.scale,.01):bob)*.06*r.scale;
+ updateSecondary(r,dt,speedW,now);
+ r.body.traverse(o=>{if(o.userData.spin)o.rotation.z+=dt});
+ /* creature-space gradient span: every shared surface samples the same ramp */
+ const gradTop=r.root.position.y+(r.bodyY+r.torso.scale.y+(r.head?r.head.scale.x*2+(r.dna.neck||0)*r.scale:0))*(r.root.scale.x||1);
+ r.shared.uGradSpan.value.set(r.root.position.y-.1,1/Math.max(gradTop-r.root.position.y+.1,.5));
+ /* The Specimen podium drove uSelect to full. This scene tone maps and then runs
+    a bloom pass, so full strength turns the accent rim into a white-out and eats
+    the contour. Hold it low: a breathing rim, not a wash. */
+ r.select=damp(r.select,r.previewMode?.35:Math.max(hit*.7,p===me?.12:0),8,dt);
+ r.shared.uSelect.value=r.select;
+ const yawDelta=wrapAng(yaw-(r.lastYaw??yaw));r.lastYaw=yaw;
  r.headLag=damp(clamp((r.headLag||0)-yawDelta*.55,-.6,.6),0,8,dt);
  if(r.head)r.head.rotation.y=r.headLag+Math.sin(now*.7+r.breath)*.09;
  if(r.weapon.userData.cur!==p.cur)setWeaponMesh(r.weapon,p.cur);
@@ -1772,16 +2005,20 @@ function updateRig(p,dt){
  const reach=r.arms[0].l1+r.arms[0].l2;
  const holdD=r.hold.d-kick*.07*r.scale-present*.16*r.scale;
  const holdSide=r.hold.side;
- const holdY=r.body.position.y+r.hold.y-swap*.1*r.scale-present*.3*r.scale;
+ const holdY=r.body.position.y+r.hold.y*r.sq-swap*.1*r.scale-present*.3*r.scale+r.gaitSwing*.4;
  r.weapon.position.set(fwdX*holdD+sideX*holdSide,holdY,fwdZ*holdD+sideZ*holdSide);
  r.weapon.rotation.set(-.04+kick*.16-present*.85,yaw,swap*.6+present*.5);
  const gripAt=(gx,gy,gz)=>_grip.set(r.weapon.position.x+(gx*cy+gz*sy)*wScale,r.weapon.position.y+gy*wScale,r.weapon.position.z+(-gx*sy+gz*cy)*wScale);
  for(const arm of r.arms){
- _sh.set(arm.anchor.x*cy+arm.anchor.z*sy,r.body.position.y+arm.anchor.y,-arm.anchor.x*sy+arm.anchor.z*cy);
+ _sh.set(arm.anchor.x*cy+arm.anchor.z*sy,r.body.position.y+arm.anchor.y*r.sq,-arm.anchor.x*sy+arm.anchor.z*cy);
+  /* the shoulder dangles a beat behind the stride instead of tracking it rigidly */
+  arm.dangle.target=r.gaitSwing*arm.side;
+  const swing=arm.dangle.update(dt,90,10);
   if(arm.side>0)gripAt(...wcfg.grip);
   else if(r.greet>0){const w=Math.sin(perf.t*11)*.3*r.scale,o=arm.side*(.3*r.scale)+w;_grip.set(_sh.x+sideX*o,_sh.y+reach*.84,_sh.z+sideZ*o)}
   else if(swap>.02){gripAt(wcfg.fore[0],lerp(wcfg.fore[1],wcfg.reload[1],swap),lerp(wcfg.fore[2],wcfg.reload[2],swap))}
   else gripAt(...wcfg.fore);
+  _sh.x+=sideX*swing*.5;_sh.z+=sideZ*swing*.5;
   _pole.set(sideX*arm.side*.9-fwdX*.25,-1,sideZ*arm.side*.9-fwdZ*.25).normalize();
   twoBoneIK(_sh,_grip,arm.l1,arm.l2,_pole,arm.knee);
   limbFit(arm.upper,_sh,arm.knee,arm.ru);
@@ -2896,7 +3133,7 @@ function initInputEvents(){
  appLifecycle.listen(document,"visibilitychange",()=>{if(document.hidden){clearPhysicalInput();if(!["menu","mapselect","gameover"].includes(phase)&&!paused)togglePause()}});
  appLifecycle.listen(window,"contextmenu",e=>e.preventDefault());appLifecycle.listen(document,"touchmove",e=>{if(document.body.classList.contains("game-active"))e.preventDefault()},{passive:false});appLifecycle.listen(document,"gesturestart",e=>{if(document.body.classList.contains("game-active"))e.preventDefault()});
 }
-function loop(){if(!loopStarted)return;loopHandle=requestAnimationFrame(loop);const dt=Math.min(.05,clock.getDelta());if(paused||document.hidden)return;perf.t+=dt;gameScheduler.tick(dt);pollGamepad(dt);updateAim();updateSim(dt);updateRender(dt);renderHUD();updateCombatUI();drawMinimap();adaptiveQuality(dt);if(sbOpen&&Math.random()<dt*4)renderScoreboard()}
+function loop(){if(!loopStarted)return;loopHandle=requestAnimationFrame(loop);const dt=Math.min(.05,clock.getDelta());if(paused||document.hidden)return;perf.t+=dt;globalU.uTime.value=perf.t;gameScheduler.tick(dt);pollGamepad(dt);updateAim();updateSim(dt);updateRender(dt);renderHUD();updateCombatUI();drawMinimap();adaptiveQuality(dt);if(sbOpen&&Math.random()<dt*4)renderScoreboard()}
 function showBootFailure(message){
  const loading=document.getElementById("loading");loading.className="loadFail";loading.innerHTML=`<div><b>RENDERING LATTICE OFFLINE</b><small>${message}</small><button type="button" onclick="location.reload()">RETRY INITIALIZATION</button></div>`;
 }
