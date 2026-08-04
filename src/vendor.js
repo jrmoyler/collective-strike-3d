@@ -40,7 +40,7 @@ import {
   validateArenaDefinition,
   validateArenaRegistry
 } from "./arena-core.js";
-import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability } from "./arena-assets.js";
+import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability, buildForgeContentPass } from "./arena-assets.js";
 import { ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal } from "./divisional-arsenal.js";
 import {
   LATTICE_RANK_COUNT,
@@ -181,7 +181,8 @@ window.CS3D_ARENA_ASSETS = Object.freeze({
   buildArenaLandmark,
   buildArenaLivingSet,
   buildArenaMaterialSet,
-  buildExclusionReadability
+  buildExclusionReadability,
+  buildForgeContentPass
 });
 window.CS3D_ARSENAL = Object.freeze({ ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal });
 window.CS3D_OPERATIONS = Object.freeze({

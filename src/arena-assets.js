@@ -551,6 +551,92 @@ export function buildArenaLivingSet(definition, theme, tileSize = ARENA_SIZE.til
   return { root, animations };
 }
 
+/**
+ * Reference content pass for Neon Foundry.  All placements are either snapped
+ * to collision-backed topology or outside the playable deck.  Repeated parts
+ * are instanced so the complete kit costs a bounded number of draw calls.
+ */
+export function buildForgeContentPass(definition, theme, tileSize = ARENA_SIZE.tile * 0.1) {
+  if (definition.identity.id !== "forge") return null;
+  const root = new THREE.Group(), animations = [];
+  root.name = "forge-reference-content";
+  const materials = livingMaterials(theme, "forge");
+  const warning = new THREE.MeshBasicMaterial({ color: theme.accentHex, transparent: true, opacity: 0.72, depthWrite: false });
+  const cool = new THREE.MeshBasicMaterial({ color: theme.secondaryHex, transparent: true, opacity: 0.62, depthWrite: false });
+  const addInstances = (name, geometry, material, transforms, navigationClass) => {
+    const mesh = new THREE.InstancedMesh(geometry, material, transforms.length);
+    mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true;
+    if (navigationClass) mesh.userData.navigationClass = navigationClass;
+    transforms.forEach((transform, index) => setInstance(mesh, index, transform.position, transform.scale, transform.rotation || 0));
+    mesh.instanceMatrix.needsUpdate = true; root.add(mesh); return mesh;
+  };
+  const transform = (position, scale, rotation = 0) => ({ position, scale, rotation });
+
+  // Collision-proxy skins: broad furnace jacket, tall rifle cover and low
+  // shotgun cover retain the exact authored footprints and heights.
+  const skins = definition.topology.blocks.map((block, index) => {
+    const height = arenaBlockHeight(block), inset = block.kind === "furnace" ? 0.97 : 0.91;
+    return transform([(block.x + block.w / 2) * tileSize, height / 2, (block.y + block.h / 2) * tileSize], [block.w * tileSize * inset, height, block.h * tileSize * inset], index % 2 ? Math.PI / 2 : 0);
+  });
+  addInstances("collision-proxy-industrial-skins", new THREE.BoxGeometry(1, 1, 1), materials.hard, skins, "solid-cover-skin");
+  const coverBands = definition.topology.blocks.flatMap((block, index) => [0.32, 0.68].map(level => transform(
+    [(block.x + block.w / 2) * tileSize, arenaBlockHeight(block) * level, (block.y + block.h / 2) * tileSize + block.h * tileSize * 0.47],
+    [block.w * tileSize * 0.82, 0.08, 0.12], index % 2 ? Math.PI / 2 : 0
+  )));
+  addInstances("cover-height-readout-bands", new THREE.BoxGeometry(1, 1, 1), warning, coverBands, "cover-height-cue");
+
+  // Platforms and ramps read as one modular gantry family: deck grating,
+  // underside trusses and exposed guard posts preserve vertical crossfire.
+  const decks = definition.topology.platforms.map(platform => transform(
+    [(platform.x + platform.w / 2) * tileSize, platform.elevation + 0.08, (platform.y + platform.h / 2) * tileSize],
+    [platform.w * tileSize * 0.96, 0.14, platform.h * tileSize * 0.96]
+  ));
+  addInstances("gantry-grating-modules", new THREE.BoxGeometry(1, 1, 1), materials.ground, decks, "elevated-rifle-deck");
+  const posts = definition.topology.platforms.flatMap(platform => [[platform.x, platform.y], [platform.x + platform.w, platform.y], [platform.x, platform.y + platform.h], [platform.x + platform.w, platform.y + platform.h]].map(([x, y]) => transform([x * tileSize, platform.elevation / 2, y * tileSize], [0.16, platform.elevation + 1.15, 0.16])));
+  addInstances("gantry-guard-posts", new THREE.BoxGeometry(1, 1, 1), materials.hard, posts);
+  const rampSlats = definition.topology.ramps.flatMap(ramp => Array.from({ length: 6 }, (_, index) => {
+    const u = (index + 0.5) / 6, x = (ramp.x + (ramp.w >= ramp.h ? ramp.w * u : ramp.w / 2)) * tileSize, z = (ramp.y + (ramp.h > ramp.w ? ramp.h * u : ramp.h / 2)) * tileSize;
+    return transform([x, THREE.MathUtils.lerp(ramp.from || 0, ramp.to || 0, u) + 0.12, z], [ramp.w >= ramp.h ? ramp.w * tileSize / 7 : ramp.w * tileSize * 0.82, 0.08, ramp.h > ramp.w ? ramp.h * tileSize / 7 : ramp.h * tileSize * 0.82]);
+  }));
+  addInstances("ramp-tread-modules", new THREE.BoxGeometry(1, 1, 1), materials.ground, rampSlats, "vertical-route");
+
+  // Conveyor rollers make direction and ready-time commitment legible before
+  // entering either pushed lane.
+  for (const [laneIndex, lane] of definition.interactables.entries()) {
+    const count = 12, horizontal = lane.w >= lane.h;
+    const rollers = Array.from({ length: count }, (_, index) => {
+      const u = (index + 0.5) / count;
+      return transform([(lane.x + (horizontal ? lane.w * u : lane.w / 2)) * tileSize, 0.18, (lane.y + (horizontal ? lane.h / 2 : lane.h * u)) * tileSize], [0.18, Math.min(lane.w, lane.h) * tileSize * 0.42, 0.18], horizontal ? Math.PI / 2 : 0);
+    });
+    const rollerMesh = addInstances(`conveyor-${laneIndex}-rollers`, new THREE.CylinderGeometry(1, 1, 1, 10), laneIndex ? cool : warning, rollers, "timing-route");
+    animations.push({ type: "spinY", o: rollerMesh, speed: laneIndex ? -0.48 : 0.48 });
+  }
+
+  // Steam stacks sit on the hazard edge, never in an implied safe cell. Their
+  // lamps are state targets used by the runtime telegraph/active cycle.
+  const steamHazards = definition.hazards.filter(hazard => hazard.type === "steam");
+  const stacks = steamHazards.flatMap(hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y + hazard.h]].map(([x, y]) => transform([x * tileSize, 1.25, y * tileSize], [0.38, 2.5, 0.38])));
+  addInstances("steam-edge-stacks", new THREE.CylinderGeometry(1, 1.18, 1, 10), materials.hard, stacks, "hazard-boundary");
+  const hazardLamps = addInstances("steam-state-lamps", new THREE.SphereGeometry(1, 10, 6), warning, steamHazards.map(hazard => transform([(hazard.x + hazard.w / 2) * tileSize, 2.8, (hazard.y + hazard.h / 2) * tileSize], [0.22, 0.22, 0.22])), "hazard-state");
+  hazardLamps.userData.hazardIds = steamHazards.map(hazard => hazard.id);
+  animations.push({ type: "pulse", o: hazardLamps, base: 0.28, amp: 0.42, phase: 0 });
+
+  // Dense, non-colliding refinery skyline outside the playable footprint.
+  const skyline = Array.from({ length: 18 }, (_, index) => {
+    const side = index % 2, x = side ? (ARENA_SIZE.width + 3 + index % 5) * tileSize : (-3 - index % 5) * tileSize, z = (2 + (index * 7) % 23) * tileSize, height = 5 + index % 6 * 1.4;
+    return transform([x, height / 2 - 0.3, z], [1.2 + index % 3 * 0.5, height, 1.2 + (index + 1) % 3 * 0.45]);
+  });
+  addInstances("background-refinery-towers", new THREE.CylinderGeometry(1, 1.14, 1, 10), materials.ground, skyline, "non-colliding-atmosphere");
+
+  root.userData.assetPipeline = "forge-strategy-kit-v1";
+  root.userData.strategyIdentity = "mid-vertical / rifle gantries / shotgun under-route / utility versus steam";
+  root.userData.counts = { directChildren: root.children.length, instances: skins.length + coverBands.length + decks.length + posts.length + rampSlats.length + stacks.length + skyline.length + 26, drawCallCeiling: root.children.length };
+  root.userData.blockSkinCount = skins.length;
+  root.userData.interactableStateCount = definition.interactables.length;
+  root.userData.hazardStateCount = definition.hazards.length;
+  return { root, animations };
+}
+
 /** Cohesive large-scale materials used by the authored floor, ramps, and cover. */
 export function buildArenaMaterialSet(theme) {
   const id = theme.id || theme.architecture || "arena";
@@ -650,4 +736,4 @@ export function buildExclusionReadability(definition, theme, tileSize = ARENA_SI
   return { root, animations: [] };
 }
 
-export const ARENA_ASSET_VERSION = "2.0.0";
+export const ARENA_ASSET_VERSION = "2.1.0";
