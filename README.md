@@ -47,9 +47,10 @@ miniature with Site A/B and team-spawn markers, biome and mode guidance,
 keyboard/click navigation, and an explicit deployment confirmation.
 
 Three difficulty profiles make the game welcoming for a first-time player and
-still demanding for tactical-game veterans. Persistent career XP, operator
-mastery, arena wins, best streak, contextual coaching, and match rewards give
-every session a clear arc.
+still demanding for tactical-game veterans. A 200-rank Operations track,
+rotating contracts, persistent career XP, operator and weapon mastery, arena
+wins, best streak, contextual coaching, and after-action rewards give every
+session a clear arc.
 
 Every runtime dependency is vendored into the repository, so the game runs with
 no network access at all — no CDN, no webfont request.
@@ -99,11 +100,14 @@ Open `http://localhost:4173/`. Serving the repository root and opening
 - `F`: plant or defuse
 - `B`: armory
 - `R`: reload
-- `1–5`: weapon select
-- `6`: cycle Series 03 weapons
+- `1–5`: weapon select (slot 5 is the division's signature weapon)
+- `6`: cycle the expanded Series 03 and Ascendant armory
 
-Every weapon carries its own silhouette — magazine rake, stock, carry handle,
-scope, bipod and muzzle brake — plus its own livery tint and tracer colour.
+The armory contains 20 division signatures, 21 Series 03 weapons, and 20 new
+Ascendant weapons—one purpose-built for each division. Every weapon carries its
+own silhouette — magazine rake, stock, carry handle, scope, bipod and muzzle
+brake — plus its own livery tint, material finish, tracer colour, and tactical
+effect.
 Switching lowers and re-presents the rig's weapon, costs a short ready time,
 moves the HUD weapon rail, and raises a card naming the weapon and its damage,
 rate of fire and magazine.
@@ -141,8 +145,9 @@ clean hits to drop you and a Railgun no longer one-shots.
 - `Tactical`: the intended balanced experience
 - `Elite`: faster flanks, sharper aim, aggressive ability and doctrine use
 
-Career XP and mastery are stored locally in the browser. Nothing is uploaded,
-and clearing browser storage resets progression.
+Career XP, operation rank, rotating contract progress, operator mastery, and
+weapon mastery are stored locally in the browser. Nothing is uploaded, and
+clearing browser storage resets progression.
 
 ## Playlists
 

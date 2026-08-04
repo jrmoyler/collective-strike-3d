@@ -36,6 +36,8 @@ test("legacy career data migrates without erasing progression", () => {
   assert.equal(career.wins, 5);
   assert.equal(career.xp, 912);
   assert.equal(career.mastery.zenflow, 400);
+  assert.ok(Array.isArray(career.operations.contracts));
+  assert.equal(career.weaponMastery && typeof career.weaponMastery, "object");
 });
 
 test("corrupt saves recover to safe defaults and preserve the invalid payload for diagnosis", () => {

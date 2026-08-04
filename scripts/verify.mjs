@@ -9,6 +9,7 @@ const arenaRuntimePath = path.join(root, "src", "arena-runtime.js");
 const arenaCorePath = path.join(root, "src", "arena-core.js");
 const arenaBallisticsPath = path.join(root, "src", "arena-ballistics.js");
 const arenaAssetsPath = path.join(root, "src", "arena-assets.js");
+const divisionalArsenalPath = path.join(root, "src", "divisional-arsenal.js");
 const vendorSourcePath = path.join(root, "src", "vendor.js");
 const soundtrackManifestPath = path.join(root, "src", "soundtrack-manifest.js");
 const audioManagerPath = path.join(root, "src", "audio-manager.js");
@@ -17,6 +18,7 @@ const arenaRuntime = fs.existsSync(arenaRuntimePath) ? fs.readFileSync(arenaRunt
 const arenaCoreSource = fs.existsSync(arenaCorePath) ? fs.readFileSync(arenaCorePath, "utf8") : "";
 const arenaBallisticsSource = fs.existsSync(arenaBallisticsPath) ? fs.readFileSync(arenaBallisticsPath, "utf8") : "";
 const arenaAssetsSource = fs.existsSync(arenaAssetsPath) ? fs.readFileSync(arenaAssetsPath, "utf8") : "";
+const divisionalArsenalSource = fs.existsSync(divisionalArsenalPath) ? fs.readFileSync(divisionalArsenalPath, "utf8") : "";
 const vendorSource = fs.existsSync(vendorSourcePath) ? fs.readFileSync(vendorSourcePath, "utf8") : "";
 const soundtrackManifestSource = fs.existsSync(soundtrackManifestPath) ? fs.readFileSync(soundtrackManifestPath, "utf8") : "";
 const audioManagerSource = fs.existsSync(audioManagerPath) ? fs.readFileSync(audioManagerPath, "utf8") : "";
@@ -63,10 +65,12 @@ const signatureBlock = html.match(/const SIGNATURES=\{([\s\S]*?)\n\};\n\/\* Arse
 const signatureCount = signatureBlock ? [...signatureBlock[1].matchAll(/^\s[a-z]+:\{/gm)].length : 0;
 assert(signatureCount === 20, `exactly 20 doctrine weapons are registered (found ${signatureCount})`);
 
-const seriesBlock = html.match(/const ADDITIONAL_WEAPONS=\{([\s\S]*?)\n\};\nconst ARSENAL_ROSTER/);
+const seriesBlock = html.match(/const ADDITIONAL_WEAPONS=\{([\s\S]*?)\n\};\nconst ARSENAL_RUNTIME/);
 const seriesCount = seriesBlock ? [...seriesBlock[1].matchAll(/^\sseries03_[a-z]+:series03\(/gm)].length : 0;
 assert(seriesCount === 21, `exactly 21 Series 03 weapons are registered (found ${seriesCount})`);
-assert(signatureCount + seriesCount === 41, `complete additive arsenal contains 41 weapons (found ${signatureCount + seriesCount})`);
+const ascendantCount = [...divisionalArsenalSource.matchAll(/^\s*\["[a-z]+",\s*"[A-Z]/gm)].length;
+assert(ascendantCount === 20, `exactly 20 Ascendant divisional weapons are registered (found ${ascendantCount})`);
+assert(signatureCount + seriesCount + ascendantCount === 61, `complete doctrine arsenal contains 61 weapons (found ${signatureCount + seriesCount + ascendantCount})`);
 
 // Ten-arena deployment contracts (v1.3)
 assert(/ARENAS\s*=/.test(corpus), "ARENAS registry is present");

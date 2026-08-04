@@ -1,3 +1,5 @@
+import { normalizeOperations } from "./operations.js";
+
 export const SAVE_VERSION = 2;
 export const SETTINGS_KEY = "cs3d.settings.v2";
 export const CAREER_KEY = "cs3d.career.v2";
@@ -30,6 +32,8 @@ export const DEFAULT_CAREER = Object.freeze({
   bestStreak: 0,
   mastery: {},
   arenaWins: {},
+  weaponMastery: {},
+  operations: normalizeOperations(),
 });
 
 const clone = value => structuredClone(value);
@@ -73,6 +77,7 @@ function normalizeCareer(value = {}) {
     version: SAVE_VERSION,
     matches: integer(value.matches), wins: integer(value.wins), kills: integer(value.kills), deaths: integer(value.deaths),
     xp: integer(value.xp), bestStreak: integer(value.bestStreak), mastery: { ...(value.mastery || {}) }, arenaWins: { ...(value.arenaWins || {}) },
+    weaponMastery: { ...(value.weaponMastery || {}) }, operations: normalizeOperations(value.operations),
   };
 }
 

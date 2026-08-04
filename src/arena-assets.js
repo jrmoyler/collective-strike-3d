@@ -9,6 +9,65 @@ import { arenaBlockHeight } from "./arena-ballistics.js";
 
 const v3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const color = value => new THREE.Color(value);
+
+function hashSeed(value) {
+  let result = 2166136261;
+  for (const char of String(value)) { result ^= char.charCodeAt(0); result = Math.imul(result, 16777619); }
+  return result >>> 0;
+}
+
+function seededNoise(seed) {
+  let state = hashSeed(seed);
+  return () => {
+    state += 0x6D2B79F5;
+    let value = state;
+    value = Math.imul(value ^ value >>> 15, value | 1);
+    value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+    return ((value ^ value >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function dataTexture(data, size, colorSpace) {
+  const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.UnsignedByteType);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(3, 3);
+  texture.colorSpace = colorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** Independent albedo/roughness/normal signals; no PBR channel aliasing. */
+function proceduralSurfaceSet(baseValue, accentValue, seed, finish = "worn-metal", size = 128) {
+  const random = seededNoise(`${seed}:${finish}`), base = color(baseValue), accent = color(accentValue);
+  const heights = new Float32Array(size * size), albedo = new Uint8Array(size * size * 4), roughness = new Uint8Array(size * size * 4), normal = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const index = y * size + x, u = x / size, v = y / size;
+    const macro = Math.sin(u * Math.PI * 4 + seed.length) * 0.5 + Math.cos(v * Math.PI * 3) * 0.5;
+    const seam = (x % 32 < 2 || y % 32 < 2) ? -0.45 : 0;
+    const brush = finish === "brushed-steel" ? Math.sin(v * size * 2.8) * 0.12 : 0;
+    const pits = random() < (finish === "stone" ? 0.09 : 0.035) ? -0.65 : 0;
+    const height = macro * 0.16 + seam + brush + pits + (random() - 0.5) * 0.22;
+    heights[index] = height;
+    const wear = Math.max(0, macro * 0.18 + random() * 0.16), tint = base.clone().lerp(accent, Math.min(0.22, wear));
+    const cavity = Math.max(0, -height) * 0.24, ai = index * 4;
+    albedo[ai] = Math.round(THREE.MathUtils.clamp(tint.r * (1 - cavity), 0, 1) * 255);
+    albedo[ai + 1] = Math.round(THREE.MathUtils.clamp(tint.g * (1 - cavity), 0, 1) * 255);
+    albedo[ai + 2] = Math.round(THREE.MathUtils.clamp(tint.b * (1 - cavity), 0, 1) * 255);
+    albedo[ai + 3] = 255;
+    const rough = THREE.MathUtils.clamp((finish === "painted" ? 0.56 : finish === "stone" ? 0.82 : 0.42) + (random() - 0.5) * 0.26 + cavity * 0.35 - wear * 0.25, 0.12, 0.96);
+    roughness[ai] = roughness[ai + 1] = roughness[ai + 2] = Math.round(rough * 255); roughness[ai + 3] = 255;
+  }
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const index = y * size + x, left = heights[y * size + (x + size - 1) % size], right = heights[y * size + (x + 1) % size], down = heights[((y + size - 1) % size) * size + x], up = heights[((y + 1) % size) * size + x];
+    const nx = THREE.MathUtils.clamp((left - right) * 0.7, -1, 1), ny = THREE.MathUtils.clamp((down - up) * 0.7, -1, 1), ni = index * 4;
+    normal[ni] = Math.round((nx * 0.5 + 0.5) * 255); normal[ni + 1] = Math.round((ny * 0.5 + 0.5) * 255); normal[ni + 2] = 255; normal[ni + 3] = 255;
+  }
+  return {
+    map: dataTexture(albedo, size, THREE.SRGBColorSpace),
+    roughnessMap: dataTexture(roughness, size, THREE.NoColorSpace),
+    normalMap: dataTexture(normal, size, THREE.NoColorSpace),
+  };
+}
 const CONCEPT_FILES = Object.freeze({
   forge: "forge-furnace-core.webp",
   abyss: "abyss-memory-sanctum.webp",
@@ -23,32 +82,41 @@ const CONCEPT_FILES = Object.freeze({
 });
 
 function assetMaterials(theme) {
+  const steelMaps = proceduralSurfaceSet(theme.accentHex, theme.secondaryHex, `${theme.id || theme.architecture}:steel`, "brushed-steel");
+  const darkMaps = proceduralSurfaceSet(theme.outer, theme.accentHex, `${theme.id || theme.architecture}:dark`, "worn-metal");
+  const paintedMaps = proceduralSurfaceSet(theme.wall, theme.accentHex, `${theme.id || theme.architecture}:paint`, "painted");
   return {
     shell: new THREE.MeshPhysicalMaterial({
-      color: theme.wall,
+      color: 0xffffff,
       roughness: 0.48,
       metalness: 0.56,
       clearcoat: 0.18,
       clearcoatRoughness: 0.52,
       emissive: theme.wallEmissive,
       emissiveIntensity: 0.08,
+      ...paintedMaps,
+      normalScale: new THREE.Vector2(0.38, 0.38),
     }),
     dark: new THREE.MeshPhysicalMaterial({
-      color: theme.outer,
+      color: 0xffffff,
       roughness: 0.72,
       metalness: 0.34,
       clearcoat: 0.08,
       emissive: theme.wallEmissive,
       emissiveIntensity: 0.04,
+      ...darkMaps,
+      normalScale: new THREE.Vector2(0.48, 0.48),
     }),
     accent: new THREE.MeshPhysicalMaterial({
-      color: theme.accentHex,
+      color: 0xffffff,
       roughness: 0.24,
       metalness: 0.42,
       clearcoat: 0.46,
       clearcoatRoughness: 0.26,
       emissive: theme.accentHex,
       emissiveIntensity: 1.42,
+      ...steelMaps,
+      normalScale: new THREE.Vector2(0.28, 0.28),
     }),
     secondary: new THREE.MeshPhysicalMaterial({
       color: theme.secondaryHex,
@@ -154,19 +222,48 @@ function radialParts(ctx, count, radius, callback) {
 
 function buildFurnace(ctx) {
   const { mats } = ctx;
+  part(ctx, "reactor-deck", new THREE.CylinderGeometry(4.05, 4.28, 0.42, 8), mats.dark, { position: [0, 0.18, 0], group: "foundation" });
+  part(ctx, "reactor-deck-trim", new THREE.TorusGeometry(3.94, 0.16, 8, 32), mats.shell, { position: [0, 0.42, 0], rotation: [Math.PI / 2, 0, 0], group: "foundation" });
   part(ctx, "furnace-body", new THREE.CylinderGeometry(2.35, 2.85, 7.6, 16), mats.dark, { position: [0, 4.1, 0], collider: { type: "cylinder", radius: 2.85, height: 7.6 }, group: "reactor" });
   part(ctx, "ceramic-jacket", new THREE.CylinderGeometry(2.42, 2.58, 3.8, 16, 1, true), mats.shell, { position: [0, 4.8, 0], group: "reactor" });
+  radialParts(ctx, 8, 2.57, (i, a, r) => {
+    if (i === 2) return;
+    part(ctx, `ceramic-panel-${i}`, new THREE.BoxGeometry(1.18, 2.65, 0.14), mats.shell, {
+      position: [Math.cos(a) * r, 5.05, Math.sin(a) * r], rotation: [0, Math.PI / 2 - a, 0], group: "reactor"
+    });
+  });
   part(ctx, "molten-window", new THREE.BoxGeometry(1.05, 3.8, 0.22), mats.accent, { position: [0, 4.7, 2.55], group: "reactor" });
+  for (const [id, size, position] of [
+    ["window-frame-left", [0.18, 4.18, 0.34], [-0.68, 4.7, 2.62]],
+    ["window-frame-right", [0.18, 4.18, 0.34], [0.68, 4.7, 2.62]],
+    ["window-frame-top", [1.52, 0.18, 0.34], [0, 6.7, 2.62]],
+    ["window-frame-bottom", [1.52, 0.18, 0.34], [0, 2.7, 2.62]],
+  ]) part(ctx, id, new THREE.BoxGeometry(...size), mats.shell, { position, group: "reactor" });
+  for (let i = 0; i < 3; i++) part(ctx, `furnace-band-${i}`, new THREE.TorusGeometry(2.62 - i * 0.08, 0.13, 8, 32), mats.shell, { position: [0, 2.25 + i * 1.82, 0], rotation: [Math.PI / 2, 0, 0], group: "reactor" });
+  part(ctx, "lower-molten-port", new THREE.BoxGeometry(0.82, 1.3, 0.26), mats.accent, { position: [0, 1.18, 2.72], group: "reactor" });
+  for (const [id, size, position] of [
+    ["lower-port-left", [0.16, 1.58, 0.34], [-0.53, 1.18, 2.78]],
+    ["lower-port-right", [0.16, 1.58, 0.34], [0.53, 1.18, 2.78]],
+    ["lower-port-top", [1.22, 0.16, 0.34], [0, 1.93, 2.78]],
+  ]) part(ctx, id, new THREE.BoxGeometry(...size), mats.shell, { position, group: "reactor" });
   const crucible = part(ctx, "crucible", new THREE.CylinderGeometry(1.28, 0.88, 1.65, 18), mats.shell, { position: [0, 8.25, 0], group: "pour-system" });
   socket(ctx, crucible, "pour-socket", [0, -0.7, 1.05]);
-  part(ctx, "pour-stream", new THREE.CylinderGeometry(0.16, 0.27, 2.4, 10), mats.accent, { position: [0, 7.15, 1.25], rotation: [Math.PI / 2, 0, 0], group: "pour-system" });
+  part(ctx, "pour-stream", new THREE.CylinderGeometry(0.16, 0.27, 2.4, 10), mats.accent, { position: [0, 7.15, 1.25], group: "pour-system" });
   radialParts(ctx, 6, 3.35, (i, a, r) => {
     const foot = [Math.cos(a) * r, 0.25, Math.sin(a) * r];
     const shoulder = [Math.cos(a) * 2.55, 6.7, Math.sin(a) * 2.55];
     strut(ctx, `furnace-leg-${i}`, foot, shoulder, 0.34, i % 2 ? mats.shell : mats.dark, { taper: 0.72, group: "frame" });
+    part(ctx, `furnace-foot-${i}`, new THREE.BoxGeometry(0.9, 0.55, 1.15), i % 2 ? mats.dark : mats.shell, { position: [foot[0], 0.62, foot[2]], rotation: [0, -a, 0], group: "frame" });
     part(ctx, `service-pod-${i}`, new THREE.CylinderGeometry(0.5, 0.58, 2.6, 10), mats.dark, { position: [Math.cos(a) * 3.65, 1.55, Math.sin(a) * 3.65], group: "services" });
   });
-  const crown = part(ctx, "overhead-pour-ring", new THREE.TorusGeometry(3.15, 0.28, 10, 48), mats.shell, { position: [0, 10.6, 0], rotation: [Math.PI / 2, 0, 0], group: "frame" });
+  radialParts(ctx, 4, 3.15, (i, a, r) => {
+    const lower = [Math.cos(a) * 2.72, 7.0, Math.sin(a) * 2.72];
+    const upper = [Math.cos(a) * r, 11.85, Math.sin(a) * r];
+    strut(ctx, `gantry-pillar-${i}`, lower, upper, 0.22, i % 2 ? mats.dark : mats.shell, { taper: 0.82, group: "frame" });
+  });
+  const crown = part(ctx, "overhead-pour-ring", new THREE.TorusGeometry(3.15, 0.28, 10, 48), mats.shell, { position: [0, 12, 0], rotation: [Math.PI / 2, 0, 0], group: "frame" });
+  part(ctx, "overhead-carriage", new THREE.BoxGeometry(1.2, 0.48, 1.05), mats.dark, { position: [0, 11.76, 0], group: "pour-system" });
+  part(ctx, "carriage-heat-core", new THREE.CylinderGeometry(0.22, 0.3, 0.82, 10), mats.accent, { position: [0, 11.1, 0], group: "pour-system" });
   ctx.animations.push({ type: "spinY", o: crown, speed: 0.035 });
   pipe(ctx, "coolant-loop", [[2.4, 5.5, 0], [4, 5.3, 0], [4, 2.1, 1.2], [3, 1.2, 2.4]], 0.18, mats.shell, { group: "services" });
   const glow = new THREE.PointLight(0xff7a18, 4.6, 50, 1.8); glow.position.y = 7.6; ctx.root.add(glow);
@@ -335,6 +432,140 @@ export function buildArenaLandmark(definition, theme) {
   return { root: ctx.root, animations: ctx.animations };
 }
 
+const LIVING_PROFILES = Object.freeze({
+  forge: { label: "refinery", shape: "canister", motion: "spinY", metal: 0.78 },
+  abyss: { label: "reliquary", shape: "reliquary", motion: "bob", metal: 0.28 },
+  tempest: { label: "storm-vane", shape: "mast", motion: "spinY", metal: 0.72 },
+  verdant: { label: "bio-pod", shape: "pod", motion: "scalePulse", metal: 0.05 },
+  cryo: { label: "crystal-bank", shape: "crystal", motion: "bob", metal: 0.18 },
+  mirage: { label: "null-shard", shape: "obelisk", motion: "spinY", metal: 0.52 },
+  neon: { label: "transit-node", shape: "holo", motion: "spinY", metal: 0.64 },
+  solar: { label: "heliostat", shape: "mirror", motion: "spinY", metal: 0.82 },
+  lunar: { label: "survey-rig", shape: "survey", motion: "spinY", metal: 0.7 },
+  caldera: { label: "thermal-vent", shape: "vent", motion: "light", metal: 0.26 },
+});
+
+function livingMaterials(theme, id) {
+  const hard = proceduralSurfaceSet(theme.wall, theme.secondaryHex, `${id}:living-hard`, id === "lunar" || id === "caldera" ? "stone" : "brushed-steel");
+  const ground = proceduralSurfaceSet(theme.outer, theme.accentHex, `${id}:living-ground`, id === "verdant" ? "painted" : "stone");
+  return {
+    hard: new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: LIVING_PROFILES[id].metal, roughness: 0.46, clearcoat: 0.14, clearcoatRoughness: 0.52, emissive: theme.wallEmissive, emissiveIntensity: 0.08, ...hard, normalScale: new THREE.Vector2(0.42, 0.42) }),
+    ground: new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.12, roughness: 0.82, emissive: theme.wallEmissive, emissiveIntensity: 0.035, ...ground, normalScale: new THREE.Vector2(0.56, 0.56) }),
+    energy: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, metalness: 0.18, roughness: 0.16, clearcoat: 0.74, clearcoatRoughness: 0.12, emissive: theme.accentHex, emissiveIntensity: 2.15 }),
+    glass: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, metalness: 0, roughness: 0.08, transmission: 0.42, transparent: true, opacity: 0.72, thickness: 0.18, emissive: theme.secondaryHex, emissiveIntensity: 0.46 }),
+  };
+}
+
+function themedModule(profile, materials, index) {
+  const group = new THREE.Group();
+  group.name = `${profile.label}-${index}`;
+  const mesh = (name, geometry, material, position, scale = [1, 1, 1], rotation = [0, 0, 0]) => {
+    const object = new THREE.Mesh(geometry, material); object.name = name; object.position.set(...position); object.scale.set(...scale); object.rotation.set(...rotation); object.castShadow = true; object.receiveShadow = true; group.add(object); return object;
+  };
+  mesh("service-plinth", new THREE.CylinderGeometry(0.62, 0.78, 0.28, 8), materials.ground, [0, 0.14, 0]);
+  let moving;
+  if (profile.shape === "canister") {
+    mesh("pressure-vessel", new THREE.CylinderGeometry(0.36, 0.46, 1.55, 12), materials.hard, [0, 0.98, 0]);
+    moving = mesh("valve-wheel", new THREE.TorusGeometry(0.34, 0.07, 7, 22), materials.energy, [0, 1.45, 0.38], [1, 1, 1], [0, 0, Math.PI / 2]);
+  } else if (profile.shape === "reliquary") {
+    mesh("reliquary-body", new THREE.CylinderGeometry(0.32, 0.54, 1.25, 8), materials.hard, [0, 0.78, 0]);
+    moving = mesh("memory-shard", new THREE.OctahedronGeometry(0.34), materials.glass, [0, 1.72, 0], [0.7, 1.5, 0.7]);
+  } else if (profile.shape === "mast") {
+    mesh("mast", new THREE.CylinderGeometry(0.09, 0.22, 2.6, 8), materials.hard, [0, 1.35, 0]);
+    moving = mesh("wind-vane", new THREE.BoxGeometry(1.15, 0.11, 0.26), materials.energy, [0, 2.35, 0]);
+  } else if (profile.shape === "pod") {
+    moving = mesh("living-pod", new THREE.IcosahedronGeometry(0.58, 1), materials.hard, [0, 0.92, 0], [1, 1.35, 1]);
+    for (let arm = 0; arm < 3; arm++) { const angle = arm / 3 * Math.PI * 2; mesh(`root-${arm}`, new THREE.CylinderGeometry(0.07, 0.11, 1.1, 7), materials.ground, [Math.cos(angle) * 0.48, 0.35, Math.sin(angle) * 0.48], [1, 1, 1], [Math.sin(angle) * 0.35, 0, -Math.cos(angle) * 0.35]); }
+  } else if (profile.shape === "crystal") {
+    for (let crystal = 0; crystal < 4; crystal++) mesh(`crystal-${crystal}`, new THREE.ConeGeometry(0.18 + crystal * 0.035, 1.1 + crystal * 0.22, 6), crystal === 3 ? materials.energy : materials.glass, [(crystal - 1.5) * 0.24, 0.64 + crystal * 0.1, (crystal % 2 - 0.5) * 0.22], [1, 1, 1], [0, 0, (crystal - 1.5) * 0.11]);
+    moving = group.children[group.children.length - 1];
+  } else if (profile.shape === "obelisk") {
+    moving = mesh("null-obelisk", new THREE.OctahedronGeometry(0.52), materials.hard, [0, 1.05, 0], [0.72, 2.2, 0.72]);
+    mesh("orbit", new THREE.TorusGeometry(0.62, 0.045, 7, 28), materials.energy, [0, 1.0, 0], [1, 1, 1], [Math.PI / 2, 0, 0]);
+  } else if (profile.shape === "holo") {
+    mesh("terminal", new THREE.BoxGeometry(0.85, 1.35, 0.32), materials.hard, [0, 0.82, 0]);
+    moving = mesh("route-hologram", new THREE.TorusGeometry(0.48, 0.045, 7, 30), materials.energy, [0, 1.72, 0], [1, 1, 1], [Math.PI / 2, 0, 0]);
+  } else if (profile.shape === "mirror") {
+    mesh("collector-neck", new THREE.CylinderGeometry(0.12, 0.22, 1.3, 8), materials.hard, [0, 0.76, 0]);
+    moving = mesh("mirror", new THREE.CylinderGeometry(0.62, 0.62, 0.08, 6), materials.glass, [0, 1.42, 0], [1, 1, 0.72], [Math.PI / 2.7, 0, 0]);
+  } else if (profile.shape === "survey") {
+    mesh("survey-crate", new THREE.BoxGeometry(1.2, 0.58, 0.8), materials.hard, [0, 0.42, 0]);
+    mesh("antenna", new THREE.CylinderGeometry(0.035, 0.06, 1.6, 7), materials.hard, [0.25, 1.28, 0]);
+    moving = mesh("dish", new THREE.CylinderGeometry(0.34, 0.34, 0.06, 16), materials.energy, [0.25, 2.02, 0], [1, 1, 0.45], [Math.PI / 2.6, 0, 0]);
+  } else {
+    mesh("basalt-vent", new THREE.ConeGeometry(0.56, 1.55, 7, 1, true), materials.ground, [0, 0.78, 0]);
+    moving = mesh("thermal-throat", new THREE.CylinderGeometry(0.22, 0.34, 0.9, 10), materials.energy, [0, 0.98, 0]);
+  }
+  group.userData.movingPart = moving;
+  group.userData.assetClass = profile.label;
+  return group;
+}
+
+/**
+ * Adds non-colliding cover-top props, elevated conduits, skyline fixtures,
+ * practical lights, and ambient movers without touching authored gameplay geometry.
+ */
+export function buildArenaLivingSet(definition, theme, tileSize = ARENA_SIZE.tile * 0.1) {
+  const id = definition.identity.id, profile = LIVING_PROFILES[id], materials = livingMaterials(theme, id), root = new THREE.Group(), animations = [];
+  root.name = `living-arena-${id}`;
+  const landmark = definition.topology.landmark, origin = [landmark.x * tileSize, landmark.y * tileSize];
+  let assetCount = 0;
+  for (const [index, block] of definition.topology.blocks.entries()) {
+    const module = themedModule(profile, materials, index), height = arenaBlockHeight(block);
+    module.position.set((block.x + block.w / 2) * tileSize, height + 0.12, (block.y + block.h / 2) * tileSize);
+    module.rotation.y = (index * 2.399963) % (Math.PI * 2);
+    const footprint = Math.min(block.w * tileSize, block.h * tileSize), scale = THREE.MathUtils.clamp(footprint / 3.6, 0.48, 1.08);
+    module.scale.setScalar(scale); root.add(module); assetCount += module.children.length;
+    const moving = module.userData.movingPart;
+    if (moving) {
+      if (profile.motion === "spinY") animations.push({ type: "spinY", o: moving, speed: 0.18 + index * 0.015 });
+      else if (profile.motion === "bob") animations.push({ type: "bob", o: moving, baseY: moving.position.y, phase: index * 0.7 });
+      else if (profile.motion === "scalePulse") animations.push({ type: "scalePulse", o: moving, baseScale: moving.scale.clone(), amp: 0.035, phase: index * 0.5 });
+    }
+  }
+  const targets = [...definition.combat.sites, ...Object.values(definition.combat.spawns)];
+  for (const [index, zone] of targets.entries()) {
+    const end = [(zone.x + zone.w / 2) * tileSize, (zone.y + zone.h / 2) * tileSize], lift = 5.4 + index * 0.35;
+    const curve = new THREE.CatmullRomCurve3([v3(origin[0], lift + 1.2, origin[1]), v3((origin[0] + end[0]) / 2, lift + (index % 2 ? 1.4 : -0.4), (origin[1] + end[1]) / 2), v3(end[0], lift, end[1])]);
+    const conduit = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.13, 7, false), materials.hard); conduit.name = `elevated-service-conduit-${index}`; conduit.castShadow = true; root.add(conduit);
+    const signal = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.028, 5, false), materials.energy); signal.name = `live-signal-line-${index}`; root.add(signal); assetCount += 2;
+  }
+  for (let index = 0; index < 8; index++) {
+    const angle = index / 8 * Math.PI * 2, radiusX = ARENA_SIZE.width * tileSize * 0.58, radiusZ = ARENA_SIZE.height * tileSize * 0.64;
+    const fixture = themedModule(profile, materials, 100 + index); fixture.name = `perimeter-${profile.label}-${index}`; fixture.scale.setScalar(0.72); fixture.position.set(ARENA_SIZE.width * tileSize / 2 + Math.cos(angle) * radiusX, -0.05, ARENA_SIZE.height * tileSize / 2 + Math.sin(angle) * radiusZ); fixture.rotation.y = -angle; root.add(fixture); assetCount += fixture.children.length;
+  }
+  for (const [index, site] of definition.combat.sites.entries()) {
+    const light = new THREE.PointLight(index ? theme.secondaryHex : theme.accentHex, 1.1, 28, 1.9); light.name = `site-practical-${site.id}`; light.position.set((site.x + site.w / 2) * tileSize, 4.8, (site.y + site.h / 2) * tileSize); root.add(light); animations.push({ type: "light", o: light, base: 0.72, amp: 0.52, phase: index * 1.8 }); assetCount++;
+  }
+  for (let index = 0; index < 4; index++) {
+    const drone = new THREE.Group(); drone.name = `ambient-service-drone-${index}`;
+    const body = new THREE.Mesh(new THREE.OctahedronGeometry(0.22), materials.hard), halo = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.035, 6, 20), materials.energy); halo.rotation.x = Math.PI / 2; drone.add(body, halo);
+    drone.position.set(origin[0] + Math.cos(index * Math.PI / 2) * (7 + index), 7.5 + index * 0.6, origin[1] + Math.sin(index * Math.PI / 2) * (7 + index)); root.add(drone);
+    animations.push({ type: "spinY", o: halo, speed: index % 2 ? -0.75 : 0.75 }, { type: "bob", o: drone, baseY: drone.position.y, phase: index * 1.3 }); assetCount += 2;
+  }
+  root.userData.assetPipeline = "img2threejs-living-arena-v2";
+  root.userData.assetCount = assetCount;
+  root.userData.connectionCount = targets.length;
+  root.userData.themeProfile = profile.label;
+  root.userData.materialSystem = "independent-pbr-data-textures-v2";
+  return { root, animations };
+}
+
+/** Cohesive large-scale materials used by the authored floor, ramps, and cover. */
+export function buildArenaMaterialSet(theme) {
+  const id = theme.id || theme.architecture || "arena";
+  const floorMaps = proceduralSurfaceSet(theme.floorTint, theme.accentHex, `${id}:floor`, id === "lunar" || id === "caldera" ? "stone" : "painted");
+  const structureMaps = proceduralSurfaceSet(theme.wall, theme.secondaryHex, `${id}:structure`, "brushed-steel");
+  const darkMaps = proceduralSurfaceSet(theme.outer, theme.accentHex, `${id}:outer`, id === "verdant" ? "painted" : "worn-metal");
+  return {
+    floor: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: theme.floorRoughness, metalness: theme.floorMetalness, clearcoat: 0.08, clearcoatRoughness: 0.7, emissive: theme.wallEmissive, emissiveIntensity: 0.04, ...floorMaps, normalScale: new THREE.Vector2(0.52, 0.52) }),
+    structure: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.48, clearcoat: 0.16, clearcoatRoughness: 0.48, emissive: theme.wallEmissive, emissiveIntensity: 0.08, ...structureMaps, normalScale: new THREE.Vector2(0.42, 0.42) }),
+    dark: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.74, metalness: 0.24, clearcoat: 0.06, emissive: theme.wallEmissive, emissiveIntensity: 0.035, ...darkMaps, normalScale: new THREE.Vector2(0.58, 0.58) }),
+    accent: new THREE.MeshPhysicalMaterial({ color: theme.accentHex, roughness: 0.22, metalness: 0.38, clearcoat: 0.5, emissive: theme.accentHex, emissiveIntensity: 1.1 }),
+    secondary: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, roughness: 0.2, metalness: 0.32, clearcoat: 0.55, emissive: theme.secondaryHex, emissiveIntensity: 0.92 }),
+  };
+}
+
 function setInstance(mesh, index, position, scale, rotationY = 0) {
   const matrix = new THREE.Matrix4();
   matrix.compose(v3(...position), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotationY, 0)), v3(...scale));
@@ -419,4 +650,4 @@ export function buildExclusionReadability(definition, theme, tileSize = ARENA_SI
   return { root, animations: [] };
 }
 
-export const ARENA_ASSET_VERSION = "1.0.0";
+export const ARENA_ASSET_VERSION = "2.0.0";

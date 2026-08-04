@@ -4,14 +4,18 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { ARENA_DEFINITIONS, ARENA_ORDER } from "../src/arena-core.js";
-import { ARENA_ASSET_VERSION, buildArenaLandmark, buildExclusionReadability } from "../src/arena-assets.js";
+import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability } from "../src/arena-assets.js";
 
 const theme = Object.freeze({
+  id: "forge",
   wall: 0x34445c,
   outer: 0x07101e,
   wallEmissive: 0x071626,
   accentHex: 0xff8a2a,
   secondaryHex: 0x38bdf8,
+  floorTint: 0x687386,
+  floorRoughness: 0.68,
+  floorMetalness: 0.28,
 });
 
 const disposeTree = root => root.traverse(object => {
@@ -22,7 +26,7 @@ const disposeTree = root => root.traverse(object => {
 
 test("every arena has a distinct action-ready img2threejs landmark", () => {
   const signatures = new Set();
-  assert.equal(ARENA_ASSET_VERSION, "1.0.0");
+  assert.equal(ARENA_ASSET_VERSION, "2.0.0");
   for (const id of ARENA_ORDER) {
     const result = buildArenaLandmark(ARENA_DEFINITIONS[id], theme);
     assert.ok(result?.root, `${id} landmark builds`);
@@ -38,6 +42,31 @@ test("every arena has a distinct action-ready img2threejs landmark", () => {
     disposeTree(result.root);
   }
   assert.equal(signatures.size, 10);
+});
+
+test("living arena kit connects each landmark to combat space with themed PBR assets", () => {
+  for (const id of ARENA_ORDER) {
+    const localTheme = { ...theme, id };
+    const result = buildArenaLivingSet(ARENA_DEFINITIONS[id], localTheme);
+    assert.equal(result.root.userData.assetPipeline, "img2threejs-living-arena-v2");
+    assert.equal(result.root.userData.materialSystem, "independent-pbr-data-textures-v2");
+    assert.ok(result.root.userData.assetCount >= 40, `${id} has a dense supporting prop ecology`);
+    assert.equal(result.root.userData.connectionCount, 4, `${id} connects both sites and both spawns`);
+    assert.ok(result.animations.length >= 10, `${id} includes ambient motion and practical light animation`);
+    disposeTree(result.root);
+  }
+});
+
+test("authored arena surfaces use independent color, roughness, and normal maps", () => {
+  const materials = buildArenaMaterialSet(theme);
+  for (const key of ["floor", "structure", "dark"]) {
+    const material = materials[key];
+    assert.ok(material.map && material.roughnessMap && material.normalMap, `${key} has a complete material signal`);
+    assert.notEqual(material.map, material.roughnessMap);
+    assert.notEqual(material.map, material.normalMap);
+    assert.equal(material.map.colorSpace, "srgb");
+  }
+  Object.values(materials).forEach(material => material.dispose());
 });
 
 test("exclusion rendering differentiates voids, perimeter, boundaries, and solid cover", () => {

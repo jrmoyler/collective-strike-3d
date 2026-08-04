@@ -5,3 +5,4 @@ node_modules/
 screenshots/
 audit-screenshots/
 cs3d-*.png
+.img2threejs/
