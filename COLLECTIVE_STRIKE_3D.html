@@ -750,7 +750,7 @@ const V3=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z),clamp=(v,a,b)=>Math.max(a,Math.
 const BOSS_RUNTIME=window.CS3D_BOSS||{},BOSS_DNA=BOSS_RUNTIME.BOSS_DNA||[],BOSS_BY_ID=BOSS_RUNTIME.BOSS_BY_ID||{},PLAYLISTS=BOSS_RUNTIME.PLAYLISTS||{};
 const OPERATIONS=window.CS3D_OPERATIONS||{};
 const AUDIO=window.CS3D_AUDIO;
-const RUNTIME=window.CS3D_RUNTIME,INPUT_RUNTIME=window.CS3D_INPUT,PERSISTENCE=window.CS3D_PERSISTENCE;
+const RUNTIME=window.CS3D_RUNTIME,INPUT_RUNTIME=window.CS3D_INPUT,PERSISTENCE=window.CS3D_PERSISTENCE,MASTERY=window.CS3D_MASTERY;
 const gameState=RUNTIME.createGameStateMachine(RUNTIME.GAME_STATES.LOADING),gameScheduler=new RUNTIME.GameScheduler(),appLifecycle=new RUNTIME.LifecycleRegistry();
 const actionInput=INPUT_RUNTIME.createActionInput(),qualityController=new RUNTIME.QualityController({initial:"high"});
 let scene,camera,renderer,raycaster,ground,aimPlane,clock=new THREE.Clock(),composer=null,bloomPass=null,previewLight=null,previewRim=null,arenaGroup=null,previewPad=null,mapSelectMarkers=null;
@@ -776,7 +776,7 @@ function difficulty(){return DIFFICULTIES[selectedDifficulty]||DIFFICULTIES.tact
 function careerLevel(xp=CAREER.xp||0){return Math.floor(Math.sqrt(Math.max(0,xp)/300))+1}
 function levelFloor(level){return Math.pow(Math.max(0,level-1),2)*300}
 function levelCeil(level){return Math.pow(level,2)*300}
-function awardMatchXP(amount,label){if(!me)return;const gained=Math.max(1,Math.round(amount*difficulty().xp));me.matchXp=(me.matchXp||0)+gained;if(label)feed(`+${gained} XP / ${label}`,"#fde68a")}
+function awardMatchXP(amount,label){if(!me)return;const gained=Math.max(1,Math.round(amount*difficulty().xp));me.matchXp=(me.matchXp||0)+gained;if(me.weaponLedger)MASTERY.recordWeaponXp(me.weaponLedger,gained);if(label)feed(`+${gained} XP / ${label}`,"#fde68a")}
 function transitionState(target,reason){
  const result=gameState.transition(target,reason);if(!result.ok)console.warn(`[state] rejected ${result.from} -> ${result.to} (${result.reason})`);return result.ok
 }
@@ -987,6 +987,7 @@ function equipWeapon(p,id){
  if(!p||!p.weapons[id]||p.cur===id)return false;
  const now=performance.now()/1000;
  p.cur=id;p.reloadT=0;p.swapT=now+.24;p.swapKick=1;
+ if(p===me&&me.weaponLedger)MASTERY.setActiveWeapon(me.weaponLedger,id);
  p.fireT=Math.max(p.fireT,now-Math.max(0,curW(p).delay-.24));
  if(p===me){ui.switchedWeapon=true;SND.swap();showWeaponToast(curW(p))}
  return true;
@@ -1111,7 +1112,7 @@ function confirmHit(target,amount,kind){
  if(kind==="elimination"||kind==="critical")addShake(kind==="elimination"?.14:.06);
 }
 function damageBoss(boss,dmg,src,flags={}){
- if(!boss?.alive)return;const now=performance.now()/1000,armorHit=boss.armor>0;let d=dmg;if(boss.armor>0){d*=.78;boss.armor=Math.max(0,boss.armor-dmg*.5)}boss.hp-=d;if(src===me){me.matchStats.damage+=d;me.matchStats.bossDamage+=d}boss.hitT=now+.3;if(src){boss.hitAng=Math.atan2(boss.y-src.y,boss.x-src.x);if(src!==me)fx.sparks(boss.x,boss.y,boss.dna.accent,16,1.5)}if(src===me)confirmHit(boss,d,boss.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"boss");const nextPhase=BOSS_RUNTIME.bossPhaseForHealth?.(boss.hp,boss.maxHp)??boss.phaseIndex;while(boss.hp>0&&nextPhase>boss.phaseIndex)advanceBossPhase(boss,boss.phaseIndex+1);if(boss.hp<=0)finishBoss(src)
+ if(!boss?.alive)return;const now=performance.now()/1000,armorHit=boss.armor>0;let d=dmg;if(boss.armor>0){d*=.78;boss.armor=Math.max(0,boss.armor-dmg*.5)}boss.hp-=d;if(src===me){me.matchStats.damage+=d;me.matchStats.bossDamage+=d;if(me.weaponLedger)MASTERY.recordWeaponDamage(me.weaponLedger,d)}boss.hitT=now+.3;if(src){boss.hitAng=Math.atan2(boss.y-src.y,boss.x-src.x);if(src!==me)fx.sparks(boss.x,boss.y,boss.dna.accent,16,1.5)}if(src===me)confirmHit(boss,d,boss.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"boss");const nextPhase=BOSS_RUNTIME.bossPhaseForHealth?.(boss.hp,boss.maxHp)??boss.phaseIndex;while(boss.hp>0&&nextPhase>boss.phaseIndex)advanceBossPhase(boss,boss.phaseIndex+1);if(boss.hp<=0)finishBoss(src)
 }
 function finishBoss(src){
  const boss=activeBoss;if(!boss?.alive)return;boss.alive=false;boss.hp=0;const r=bossRigs.get(boss.id);if(r)r.root.visible=false;fx.ring(boss.x,boss.y,boss.dna.accent,4);fx.sparks(boss.x,boss.y,boss.dna.accent,70,3);showBanner("APEX NEUTRALIZED");if(src===me){me.matchStats.bossKills++;awardMatchXP(180,"APEX ELIMINATION")}
@@ -1124,7 +1125,7 @@ function encounterDefeat(){
  if(matchFinalized)return;if(encounterKind==="apex"){apexComplete=true;bossOutcome=`${activeBoss?.name||"APEX"} HELD THE LATTICE`;setGamePhase("end","apex-defeat");phaseT=3;return}
  matchOutcomeOverride=false;bossOutcome="SQUAD ELIMINATED";setGamePhase("end","squad-defeat");phaseT=3
 }
-function curW(p){return p.weapons[p.cur]}function giveW(p,id){const w=WEAPONS[id];p.weapons[id]={...w,ammo:w.mag,reserve:w.res};if(!equipWeapon(p,id))p.cur=id}
+function curW(p){return p.weapons[p.cur]}function giveW(p,id){const w=WEAPONS[id];p.weapons[id]={...w,ammo:w.mag,reserve:w.res};if(!equipWeapon(p,id)){p.cur=id;if(p===me&&me.weaponLedger)MASTERY.setActiveWeapon(me.weaponLedger,id)}}
 function arenaTheme(id=selectedArenaId){return ARENAS[id]||ARENAS.forge||{id:"forge",accent:"#d4a843",secondary:"#38bdf8",accentHex:0xd4a843,secondaryHex:0x38bdf8,fog:0x060d1c,fogDensity:.0052,bg:"#030712",floor:["#111827","rgba(212,168,67,.18)"],floorTint:0xa8b4c8,floorRoughness:.68,floorMetalness:.28,wall:0x778399,wallEmissive:0x101827,outer:0x050912,trim:0xd4a843,particle:0x9fc4ff,architecture:"forge"}}
 function disposeTree(root){const geometries=new Set(),materials=new Set(),textures=new Set();root.traverse(o=>{if(o.geometry&&!o.isSprite&&!o.geometry.userData.shared)geometries.add(o.geometry);for(const m of(Array.isArray(o.material)?o.material:[o.material]))if(m){materials.add(m);for(const k of["map","normalMap","roughnessMap","metalnessMap","emissiveMap","alphaMap"])if(m[k]&&!m[k].userData?.shared)textures.add(m[k])}});for(const value of textures)value.dispose?.();for(const value of materials)value.dispose?.();for(const value of geometries)value.dispose?.()}
 function teardownArena(){
@@ -2210,6 +2211,7 @@ function fireWeapon(p,tx,ty){
  }
  if(w.ammo<=0)reload(p)
 }
+function shoveActor(q,angle,distance){const nx=q.x+Math.cos(angle)*distance,ny=q.y+Math.sin(angle)*distance;if(q.isBoss?!bossCanOccupy(q,nx,ny):solidWorld(nx,ny))return false;q.x=nx;q.y=ny;return true}
 function applyDoctrineHit(p,q,w,now){
  if(w.series==="ASCENDANT"){
   if(w.onHit==="link")q.linkedUntil=now+6;
@@ -2224,6 +2226,9 @@ function applyDoctrineHit(p,q,w,now){
   else if(w.onHit==="refund")p.armor=Math.min(100,p.armor+3);
   else if(w.onHit==="signal"){q.signalMarkUntil=now+7;q.signalMarkStart=now;q.signalTeam=p.team}
   else if(w.onHit==="verdict"){q.markUntil=now+7;q.markMul=1.25;q.slowT=now+5}
+  else if(w.onHit==="displace"){shoveActor(q,Math.atan2(p.y-q.y,p.x-q.x),26);p.teamSpeedUntil=Math.max(p.teamSpeedUntil||0,now+3)}
+  else if(w.onHit==="rally"){shoveActor(q,Math.atan2(q.y-p.y,q.x-p.x),22);for(const ally of players)if(ally.alive&&ally.team===p.team&&dist(ally,p)<300){ally.armor=Math.min(100,ally.armor+2);ally.regenUntil=Math.max(ally.regenUntil||0,now+2)}}
+  else if(w.onHit==="waypoint"){for(const ally of players)if(ally.alive&&ally.team===p.team&&dist(ally,p)<260){ally.slowT=0;ally.teamSpeedUntil=Math.max(ally.teamSpeedUntil||0,now+2.5)}}
   return
  }
  if(w.series==="03"){
@@ -2257,7 +2262,7 @@ function damage(q,dmg,src,flags={}){if(q?.isBoss)return damageBoss(q,dmg,src,fla
  if(src&&q.signalMarkUntil>now&&q.signalTeam===src.team&&actorRayClear(src,q))d*=1+clamp((now-(q.signalMarkStart||now))*.055,0,.38);
  if(q.resistUntil>now)d*=.82;
  if(q.armor>0){d*=.55;q.armor=Math.max(0,q.armor-dmg*.35)}
- q.hp-=d;if(src===me)me.matchStats.damage+=d;if(q.refundUntil>now)q.refundPool=(q.refundPool||0)+d*.4;q.lastDmg=now;q.hitT=now+.28;
+ q.hp-=d;if(src===me){me.matchStats.damage+=d;if(me.weaponLedger)MASTERY.recordWeaponDamage(me.weaponLedger,d)}if(q.refundUntil>now)q.refundPool=(q.refundPool||0)+d*.4;q.lastDmg=now;q.hitT=now+.28;
  if(src){q.hitAng=Math.atan2(q.y-src.y,q.x-src.x);if(src.div.id==="nexus")q.revealT=now+2}
  if(src===me)confirmHit(q,d,q.hp<=0?"elimination":flags.critical?"critical":armorHit?"armor":"hit");
  else if(src)fx.sparks(q.x,q.y,teamLook(src).css,9,1.2);
@@ -2335,12 +2340,12 @@ function useDoctrine(p,targetPoint=null){
  else if(id==="vital"){near(allies,p.x,p.y,390).forEach(q=>{q.hp=Math.min(maxHp(q),q.hp+24);q.armor=Math.min(100,q.armor+15);q.slowT=0});near(enemies,p.x,p.y,390).forEach(q=>{damage(q,22,p,{doctrine:true});q.toxinUntil=now+6})}
  else if(id==="binary"){near(enemies,p.x,p.y,440).forEach(q=>q.slowT=now+3);p.phaseUntil=now+3;allies.forEach(q=>q.doctrineDiscount=Math.min(q.doctrineDiscount||1,.5))}
  else if(id==="gaia"){near(allies,tp.x,tp.y,300).forEach(q=>q.regenUntil=now+8);near(enemies,tp.x,tp.y,300).forEach(q=>{q.rootBurnUntil=now+8;q.slowT=now+8})}
- else if(id==="vector"){near(enemies,p.x,p.y,410).forEach(q=>{const a=Math.atan2(p.y-q.y,p.x-q.x),nx=q.x+Math.cos(a)*55,ny=q.y+Math.sin(a)*55;if(q.isBoss?bossCanOccupy(q,nx,ny):!solidWorld(nx,ny)){q.x=nx;q.y=ny}damage(q,16,p,{doctrine:true})});allies.forEach(q=>q.teamSpeedUntil=now+7)}
+ else if(id==="vector"){near(enemies,p.x,p.y,410).forEach(q=>{shoveActor(q,Math.atan2(p.y-q.y,p.x-q.x),55);damage(q,16,p,{doctrine:true})});allies.forEach(q=>q.teamSpeedUntil=now+7)}
  else if(id==="animus"){enemies.sort((a,b)=>dist(p,a)-dist(p,b)).slice(0,6).forEach((q,i)=>scheduleGame(()=>{if(q.alive){damage(q,18,p,{doctrine:true});fx.sparks(q.x,q.y,c,12,1.5)}},i*85));p.critUntil=now+5}
  else if(id==="aether"){enemies.forEach(q=>q.revealT=now+8);allies.forEach(q=>q.linkRegenUntil=now+8)}
  else if(id==="obsidian"){near(enemies,tp.x,tp.y,245).forEach(q=>{q.lockUntil=now+5;q.slowT=now+5;q.rootBurnUntil=now+5});p.statusShields=2}
  else if(id==="kinetic"){dashPlayer(p,230);near(enemies,p.x,p.y,125).forEach(q=>damage(q,42,p,{doctrine:true}));p.speedUntil=now+6;p.boostShots=3}
- else if(id==="civic"){near(allies,p.x,p.y,360).forEach(q=>{q.hp=Math.min(maxHp(q),q.hp+28);q.regenUntil=now+10;q.slowT=0});near(enemies,p.x,p.y,360).forEach(q=>{const a=Math.atan2(q.y-p.y,q.x-p.x),nx=q.x+Math.cos(a)*70,ny=q.y+Math.sin(a)*70;if(q.isBoss?bossCanOccupy(q,nx,ny):!solidWorld(nx,ny)){q.x=nx;q.y=ny}})}
+ else if(id==="civic"){near(allies,p.x,p.y,360).forEach(q=>{q.hp=Math.min(maxHp(q),q.hp+28);q.regenUntil=now+10;q.slowT=0});near(enemies,p.x,p.y,360).forEach(q=>shoveActor(q,Math.atan2(q.y-p.y,q.x-p.x),70))}
  else if(id==="quantum"){allies.forEach(q=>{q.refundUntil=now+6;q.refundPool=0;q.armor=Math.min(100,q.armor+20)})}
  else if(id==="juris"){const q=enemies.sort((a,b)=>dist(a,tp)-dist(b,tp))[0];if(q){for(let i=0;i<7;i++)scheduleGame(()=>{if(q.alive){damage(q,9,p,{doctrine:true});fx.sparks(q.x,q.y,c,5,1.1)}},i*65);q.markUntil=now+8;q.markMul=1.25;q.slowT=now+8}}
  else if(id==="signal"){near(enemies,tp.x,tp.y,380).forEach(q=>{q.signalMarkUntil=now+8;q.signalMarkStart=now;q.signalTeam=p.team;q.revealT=now+8});allies.forEach(q=>{q.damageUntil=now+7;q.damageBuff=Math.min(.3,(q.damageBuff||0)+.08)})}
@@ -2542,7 +2547,7 @@ function startMatch({reuseBlueprint=false}={}){
  let squadIds,enemyIds,names;
  if(blueprintValid){squadIds=[...matchBlueprint.squadIds];enemyIds=[...matchBlueprint.enemyIds];names=[...matchBlueprint.names]}
  else{names=shuffle(["DENZEL","KENZA","STANLEY","JUSTIN","JOSEPH","AHMAD","DEVON","ANDREA","JERRIAN","DANTE","KAY","ORACLE","SENTRY","APEX","CIPHER","RELAY"]);squadIds=selectedPlaylist==="standard"?[myDiv.id]:BOSS_RUNTIME.normalizeSquad?.(selectedSquad,allIds,myDiv.id)||[...selectedSquad];const pool=shuffle(allIds.filter(id=>!squadIds.includes(id)));while(squadIds.length<5)squadIds.push(pool.pop());enemyIds=selectedPlaylist==="standard"?Array.from({length:5},()=>pool.pop()):[];matchBlueprint={arenaId,playlist:selectedPlaylist,team:myTeam,controlled:myDiv.id,squadIds:[...squadIds],enemyIds:[...enemyIds],names:[...names],bossId:null,wavePlan:null}}
- myDiv=DIV_BY_ID[squadIds[0]];me=makePlayer(myTeam,myDiv.id,true,"HATAALII");me.matchXp=0;players.push(me);
+ myDiv=DIV_BY_ID[squadIds[0]];me=makePlayer(myTeam,myDiv.id,true,"HATAALII");me.matchXp=0;me.weaponLedger=MASTERY.createWeaponLedger(me.cur);players.push(me);
  for(const id of squadIds.slice(1,5))players.push(makePlayer(myTeam,id,false,names.pop()));
  if(selectedPlaylist==="standard"){encounterKind="standard";const en=myTeam==="ATK"?"DEF":"ATK";for(const id of enemyIds)players.push(makePlayer(en,id,false,names.pop()))}
  camera.position.set(me.x*S,arenaDefinition?.runtimeModifiers?.cameraHeight||44,me.y*S+28);camera.lookAt(me.x*S,0,me.y*S);
@@ -2574,11 +2579,12 @@ function checkRound(){
  if(!a&&bomb.state!=="planted")return endRoundWin("DEF","SENTINEL ROUND")
 }
 function endGame(){if(matchFinalized)return;matchFinalized=true;setGamePhase("gameover","match-results");document.body.classList.remove("game-active");document.getElementById("endScreen").style.display="grid";const scoreWon=(myTeam==="ATK"?scoreATK:scoreDEF)>=(myTeam==="ATK"?scoreDEF:scoreATK),won=matchOutcomeOverride===null?scoreWon:matchOutcomeOverride,before=careerLevel(),completion=Math.round((won?180:90)*difficulty().xp),stats=me.matchStats,duration=Math.max(1,Math.round((performance.now()-matchStartedAt)/1000));me.matchXp=(me.matchXp||0)+completion;document.getElementById("endTitle").textContent=won?"VICTORY":"DEFEAT";const resultLine=selectedPlaylist==="standard"?`Final ${scoreATK} - ${scoreDEF}`:`${PLAYLISTS[selectedPlaylist]?.name||"ENCOUNTER"} / ${bossOutcome||`WAVE ${waveIndex+1}`}`;document.getElementById("endSub").textContent=`${resultLine} / ${me.kills} eliminations as ${me.div.n} / ${difficulty().n}`;
- CAREER.matches++;if(won)CAREER.wins++;CAREER.kills+=me.kills;CAREER.deaths+=me.deaths;CAREER.xp=(CAREER.xp||0)+me.matchXp;CAREER.bestStreak=Math.max(CAREER.bestStreak||0,me.bestStreak||0);CAREER.mastery=CAREER.mastery||{};CAREER.mastery[me.div.id]=(CAREER.mastery[me.div.id]||0)+me.matchXp;CAREER.weaponMastery=CAREER.weaponMastery||{};CAREER.weaponMastery[me.cur]=(CAREER.weaponMastery[me.cur]||0)+me.matchXp;const arenaId=window.CS3D_selectedArenaId||selectedArenaId;CAREER.arenaWins=CAREER.arenaWins||{};if(won)CAREER.arenaWins[arenaId]=(CAREER.arenaWins[arenaId]||0)+1;const operation=OPERATIONS.applyOperationReport?.(CAREER.operations,{...stats,kills:me.kills,won},{seed:`${arenaId}:${me.div.id}`});if(operation)CAREER.operations=operation.state;const after=careerLevel();saveCareer();
+ CAREER.matches++;if(won)CAREER.wins++;CAREER.kills+=me.kills;CAREER.deaths+=me.deaths;CAREER.xp=(CAREER.xp||0)+me.matchXp;CAREER.bestStreak=Math.max(CAREER.bestStreak||0,me.bestStreak||0);CAREER.mastery=CAREER.mastery||{};CAREER.mastery[me.div.id]=(CAREER.mastery[me.div.id]||0)+me.matchXp;CAREER.weaponMastery=MASTERY.applyWeaponMastery(CAREER.weaponMastery,MASTERY.weaponMasteryAwards(me.weaponLedger,me.matchXp,me.cur));const arenaId=window.CS3D_selectedArenaId||selectedArenaId;CAREER.arenaWins=CAREER.arenaWins||{};if(won)CAREER.arenaWins[arenaId]=(CAREER.arenaWins[arenaId]||0)+1;const operation=OPERATIONS.applyOperationReport?.(CAREER.operations,{...stats,kills:me.kills,won},{seed:`${arenaId}:${me.div.id}`});if(operation)CAREER.operations=operation.state;const after=careerLevel();saveCareer();
  document.getElementById("endRewards").innerHTML=`<div class="reward"><b>+${me.matchXp}</b><span>MATCH XP</span></div><div class="reward"><b>${me.kills}</b><span>ELIMINATIONS</span></div><div class="reward"><b>LV ${after}</b><span>${after>before?"LEVEL UP":"CAREER LEVEL"}</span></div>`;const accuracy=stats.shots?Math.round(stats.hits/stats.shots*100):0,mins=Math.floor(duration/60),secs=String(duration%60).padStart(2,"0");document.getElementById("endStats").innerHTML=`<div class="resultStat"><b>${Math.round(stats.damage)}</b><span>DAMAGE</span></div><div class="resultStat"><b>${accuracy}%</b><span>ACCURACY</span></div><div class="resultStat"><b>${stats.objectives}</b><span>OBJECTIVES</span></div><div class="resultStat"><b>${Math.round(stats.bossDamage)}</b><span>APEX DAMAGE</span></div><div class="resultStat"><b>${mins}:${secs}</b><span>DURATION</span></div>`;
  const progress=operation?.progress||OPERATIONS.latticeRankProgress?.(CAREER.operations?.xp||0)||{rank:1,current:0,required:300,ratio:0};document.getElementById("operationSummary").textContent=`OPERATION RANK ${progress.rank} / 200 · +${(operation?.matchXp||0)+(operation?.contractXp||0)} LATTICE XP${operation?.rankAfter>operation?.rankBefore?" · RANK ADVANCED":""}`;document.getElementById("operationBar").style.width=`${Math.round(progress.ratio*100)}%`;document.getElementById("endContracts").innerHTML=(CAREER.operations?.contracts||[]).map(contract=>`<div class="contract ${contract.complete?"done":""}"><b>${contract.label}</b>${contract.progress} / ${contract.target} · +${contract.reward} XP</div>`).join("");
  SND.setAmb(false);document.getElementById("nextOperationBtn").focus({preventScroll:true});announce(`${won?"Victory":"Defeat"}. After action report ready.`);if(!won){resultCueQueued=true;AUDIO.playStinger("player_defeat",{nextTrackKey:"results"})}else if(!resultCueQueued){resultCueQueued=true;AUDIO.playStinger("boss_defeat",{nextTrackKey:"results"})}}
 function updateSim(dt){if(phase==="menu"||phase==="mapselect"||phase==="gameover")return;const now=performance.now()/1000;applyArenaVolumes(dt,now);
+ if(phase==="live"&&me?.alive&&me.weaponLedger)MASTERY.recordWeaponTime(me.weaponLedger,dt);
  if(!(phase==="live"&&bomb.state==="planted"))phaseT-=dt;
  if(phase==="buy"&&phaseT<=0){setGamePhase("live","buy-complete");grantSpawnGuard(me);phaseT=encounterKind==="wave"&& !activeBoss?75:ROUND_TIME;showBanner(activeBoss?"APEX LIVE":encounterKind==="wave"?`WAVE ${waveIndex+1} LIVE`:"LIVE")}
  if(phase==="live"&&phaseT<=0&&bomb.state!=="planted"){if(encounterKind==="standard")endRoundWin("DEF","TIME EXPIRED");else encounterDefeat()}

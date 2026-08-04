@@ -72,6 +72,19 @@ const ascendantCount = [...divisionalArsenalSource.matchAll(/^\s*\["[a-z]+",\s*"
 assert(ascendantCount === 20, `exactly 20 Ascendant divisional weapons are registered (found ${ascendantCount})`);
 assert(signatureCount + seriesCount + ascendantCount === 61, `complete doctrine arsenal contains 61 weapons (found ${signatureCount + seriesCount + ascendantCount})`);
 
+// Every Ascendant onHit contract resolves to real gameplay
+const { ASCENDANT_WEAPONS } = await import(path.join(root, "src", "divisional-arsenal.js"));
+const doctrineHitSource = html.slice(html.indexOf("function applyDoctrineHit("));
+const ascendantHitBranch = doctrineHitSource.slice(0, doctrineHitSource.indexOf('if(w.series==="03")'));
+const unhandledOnHit = [...new Set(Object.values(ASCENDANT_WEAPONS).map(weapon => weapon.onHit))]
+  .filter(token => !ascendantHitBranch.includes(`"${token}"`));
+assert(unhandledOnHit.length === 0, `every Ascendant onHit contract is handled${unhandledOnHit.length ? `: missing ${unhandledOnHit.join(", ")}` : ""}`);
+
+// Weapon mastery follows in-match usage rather than the last equipped weapon
+assert(/MASTERY=window\.CS3D_MASTERY/.test(html) && /CS3D_MASTERY/.test(vendorSource), "weapon mastery ledger is bundled and wired");
+assert(/MASTERY\.recordWeaponDamage\(/.test(html) && /MASTERY\.recordWeaponTime\(/.test(html) && /MASTERY\.recordWeaponXp\(/.test(html), "weapon usage is tracked while the match runs");
+assert(/MASTERY\.weaponMasteryAwards\(me\.weaponLedger,me\.matchXp/.test(html) && !/CAREER\.weaponMastery\[me\.cur\]/.test(html), "match XP is split across the weapons that earned it");
+
 // Ten-arena deployment contracts (v1.3)
 assert(/ARENAS\s*=/.test(corpus), "ARENAS registry is present");
 const arenaIds = ["forge", "neon", "cryo", "verdant", "solar", "abyss", "tempest", "lunar", "caldera", "mirage"];
