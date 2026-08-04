@@ -8,12 +8,16 @@ const sourcePath = path.join(root, "COLLECTIVE_STRIKE_3D.html");
 const arenaRuntimePath = path.join(root, "src", "arena-runtime.js");
 const arenaCorePath = path.join(root, "src", "arena-core.js");
 const arenaBallisticsPath = path.join(root, "src", "arena-ballistics.js");
+const arenaAssetsPath = path.join(root, "src", "arena-assets.js");
+const vendorSourcePath = path.join(root, "src", "vendor.js");
 const soundtrackManifestPath = path.join(root, "src", "soundtrack-manifest.js");
 const audioManagerPath = path.join(root, "src", "audio-manager.js");
 const html = fs.readFileSync(sourcePath, "utf8");
 const arenaRuntime = fs.existsSync(arenaRuntimePath) ? fs.readFileSync(arenaRuntimePath, "utf8") : "";
 const arenaCoreSource = fs.existsSync(arenaCorePath) ? fs.readFileSync(arenaCorePath, "utf8") : "";
 const arenaBallisticsSource = fs.existsSync(arenaBallisticsPath) ? fs.readFileSync(arenaBallisticsPath, "utf8") : "";
+const arenaAssetsSource = fs.existsSync(arenaAssetsPath) ? fs.readFileSync(arenaAssetsPath, "utf8") : "";
+const vendorSource = fs.existsSync(vendorSourcePath) ? fs.readFileSync(vendorSourcePath, "utf8") : "";
 const soundtrackManifestSource = fs.existsSync(soundtrackManifestPath) ? fs.readFileSync(soundtrackManifestPath, "utf8") : "";
 const audioManagerSource = fs.existsSync(audioManagerPath) ? fs.readFileSync(audioManagerPath, "utf8") : "";
 const corpus = html + "\n" + arenaRuntime + "\n" + arenaCoreSource + "\n" + arenaBallisticsSource + "\n" + soundtrackManifestSource + "\n" + audioManagerSource;
@@ -83,6 +87,10 @@ assert(/makeFogVolume/.test(html) && /localFogVolumeCount/.test(html), "visibili
 assert(/id="arenaSelectScreen"/.test(html) && /id="arenaDeployBtn"/.test(html), "post-operator arena deployment screen is present");
 assert(/function updateMapSelect\(/.test(html) && /function showArenaDiorama\(/.test(html), "selected arena renders as a live isometric miniature");
 assert(/function ensureMapSelectMarkers\(/.test(html) && /SITE A/.test(html) && /STRIKE SPAWN/.test(html) && /SENTINEL SPAWN/.test(html), "3D site and team-spawn markers are present");
+assert(/buildArenaLandmark/.test(arenaAssetsSource) && /img2threejs-procedural-v1/.test(arenaAssetsSource), "img2threejs procedural landmark factory is present");
+assert(/buildExclusionReadability/.test(arenaAssetsSource) && /semantic-barriers-v1/.test(arenaAssetsSource), "shape-coded non-walkable surface system is present");
+assert(/id="arenaNavLegend"/.test(html) && /Walkable deck/.test(html) && /Solid cover/.test(html) && /Void \/ fall/.test(html), "navigation surface legend explains blocked spaces without relying on color alone");
+assert(/createSpring/.test(vendorSource) && /createTimeline/.test(vendorSource) && /anime: "4\.5\.0"/.test(vendorSource), "modern anime.js 4.5 motion APIs are bundled locally");
 assert(/ArrowLeft/.test(arenaRuntime) && /ArrowRight/.test(arenaRuntime) && /confirmArenaSelection/.test(arenaRuntime), "keyboard navigation and deployment confirmation are wired");
 for (const field of ["arenaName", "arenaBiome", "arenaMode", "arenaSummary"]) {
   assert(html.includes(`id="${field}"`), `${field} map intelligence field is present`);

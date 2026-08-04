@@ -3,4 +3,5 @@ dist/
 node_modules/
 *.log
 screenshots/
+audit-screenshots/
 cs3d-*.png
