@@ -2,11 +2,33 @@ import { arenaElevationAt, pointInZone } from "./arena-core.js";
 
 const EPSILON = 1e-6;
 
+/**
+ * Cover height tiers for ballistics and bot weapon selection.
+ * These are authoritative values used throughout the engine.
+ */
+export const COVER_TIERS = Object.freeze({
+  LOW: { min: 0, max: 1.5, label: "low", crouchOnly: true },    // ankle to knee
+  MID: { min: 1.5, max: 2.8, label: "mid", crouchOnly: false }, // waist to chest
+  HIGH: { min: 2.8, max: Infinity, label: "high", crouchOnly: false }, // standing
+});
+
+/** Categorize a height into a tier */
+export function getCoverTier(height) {
+  if (height < COVER_TIERS.LOW.max) return "LOW";
+  if (height < COVER_TIERS.MID.max) return "MID";
+  return "HIGH";
+}
+
+/**
+ * Get the collision height of a block, respecting authored values or deriving
+ * from kind. This is the single source of truth for cover height.
+ */
 export function arenaBlockHeight(block) {
   if (Number.isFinite(block?.collisionHeight)) return Math.max(0, block.collisionHeight);
   if (block?.kind === "high-tower") return 8;
-  if (["monolith", "furnace-core", "broken-lab"].includes(block?.kind)) return 4.5;
+  if (["monolith", "furnace-core", "broken-lab", "sanctum-core", "transit-core"].includes(block?.kind)) return 4.5;
   if (String(block?.kind || "").includes("core")) return 4.5;
+  // Default randomized height for legacy blocks without explicit collisionHeight
   const hash = Math.abs(((block?.x || 0) * 73856093) ^ ((block?.y || 0) * 19349663) ^ ((block?.w || 0) * 83492791));
   return 2.65 + (hash % 151) / 100;
 }
