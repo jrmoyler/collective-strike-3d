@@ -34,20 +34,42 @@ and gate nothing** — `root.children.length` is not a draw-call count, and
 treating it as one is how the first Forge pass shipped 24 draw calls over
 ceiling while reporting "10".
 
-| Metric | Forge | Abyss | Verdant (no pass) | Ceiling |
-| --- | --- | --- | --- | --- |
-| Arena children | 44 | 39 | 51 | 180 |
-| Draw calls, live round | 568 | 555 | 602 | 620 |
-| Triangles, live round | 318k | 318k | 314k | 420k |
-| Arena geometries | 89 | 78 | 139 | 140 |
-| Arena textures | 27 | 24 | 18 | 40 |
-| Total vendored model bytes | 0 | 0 | 0 | 12 MB across all ten arenas |
+All ten arenas are measured. The table is the worst reading of each metric
+across the roster, with the arena that produced it named.
 
-Two numbers are worth carrying forward. The **non-arena scene costs ~450 draw
-calls** — ten operator rigs, their weapons and the shadow pass — so an arena has
-roughly 170 draw calls of headroom, not 620. And an arena that has not had a
-content pass yet (Verdant, 139 arena geometries) sits within one geometry of the
-ceiling, so the remaining eight arenas need their pass before they can grow.
+| Metric | Worst | Arena | Ceiling | Headroom |
+| --- | --- | --- | --- | --- |
+| Arena draw calls | 117 | forge | 140 | 23 |
+| Arena triangles | 37k | mirage | 60k | 23k |
+| Arena children | 46 | tempest | 180 | 134 |
+| Arena geometries | 89 | forge | 140 | 51 |
+| Arena textures | 27 | forge, neon | 40 | 13 |
+| Draw calls, whole scene | 638 | cryo | 700 | 62 |
+| Triangles, whole scene | 320k | tempest | 460k | 140k |
+| Total vendored model bytes | 0 | — | 12 MB | 12 MB |
+
+**The arena-share rows are the gate that attributes a regression.** They are the
+difference between an identical frame with the arena visible and with it hidden,
+and they are stable to a few calls across runs.
+
+The whole-scene rows are a backstop against the game as a whole growing, and
+they are deliberately loose. The non-arena share — ten operator rigs, their
+weapons, bosses and the shadow pass — is sampled at an arbitrary point in a live
+round, and has been measured anywhere from **219 to 551 draw calls** depending
+on how many actors are alive and in frustum. The arena's own share varies by 35
+calls over the same set of runs. A whole-scene ceiling tight enough to catch an
+arena regression therefore fails on round-state noise instead: the ten-arena
+pass tripped a 620-call ceiling on Cryo at 638, whose arena share was an
+unremarkable 87. Gate on the arena share; report the scene.
+
+The ceiling that binds an arena first is draw calls, not triangles: a content
+pass buys silhouette density with `InstancedMesh` families, which cost triangles
+cheaply and draw calls dearly.
+
+Before the ten-arena pass, an arena still on the generic fallback (Verdant, 139
+arena geometries) sat within one geometry of the ceiling, because the generic
+living set allocates per-prop geometry. Every arena on a content pass now sits
+between 51 and 89.
 
 Three structural rules keep those numbers reachable.
 

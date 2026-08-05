@@ -6,8 +6,10 @@ import * as THREE from "three";
 
 import { ARENA_DEFINITIONS, ARENA_ORDER, arenaElevationAt, pointInZone } from "../src/arena-core.js";
 import { arenaBlockHeight } from "../src/arena-ballistics.js";
+import { SURFACE_FINISHES } from "../src/arena-assets.js";
 import {
   CONTENT_PASS_ARENAS,
+  CONTENT_PASS_KITS,
   HAZARD_PHASES,
   buildArenaContentPass,
   hasArenaContentPass,
@@ -15,7 +17,10 @@ import {
   hazardPhaseAt,
   hazardPhaseProgress,
   interactableMovementMultiplier,
+  phaseBarrierStateAt,
   playableBounds,
+  rampTreadTransforms,
+  unitBounded,
 } from "../src/arena-content.js";
 
 const TILE = 4;
@@ -59,20 +64,62 @@ function instancedFamilies(root) {
  * Factory
  * ------------------------------------------------------------------ */
 
-test("the content-pass factory covers forge and abyss and leaves the other eight arenas alone", () => {
-  assert.deepEqual([...CONTENT_PASS_ARENAS].sort(), ["abyss", "forge"]);
+test("every arena in the roster ships a content pass", () => {
+  assert.deepEqual([...CONTENT_PASS_ARENAS].sort(), [...ARENA_ORDER].sort());
   for (const id of ARENA_ORDER) {
+    assert.ok(hasArenaContentPass(id), `${id} declares a content pass`);
     const result = buildPass(id);
-    if (id === "forge" || id === "abyss") {
-      assert.ok(hasArenaContentPass(id), `${id} declares a content pass`);
-      assert.ok(result?.root, `${id} builds a content pass`);
-      assert.equal(result.root.userData.contentPassId, id);
-      assert.ok(result.root.userData.counts.instances >= 120, `${id} places a dense instanced kit`);
-      disposeTree(result.root);
-    } else {
-      assert.equal(hasArenaContentPass(id), false, `${id} has no content pass yet`);
-      assert.equal(result, null, `${id} keeps its existing generic behavior`);
+    assert.ok(result?.root, `${id} builds a content pass`);
+    assert.equal(result.root.userData.contentPassId, id);
+    assert.ok(result.root.userData.counts.instances >= 120, `${id} places a dense instanced kit`);
+    disposeTree(result.root);
+  }
+});
+
+test("an arena with no kit still falls back to the generic layers", () => {
+  const unknown = { ...ARENA_DEFINITIONS.forge, identity: { ...ARENA_DEFINITIONS.forge.identity, id: "not-a-shipped-arena" } };
+  assert.equal(hasArenaContentPass("not-a-shipped-arena"), false);
+  assert.equal(buildArenaContentPass(unknown, themeFor("forge"), TILE), null);
+});
+
+test("every kit declares a real surface finish, its own pipeline id, and its own strategy identity", () => {
+  const pipelines = new Set();
+  const identities = new Set();
+  for (const [id, kit] of Object.entries(CONTENT_PASS_KITS)) {
+    assert.equal(kit.id, id, `${id} kit id matches its registry key`);
+    for (const [slot, finish] of Object.entries(kit.surfaces)) {
+      assert.ok(SURFACE_FINISHES[finish], `${id} ${slot} surface "${finish}" is not a real finish profile`);
     }
+    assert.equal(pipelines.has(kit.pipeline), false, `${id} reuses pipeline id ${kit.pipeline}`);
+    assert.equal(identities.has(kit.identity), false, `${id} reuses another arena's strategy identity`);
+    pipelines.add(kit.pipeline);
+    identities.add(kit.identity);
+  }
+});
+
+test("every kit hazard type resolves to authored hazards on its own arena", () => {
+  for (const id of CONTENT_PASS_ARENAS) {
+    const definition = ARENA_DEFINITIONS[id];
+    const kit = CONTENT_PASS_KITS[id];
+    const authored = new Set(definition.hazards.map(hazard => hazard.type));
+    for (const type of kit.hazardTypes) {
+      assert.ok(authored.has(type), `${id} kit declares hazard type "${type}" that the arena never authors`);
+    }
+    const matched = definition.hazards.filter(hazard => kit.hazardTypes.includes(hazard.type));
+    assert.ok(matched.length >= 2, `${id} kit only lights ${matched.length} of its authored hazards`);
+  }
+});
+
+test("every authored interactable type has a visual, so no volume ships unexplained", () => {
+  for (const id of ARENA_ORDER) {
+    const definition = ARENA_DEFINITIONS[id];
+    const { root, bindings } = buildPass(id);
+    for (const value of definition.interactables) {
+      const binding = bindings.interactables.find(entry => entry.id === value.id);
+      assert.ok(binding, `${id} interactable ${value.id} (${value.type}) has no content-pass visual`);
+      assert.ok(binding.kind, `${id} binding ${value.id} does not name what it draws`);
+    }
+    disposeTree(root);
   }
 });
 
@@ -203,6 +250,68 @@ test("ramp treads follow the authored slope and land on both ramp endpoints", ()
     });
     assert.ok(tilted > 0, `${id} ramp treads carry no slope at all`);
     disposeTree(root);
+  }
+});
+
+test("no ramp lays treads over a void, so a transition never floats over a pit", () => {
+  for (const id of CONTENT_PASS_ARENAS) {
+    const definition = ARENA_DEFINITIONS[id];
+    const voids = definition.topology.voids || [];
+    if (!voids.length) continue;
+    for (const [index, ramp] of (definition.topology.ramps || []).entries()) {
+      for (const tread of rampTreadTransforms(definition, ramp, TILE, CONTENT_PASS_KITS[id].rampTreads)) {
+        const [tileX, tileY] = tread.tile;
+        const pit = voids.find(value => pointInZone(tileX, tileY, value));
+        assert.equal(pit, undefined, `${id} ramp ${index} lays a tread over void ${pit?.x},${pit?.y}`);
+      }
+    }
+  }
+});
+
+test("no ground-standing kit prop is left hanging over a void", () => {
+  /* The shared layers all trace an authored rectangle — floor plate, platform
+     deck, block footprint, hazard plane — and the runtime already draws those
+     across a void, so they follow it. The gate here is on the kit's own props
+     and its interactable dressing: those read as objects standing on the floor,
+     and an object standing on the floor has to have floor under it. */
+  const standsOnGround = new Set([
+    "landmark-family", "cover-top-detail", "low-cover-detail", "solid-cover-detail",
+    "hazard-boundary-detail", "elevated-hold-detail", "lane-edge-detail",
+    "timing-route", "timing-route-edge", "covered-route-entry", "gate-frame",
+    "recovery-volume", "reactive-volume", "flooded-route-cover", "flooded-slow-route",
+  ]);
+  for (const id of CONTENT_PASS_ARENAS) {
+    const definition = ARENA_DEFINITIONS[id];
+    const voids = definition.topology.voids || [];
+    if (!voids.length) continue;
+    const { root } = buildPass(id);
+    for (const family of instancedFamilies(root)) {
+      if (!standsOnGround.has(family.userData.navigationClass)) continue;
+      for (let index = 0; index < family.count; index++) {
+        const box = instanceBounds(family, index);
+        // Sampled at the instance footprint centre, in tile space.
+        const tileX = (box.min.x + box.max.x) / 2 / TILE;
+        const tileY = (box.min.z + box.max.z) / 2 / TILE;
+        const pit = voids.find(value => pointInZone(tileX, tileY, value));
+        assert.equal(pit, undefined, `${id} ${family.name}[${index}] stands over a void at ${tileX.toFixed(1)},${tileY.toFixed(1)}`);
+      }
+    }
+    disposeTree(root);
+  }
+});
+
+test("kit block geometry is normalized into the unit box before it becomes a skin", () => {
+  for (const id of CONTENT_PASS_ARENAS) {
+    const kit = CONTENT_PASS_KITS[id];
+    for (const slot of ["hero", "anchor", "low"]) {
+      const geometry = unitBounded(kit.blockGeometry[slot]());
+      const box = geometry.boundingBox;
+      for (const axis of ["x", "y", "z"]) {
+        assert.ok(box.max[axis] <= 0.5 + 1e-6 && box.min[axis] >= -0.5 - 1e-6,
+          `${id} ${slot} geometry escapes the unit box on ${axis}`);
+      }
+      geometry.dispose();
+    }
   }
 });
 
@@ -394,6 +503,36 @@ test("water movement cost applies inside each authored water volume and nowhere 
     assert.ok(boundary, `${water.id} has a visible route boundary`);
     assert.equal(boundary.userData.movementMultiplier, water.movementMultiplier);
     assert.equal(bindings.interactables.find(entry => entry.id === water.id).movementMultiplier, water.movementMultiplier);
+  }
+  disposeTree(root);
+});
+
+test("the phase-gate frame reads the same schedule the collision grid is opened on", () => {
+  const gates = ARENA_DEFINITIONS.mirage.interactables.filter(value => value.type === "phase-barrier");
+  assert.equal(gates.length, 2);
+  for (const gate of gates) {
+    const cycle = gate.telegraph + gate.active + gate.cooldown;
+    const offset = gate.offset || 0;
+    // Sampled the way the runtime samples it: closed exactly across the active
+    // window, telegraph exactly before it, open for the rest of the cycle.
+    for (const [at, expected] of [[0, "telegraph"], [gate.telegraph - 0.1, "telegraph"], [gate.telegraph + 0.1, "closed"],
+      [gate.telegraph + gate.active - 0.1, "closed"], [gate.telegraph + gate.active + 0.1, "open"], [cycle - 0.1, "open"]]) {
+      assert.equal(phaseBarrierStateAt(gate, at - offset + cycle * 3), expected, `${gate.id} at ${at}`);
+    }
+  }
+  // The two gates are authored to alternate, so a squad can never walk both.
+  const [west, east] = gates;
+  assert.ok([0, 2, 4, 6, 8, 10].some(elapsed => phaseBarrierStateAt(west, elapsed) !== phaseBarrierStateAt(east, elapsed)),
+    "the two phase gates open together");
+
+  const { root, bindings } = buildPass("mirage");
+  for (const gate of gates) {
+    const binding = bindings.interactables.find(entry => entry.id === gate.id);
+    assert.equal(binding.kind, "phase-gate-frame");
+    binding.apply(gate.telegraph + gate.active * 0.5 - (gate.offset || 0));
+    assert.equal(binding.state, "closed", `${gate.id} frame is lit shut while the grid is shut`);
+    binding.reset();
+    assert.equal(binding.state, "open");
   }
   disposeTree(root);
 });

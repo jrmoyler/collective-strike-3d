@@ -14,25 +14,39 @@ import path from "node:path";
 import process from "node:process";
 import { chromium } from "playwright-core";
 import { CHROMIUM_ARGS, directoryBytes, repoRoot, resolveChromium, serveDist } from "./browser.mjs";
+import { ARENA_ORDER } from "../src/arena-core.js";
 
 const args = process.argv.slice(2);
 const argOf = (flag, fallback) => {
   const i = args.indexOf(flag);
   return i === -1 ? fallback : args[i + 1];
 };
-const arenaIds = argOf("--arenas", "forge,abyss").split(",").map(id => id.trim()).filter(Boolean);
+const arenaIds = argOf("--arenas", ARENA_ORDER.join(",")).split(",").map(id => id.trim()).filter(Boolean);
 const shotDir = path.resolve(repoRoot, argOf("--shots", "docs/arena-shots"));
 const reportPath = path.resolve(repoRoot, argOf("--report", "docs/arena-shots/budget.json"));
 const captureShots = process.env.CS3D_BUDGET_SHOTS !== "0";
 
-/* Documented ceilings. Draw calls and triangles are whole-scene live-round
-   figures — the arena share is reported separately so a regression can be
-   attributed. Geometry and texture ceilings apply to the arena tree, which is
-   the only thing an arena content pass owns. */
+/* Documented ceilings.
+ *
+ * `arenaDrawCalls` and `arenaTriangles` are the gate that actually attributes a
+ * regression: they are the difference between an identical frame with the arena
+ * visible and with it hidden, so they measure the only thing an arena content
+ * pass owns, and they are stable to a few calls across runs.
+ *
+ * `liveDrawCalls` and `liveTriangles` are whole-scene figures and are kept as a
+ * backstop against the game as a whole growing. They are deliberately loose:
+ * the non-arena share (ten operator rigs, their weapons, bosses and the shadow
+ * pass) is sampled at an arbitrary point in a live round and has been measured
+ * anywhere between 219 and 551 draw calls depending on how many actors are
+ * alive and in frustum. Tightening these to the arena's own headroom makes the
+ * gate fail on round-state noise rather than on content — which is exactly what
+ * it did before the arena-share ceilings existed. */
 export const ARENA_BUDGET_CEILINGS = Object.freeze({
   directChildren: 180,
-  liveDrawCalls: 620,
-  liveTriangles: 420_000,
+  arenaDrawCalls: 140,
+  arenaTriangles: 60_000,
+  liveDrawCalls: 700,
+  liveTriangles: 460_000,
   arenaGeometries: 140,
   arenaTextures: 40,
   modelBytes: 12 * 1024 * 1024,
@@ -132,6 +146,8 @@ for (const measured of measurements) {
   if (!measured) { problems.push("an arena reported no budget measurement"); continue; }
   const checks = [
     ["directChildren", measured.directChildren, ARENA_BUDGET_CEILINGS.directChildren],
+    ["arenaDrawCalls", measured.arenaDrawCalls, ARENA_BUDGET_CEILINGS.arenaDrawCalls],
+    ["arenaTriangles", measured.arenaTriangles, ARENA_BUDGET_CEILINGS.arenaTriangles],
     ["liveDrawCalls", measured.liveDrawCalls, ARENA_BUDGET_CEILINGS.liveDrawCalls],
     ["liveTriangles", measured.liveTriangles, ARENA_BUDGET_CEILINGS.liveTriangles],
     ["arenaGeometries", measured.arenaGeometries, ARENA_BUDGET_CEILINGS.arenaGeometries],

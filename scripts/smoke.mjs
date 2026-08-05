@@ -11,7 +11,10 @@ import path from "node:path";
 import process from "node:process";
 import { chromium } from "playwright-core";
 
+import { ARENA_ORDER } from "../src/arena-core.js";
+
 const root = path.resolve(import.meta.dirname, "..");
+const ARENA_IDS = ARENA_ORDER;
 const args = process.argv.slice(2);
 const argOf = (flag, fallback) => {
   const i = args.indexOf(flag);
@@ -307,7 +310,8 @@ try {
     return report;
   }, arenaId);
   console.log("content passes:", JSON.stringify(contentPasses.passes.map(entry => ({ id: entry.id, pass: entry.contentPass, families: entry.families.length, instanced: entry.instancedFamilies, atmosphere: entry.atmosphereInstances }))));
-  if (contentPasses.passes.length !== 2) problems.push(`expected forge and abyss content passes, found ${contentPasses.passes.length}`);
+  if (contentPasses.passes.length !== ARENA_IDS.length) problems.push(`expected a content pass on all ${ARENA_IDS.length} arenas, found ${contentPasses.passes.length}`);
+  if (contentPasses.generic.length) problems.push(`arenas still on the generic fallback: ${contentPasses.generic.map(entry => entry.id).join(", ")}`);
   for (const entry of contentPasses.passes) {
     if (!entry.contentPass) problems.push(`${entry.id} did not integrate its content pass into the live arena`);
     if (entry.proxyCount !== entry.expectedProxies) problems.push(`${entry.id} lost collision proxies (${entry.proxyCount}/${entry.expectedProxies})`);

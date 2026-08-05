@@ -3,6 +3,8 @@ import path from "node:path";
 import process from "node:process";
 import vm from "node:vm";
 
+import { ARENA_ORDER } from "../src/arena-core.js";
+
 const root = path.resolve(import.meta.dirname, "..");
 const sourcePath = path.join(root, "COLLECTIVE_STRIKE_3D.html");
 const arenaRuntimePath = path.join(root, "src", "arena-runtime.js");
@@ -112,7 +114,11 @@ assert(/buildExclusionReadability/.test(arenaAssetsSource) && /semantic-barriers
 // Data-driven arena content-pass framework, and its live integration
 assert(Boolean(arenaContentSource), "arena content-pass framework is present");
 assert(/export function buildArenaContentPass\(/.test(arenaContentSource) && /CONTENT_PASS_KITS/.test(arenaContentSource), "content passes are resolved from a data-driven kit table");
-for (const arena of ["forge", "abyss"]) assert(new RegExp(`\\n\\s{2}${arena}: Object\\.freeze\\(\\{`).test(arenaContentSource), `${arena} declares a content-pass kit`);
+for (const arena of ARENA_ORDER) assert(new RegExp(`\\n\\s{2}${arena}: Object\\.freeze\\(\\{`).test(arenaContentSource), `${arena} declares a content-pass kit`);
+for (const arena of ARENA_ORDER) assert(new RegExp(`function ${arena}Families\\(`).test(arenaContentSource), `${arena} implements its kit family builder`);
+assert(/export function unitBounded\(/.test(arenaContentSource) && /unitBounded\(kit\.blockGeometry/.test(arenaContentSource), "block skins are normalized into the authored footprint");
+assert(/export function phaseBarrierStateAt\(/.test(arenaContentSource) && /ARENA_CONTENT\.phaseBarrierStateAt\(/.test(html), "the phase gate frame and the collision grid share one schedule");
+assert(/export const SURFACE_FINISHES/.test(arenaAssetsSource), "surface finishes are a declared profile table, not four hard-coded names");
 assert(/export function hazardPhaseAt\(/.test(arenaContentSource) && /"cooldown"/.test(arenaContentSource), "hazard phase mapping exposes an explicit cooldown state");
 assert(!/transmission\s*:/.test(arenaAssetsSource) && !/transmission\s*:/.test(arenaContentSource), "no arena material forces a per-object transmission render pass");
 assert(!/https?:\/\//.test(arenaContentSource), "content-pass framework introduces no remote host");

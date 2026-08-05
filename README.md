@@ -16,6 +16,15 @@ and spawns sit — and the test suite walks the collision grid of all ten arenas
 against it. No arena can ship with a site parked next to a spawn or a defender
 hold that covers both sites at once.
 
+All ten also ship a **strategy kit**: the art layer that turns authored gameplay
+data into something a player can read at a glance, built from instanced prop
+families rather than per-prop meshes. A kit's block skins are footprint-exact
+against the collision grid, its props never stand over a void, and every
+authored hazard and interactable resolves to a visual driven by the same
+simulation clock the gameplay runs on — all four enforced by tests, and the
+whole roster measured in a live round by `npm run budget`. See
+[`docs/ARENA_STRATEGY_KITS.md`](docs/ARENA_STRATEGY_KITS.md).
+
 ## Reading a fight
 
 Twenty divisions can appear on either side, so division colour never answers

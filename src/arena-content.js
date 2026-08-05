@@ -201,6 +201,163 @@ export function rampTreadTransforms(definition, ramp, tileSize, count = 6, thick
   });
 }
 
+/**
+ * Fit a geometry into the unit box.
+ *
+ * A block skin is scaled by its authored footprint, so a geometry whose local
+ * radius exceeds 0.5 draws cover the collision grid does not own — an
+ * octahedron at radius 0.58 overhangs the proxy on all four sides, and a torus
+ * at 0.68 overhangs it by a third of a tile. Normalising here is what lets a kit
+ * pick any silhouette it likes and still be footprint-exact.
+ */
+export function unitBounded(geometry) {
+  geometry.computeBoundingBox();
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  geometry.boundingBox.getSize(size);
+  geometry.boundingBox.getCenter(center);
+  geometry.translate(-center.x, -center.y, -center.z);
+  geometry.scale(1 / Math.max(1e-6, size.x), 1 / Math.max(1e-6, size.y), 1 / Math.max(1e-6, size.z));
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+/* ------------------------------------------------------------------ *
+ * Shared kit placement families
+ *
+ * Every arena kit composes its supporting props from the same five placement
+ * rules. Keeping them here rather than in ten near-identical family functions
+ * is what stops one arena from quietly drifting into placing decoration on
+ * walkable ground while another does not.
+ * ------------------------------------------------------------------ */
+
+/** Collision height of whatever block covers a point, 0 on open ground. Kits
+ *  read it so a landmark family can stand on the massif it belongs to instead
+ *  of hard-coding a height that drifts the moment the block moves. */
+function coverHeightAt(definition, tileX, tileY) {
+  let height = 0;
+  for (const block of definition.topology.blocks || []) {
+    if (pointInZone(tileX, tileY, block)) height = Math.max(height, arenaBlockHeight(block));
+  }
+  return height;
+}
+
+/**
+ * A deterministic ring of supporting props around the arena landmark.
+ *
+ * `elevation` defaults to the walking surface under the landmark rather than
+ * zero, so a family around a landmark that stands on a deck does not sink into
+ * it — and a kit only passes the value explicitly when it wants the ring on top
+ * of the massif instead of on the floor beside it.
+ */
+function landmarkRing(definition, tileSize, { count, radius, radiusStep = 0, height, heightStep = 0, width, elevation, phase = 0 }) {
+  const landmark = definition.topology.landmark;
+  const origin = [landmark.x * tileSize, landmark.y * tileSize];
+  const base = elevation ?? arenaElevationAt(definition, landmark.x, landmark.y);
+  return Array.from({ length: count }, (_, index) => {
+    const angle = (index + phase) / count * Math.PI * 2;
+    const spread = radius + (index % 3) * radiusStep;
+    const tall = height + (index % 3) * heightStep;
+    return transform(
+      [origin[0] + Math.cos(angle) * spread, base + tall / 2, origin[1] + Math.sin(angle) * spread],
+      [width, tall, width],
+      angle
+    );
+  });
+}
+
+/**
+ * Capping props on the top face of each qualifying block. `count` above one
+ * lays a run of them along the block's long axis — the difference between a
+ * lid on a wall and a row of teeth on a battlement.
+ */
+function blockTops(definition, tileSize, { minHeight = 0, includeHero = false, lift = 0, size = 0.6, height = 0.7, count = 1 }) {
+  return (definition.topology.blocks || [])
+    .filter(block => (includeHero || !block.kind) && arenaBlockHeight(block) >= minHeight)
+    .flatMap(block => {
+      const top = arenaBlockHeight(block);
+      const long = block.w >= block.h;
+      const span = Math.min(block.w, block.h) * tileSize;
+      return Array.from({ length: count }, (_, index) => {
+        const u = (index + 0.5) / count;
+        return transform(
+          [
+            (block.x + (long ? block.w * u : block.w / 2)) * tileSize,
+            top + lift + height / 2,
+            (block.y + (long ? block.h / 2 : block.h * u)) * tileSize,
+          ],
+          count > 1
+            ? [(long ? block.w / count : block.w) * tileSize * size, height, (long ? block.h : block.h / count) * tileSize * size]
+            : [span * size, height, span * size]
+        );
+      });
+    });
+}
+
+/**
+ * Low mass banked against the long sides of each block. Never rotated and
+ * always inside the authored footprint, so a fillet at the base of cover can
+ * never widen the cover itself.
+ */
+function blockSkirts(definition, tileSize, { height = 0.5, depth = 1.1, inset = 0.88 }) {
+  const skirts = [];
+  for (const block of definition.topology.blocks || []) {
+    if (block.kind) continue;
+    const long = block.w >= block.h;
+    const w = block.w * tileSize;
+    const h = block.h * tileSize;
+    const cx = (block.x + block.w / 2) * tileSize;
+    const cz = (block.y + block.h / 2) * tileSize;
+    const band = Math.min(depth, (long ? block.h : block.w) * 0.4) * tileSize;
+    for (const side of [-1, 1]) {
+      skirts.push(long
+        ? transform([cx, height / 2, cz + side * (h - band) / 2], [w * inset, height, band])
+        : transform([cx + side * (w - band) / 2, height / 2, cz], [band, height, h * inset]));
+    }
+  }
+  return skirts;
+}
+
+/** Props spaced around the perimeter of an authored zone — a void lip, a
+ *  hazard boundary or a lane edge. `outward` pushes them clear of the volume. */
+function zonePerimeter(value, tileSize, { perSide = 3, height = 1, width = 0.4, elevation = 0, outward = 0 }) {
+  const props = [];
+  const cx = (value.x + value.w / 2) * tileSize;
+  const cz = (value.y + value.h / 2) * tileSize;
+  const halfW = value.w * tileSize / 2 + outward;
+  const halfH = value.h * tileSize / 2 + outward;
+  for (let index = 0; index < perSide; index++) {
+    const u = (index + 0.5) / perSide;
+    const x = (value.x + value.w * u) * tileSize;
+    const z = (value.y + value.h * u) * tileSize;
+    const y = elevation + height / 2;
+    props.push(transform([x, y, cz - halfH], [width, height, width], 0));
+    props.push(transform([x, y, cz + halfH], [width, height, width], Math.PI / 4));
+    props.push(transform([cx - halfW, y, z], [width, height, width], Math.PI / 6));
+    props.push(transform([cx + halfW, y, z], [width, height, width], Math.PI / 3));
+  }
+  return props;
+}
+
+/**
+ * Overhead dressing above the playable footprint. `minY` is deliberately kept
+ * well above shot height, so this family reads as scale and ceiling depth and
+ * can never be mistaken for cover.
+ */
+function overheadField(definition, tileSize, { count = 8, minY = 7, maxY = 10, size = 1.2, seed = "overhead" }) {
+  const bounds = playableBounds(definition, tileSize);
+  const random = createSeededRandom(seed.length * 613 + count * 17);
+  return Array.from({ length: count }, () => {
+    const scale = size * (0.7 + random() * 0.7);
+    return transform(
+      [bounds.minX + random() * (bounds.maxX - bounds.minX), minY + random() * (maxY - minY), bounds.minZ + random() * (bounds.maxZ - bounds.minZ)],
+      [scale, scale * (0.6 + random() * 0.8), scale],
+      random() * Math.PI
+    );
+  });
+}
+
 /* ------------------------------------------------------------------ *
  * Content-pass build context
  * ------------------------------------------------------------------ */
@@ -307,9 +464,11 @@ function layerBlockSkins(ctx) {
     const target = block.kind ? hero : height >= kit.anchorHeight ? anchors : low;
     target.push(blockSkinTransform(block, tileSize, block.kind ? kit.heroInset : kit.skinInset));
   }
-  addFamily(ctx, "block-skin-hero", kit.blockGeometry.hero(), materials.hard, hero, "solid-cover-skin");
-  addFamily(ctx, "block-skin-anchor", kit.blockGeometry.anchor(), materials.hard, anchors, "solid-cover-skin");
-  addFamily(ctx, "block-skin-low", kit.blockGeometry.low(), materials.hard, low, "solid-cover-skin");
+  /* Normalised on the way in: a kit declares a silhouette, and the footprint
+     stays exact no matter which primitive family it reached for. */
+  addFamily(ctx, "block-skin-hero", unitBounded(kit.blockGeometry.hero()), materials.hard, hero, "solid-cover-skin");
+  addFamily(ctx, "block-skin-anchor", unitBounded(kit.blockGeometry.anchor()), materials.hard, anchors, "solid-cover-skin");
+  addFamily(ctx, "block-skin-low", unitBounded(kit.blockGeometry.low()), materials.hard, low, "solid-cover-skin");
 
   /* Cap band: a shape cue on the exact collision top edge, never a protrusion. */
   const caps = blocks.map(block => {
@@ -419,7 +578,11 @@ function layerSkirtingAndDecals(ctx) {
   }
   addFamily(ctx, "deck-edge-skirting", new THREE.BoxGeometry(1, 1, 1), materials.hard, skirts, "walkable-deck-edge");
 
-  /* Objective approach markers: a chevron shape, one per site edge. */
+  /* Objective approach markers: a chevron shape, one per site corner.
+     Several sites are authored across a corner pit, so a corner that lands in a
+     void is dropped rather than left hanging over the drop — a marker has to
+     point at ground a player can actually plant on. */
+  const blocked = (tileX, tileY) => (definition.topology.voids || []).some(value => pointInZone(tileX, tileY, value));
   const markers = definition.combat.sites.flatMap(site => {
     const cx = (site.x + site.w / 2) * tileSize;
     const cz = (site.y + site.h / 2) * tileSize;
@@ -427,7 +590,7 @@ function layerSkirtingAndDecals(ctx) {
       [cx + (corner % 2 ? 1 : -1) * site.w * tileSize * 0.42, 0.2, cz + (corner < 2 ? -1 : 1) * site.h * tileSize * 0.42],
       [0.34, 0.4, 0.34],
       corner * Math.PI / 2
-    ));
+    )).filter(marker => !blocked(marker.position[0] / tileSize, marker.position[2] / tileSize));
   });
   addFamily(ctx, "objective-approach-markers", new THREE.ConeGeometry(1, 1, kit.markerSides || 4), materials.accent, markers, "objective-approach");
 }
@@ -544,8 +707,13 @@ void main(){
   gl_FragColor = vec4(color, uOpacity * (0.24 + band * 0.72) * rail);
 }`;
 
-function conveyorVisual(ctx, value) {
-  const { tileSize, materials, theme } = ctx;
+/**
+ * The travelling-chevron strip shared by every directional lane. The strip is
+ * named after the authored type, so a conveyor and an ice slide are separable
+ * in the scene graph even though they read from the same shader.
+ */
+function flowStrip(ctx, value, { opacity = 0.78, strengthScale = 42, color = "accentHex", edge = "secondaryHex" } = {}) {
+  const { tileSize, theme } = ctx;
   const along = Math.abs(value.vector[0]) >= Math.abs(value.vector[1]);
   const sign = Math.sign(along ? value.vector[0] : value.vector[1]) || 1;
   const width = value.w * tileSize;
@@ -553,16 +721,16 @@ function conveyorVisual(ctx, value) {
   const uniforms = {
     uTime: { value: 0 },
     uDirection: { value: sign },
-    uStrength: { value: Math.max(0.25, (value.strength || 20) / 42) },
-    uColor: { value: new THREE.Color(theme.accentHex) },
-    uEdge: { value: new THREE.Color(theme.secondaryHex) },
-    uOpacity: { value: 0.78 },
+    uStrength: { value: Math.max(0.25, (value.strength || 20) / strengthScale) },
+    uColor: { value: new THREE.Color(theme[color]) },
+    uEdge: { value: new THREE.Color(theme[edge]) },
+    uOpacity: { value: opacity },
   };
   const strip = new THREE.Mesh(
     new THREE.PlaneGeometry(along ? width : depth, along ? depth * 0.72 : width * 0.72),
     new THREE.ShaderMaterial({ uniforms, vertexShader: FLOW_VERTEX, fragmentShader: FLOW_FRAGMENT, transparent: true, depthWrite: false })
   );
-  strip.name = `conveyor-flow-${value.id}`;
+  strip.name = `${value.type}-flow-${value.id}`;
   strip.rotation.x = -Math.PI / 2;
   if (!along) strip.rotation.z = Math.PI / 2;
   strip.position.set((value.x + value.w / 2) * tileSize, 0.1, (value.y + value.h / 2) * tileSize);
@@ -572,27 +740,82 @@ function conveyorVisual(ctx, value) {
   strip.userData.flowSign = sign;
   strip.userData.flowAxis = along ? "x" : "z";
   ctx.root.add(strip);
+  return { along, sign, uniforms };
+}
+
+/** Props laid out along a lane's direction of travel. */
+function laneSteps(value, tileSize, count, build) {
+  const along = Math.abs(value.vector?.[0] ?? value.w) >= Math.abs(value.vector?.[1] ?? value.h);
+  return Array.from({ length: count }, (_, index) => {
+    const u = (index + 0.5) / count;
+    return build({
+      x: (value.x + (along ? value.w * u : value.w / 2)) * tileSize,
+      z: (value.y + (along ? value.h / 2 : value.h * u)) * tileSize,
+      along, index, u,
+    });
+  });
+}
+
+function conveyorVisual(ctx, value) {
+  const { tileSize, materials } = ctx;
+  const { along, sign, uniforms } = flowStrip(ctx, value);
 
   /* Rollers are oriented across the direction of travel; they never spin as a
      whole-family substitute for per-roller movement. */
-  const count = 12;
-  const rollers = Array.from({ length: count }, (_, index) => {
-    const u = (index + 0.5) / count;
-    return transform(
-      [(value.x + (along ? value.w * u : value.w / 2)) * tileSize, 0.17, (value.y + (along ? value.h / 2 : value.h * u)) * tileSize],
-      [0.16, Math.min(value.w, value.h) * tileSize * 0.44, 0.16],
-      along ? Math.PI / 2 : 0
-    );
-  });
+  const rollers = laneSteps(value, tileSize, 12, ({ x, z }) => transform(
+    [x, 0.17, z],
+    [0.16, Math.min(value.w, value.h) * tileSize * 0.44, 0.16],
+    along ? Math.PI / 2 : 0
+  ));
   const rollerMesh = addFamily(ctx, `conveyor-rollers-${value.id}`, new THREE.CylinderGeometry(1, 1, 1, 8), materials.hard, rollers, "timing-route");
-  if (rollerMesh) {
-    rollerMesh.rotation.x = along ? Math.PI / 2 : 0;
-    rollerMesh.rotation.set(0, 0, 0);
-    rollerMesh.userData.interactableId = value.id;
-  }
+  if (rollerMesh) rollerMesh.userData.interactableId = value.id;
+
   ctx.bindings.interactables.push({
     id: value.id,
     kind: "conveyor-flow",
+    vector: [value.vector[0], value.vector[1]],
+    direction: sign,
+    apply(elapsed) { uniforms.uTime.value = elapsed; },
+    reset() { uniforms.uTime.value = 0; },
+  });
+}
+
+/**
+ * An ice slide carries the player the same way a conveyor does, so it reuses
+ * the same directional strip — but the props are grooves cut *along* travel
+ * rather than rollers across it, because nothing here is driving anything.
+ */
+function iceSlideVisual(ctx, value) {
+  const { tileSize, materials } = ctx;
+  const { along, sign, uniforms } = flowStrip(ctx, value, { opacity: 0.62, strengthScale: 26, color: "secondaryHex", edge: "accentHex" });
+
+  const grooves = laneSteps(value, tileSize, 8, ({ x, z, index }) => transform(
+    [x, 0.13, z],
+    along
+      ? [value.w * tileSize / 9, 0.09, Math.max(0.14, value.h * tileSize * 0.1)]
+      : [Math.max(0.14, value.w * tileSize * 0.1), 0.09, value.h * tileSize / 9],
+    index % 2 ? 0.02 : -0.02
+  ));
+  const grooveMesh = addFamily(ctx, `slide-groove-cuts-${value.id}`, new THREE.BoxGeometry(1, 1, 1), materials.wet, grooves, "timing-route");
+  if (grooveMesh) grooveMesh.userData.interactableId = value.id;
+
+  /* Frost kerbs on the long edges: the slide's boundary read, kept low enough
+     that a player never mistakes the lane wall for cover. */
+  const kerbs = laneSteps(value, tileSize, 6, ({ x, z }) => [x, z]).flatMap(([x, z]) => {
+    const halfW = value.w * tileSize / 2;
+    const halfH = value.h * tileSize / 2;
+    const cx = (value.x + value.w / 2) * tileSize;
+    const cz = (value.y + value.h / 2) * tileSize;
+    return along
+      ? [transform([x, 0.19, cz - halfH], [0.3, 0.38, 0.3]), transform([x, 0.19, cz + halfH], [0.3, 0.38, 0.3])]
+      : [transform([cx - halfW, 0.19, z], [0.3, 0.38, 0.3]), transform([cx + halfW, 0.19, z], [0.3, 0.38, 0.3])];
+  });
+  const kerbMesh = addFamily(ctx, `slide-frost-kerbs-${value.id}`, new THREE.OctahedronGeometry(0.5, 0), materials.energy, kerbs, "timing-route-edge");
+  if (kerbMesh) kerbMesh.userData.interactableId = value.id;
+
+  ctx.bindings.interactables.push({
+    id: value.id,
+    kind: "ice-slide-flow",
     vector: [value.vector[0], value.vector[1]],
     direction: sign,
     apply(elapsed) { uniforms.uTime.value = elapsed; },
@@ -686,9 +909,239 @@ function waterVisual(ctx, value) {
   });
 }
 
+/* A covered route has no direction and no timing — its whole value is that you
+   cannot be seen crossing it. The sweep says "corridor", the rails say "this is
+   where the cover starts and stops". */
+const CANOPY_FRAGMENT = `
+uniform float uTime; uniform vec3 uColor; uniform vec3 uEdge; uniform float uOpacity; uniform float uGain;
+varying vec2 vUv;
+void main(){
+  float sweep = 0.5 + 0.5 * sin(vUv.x * 3.0 - uTime * 0.8);
+  float rail = smoothstep(0.5, 0.3, abs(vUv.y - 0.5));
+  float lip = smoothstep(0.4, 0.5, abs(vUv.y - 0.5));
+  vec3 color = mix(uColor, uEdge, sweep * uGain);
+  gl_FragColor = vec4(color, uOpacity * (rail * (0.18 + sweep * 0.26) + lip * 0.52));
+}`;
+
+/* One radial field shader for both of the untimed area volumes. `uRings`
+   separates them: a recovery field breathes once, reactive flora fires three
+   expanding fronts, so the two never read as the same thing. */
+const FIELD_FRAGMENT = `
+uniform float uTime; uniform vec3 uColor; uniform vec3 uEdge; uniform float uOpacity;
+uniform float uRings; uniform float uRate;
+varying vec2 vUv;
+void main(){
+  float radius = length(vUv - 0.5) * 2.0;
+  float front = fract(radius * uRings - uTime * uRate);
+  float ring = smoothstep(0.22, 0.0, front) * smoothstep(1.05, 0.35, radius);
+  float disc = smoothstep(1.0, 0.2, radius);
+  vec3 color = mix(uColor, uEdge, ring);
+  gl_FragColor = vec4(color, uOpacity * (disc * 0.2 + ring * 0.66));
+}`;
+
+/**
+ * Covered route: overhead ribs plus a lit floor corridor. Nothing here touches
+ * shot height, because the route's value is concealment rather than cover — a
+ * player has to be able to read "I am hidden crossing this" without also
+ * reading "I can hold an angle from behind this".
+ */
+function coveredRouteVisual(ctx, value) {
+  const { tileSize, materials, theme } = ctx;
+  const along = value.w >= value.h;
+  const uniforms = {
+    uTime: { value: 0 },
+    uColor: { value: new THREE.Color(theme.secondaryHex) },
+    uEdge: { value: new THREE.Color(theme.accentHex) },
+    uOpacity: { value: 0.6 },
+    uGain: { value: clamp01(((value.movementMultiplier ?? 1) - 1) * 12) },
+  };
+  const corridor = new THREE.Mesh(
+    new THREE.PlaneGeometry(along ? value.w * tileSize : value.h * tileSize, along ? value.h * tileSize * 0.9 : value.w * tileSize * 0.9),
+    new THREE.ShaderMaterial({ uniforms, vertexShader: FLOW_VERTEX, fragmentShader: CANOPY_FRAGMENT, transparent: true, depthWrite: false })
+  );
+  corridor.name = `covered-route-${value.id}`;
+  corridor.rotation.x = -Math.PI / 2;
+  if (!along) corridor.rotation.z = Math.PI / 2;
+  corridor.position.set((value.x + value.w / 2) * tileSize, 0.09, (value.y + value.h / 2) * tileSize);
+  corridor.renderOrder = 3;
+  corridor.userData.interactableId = value.id;
+  corridor.userData.movementMultiplier = value.movementMultiplier ?? 1;
+  ctx.root.add(corridor);
+
+  /* Ribs span the short axis at head-clearance height. Capped at eight so a
+     sixteen-tile trench costs the same as a five-tile one. */
+  const span = Math.min(8, Math.max(4, Math.round(along ? value.w / 2 : value.h / 2)));
+  const ribs = laneSteps({ ...value, vector: along ? [1, 0] : [0, 1] }, tileSize, span, ({ x, z }) => transform(
+    [x, 3.3, z],
+    along ? [0.34, 0.3, value.h * tileSize * 1.02] : [value.w * tileSize * 1.02, 0.3, 0.34]
+  ));
+  const ribMesh = addFamily(ctx, `covered-route-ribs-${value.id}`, new THREE.BoxGeometry(1, 1, 1), materials.hard, ribs, "overhead-non-interactive");
+  if (ribMesh) ribMesh.userData.interactableId = value.id;
+
+  /* Mouth markers on the two open ends: where the concealment starts. */
+  const halfW = value.w * tileSize / 2;
+  const halfH = value.h * tileSize / 2;
+  const cx = (value.x + value.w / 2) * tileSize;
+  const cz = (value.y + value.h / 2) * tileSize;
+  const mouths = (along ? [[cx - halfW, cz], [cx + halfW, cz]] : [[cx, cz - halfH], [cx, cz + halfH]])
+    .map(([x, z], index) => transform([x, 0.24, z], [0.44, 0.48, 0.44], index * Math.PI / 3));
+  const mouthMesh = addFamily(ctx, `covered-route-mouths-${value.id}`, new THREE.ConeGeometry(0.5, 1, 5), materials.energy, mouths, "covered-route-entry");
+  if (mouthMesh) mouthMesh.userData.interactableId = value.id;
+
+  ctx.bindings.interactables.push({
+    id: value.id,
+    kind: "covered-route",
+    movementMultiplier: value.movementMultiplier ?? 1,
+    apply(elapsed) { uniforms.uTime.value = elapsed; },
+    reset() { uniforms.uTime.value = 0; },
+  });
+}
+
+/** Shared builder for the two untimed radial volumes. */
+function fieldVolumeVisual(ctx, value, { kind, rings, rate, opacity, color, edge, postHeight, postGeometry, postMaterial, postClass }) {
+  const { tileSize, materials, theme } = ctx;
+  const uniforms = {
+    uTime: { value: 0 },
+    uColor: { value: new THREE.Color(theme[color]) },
+    uEdge: { value: new THREE.Color(theme[edge]) },
+    uOpacity: { value: opacity },
+    uRings: { value: rings },
+    uRate: { value: rate },
+  };
+  const field = new THREE.Mesh(
+    new THREE.PlaneGeometry(value.w * tileSize, value.h * tileSize),
+    new THREE.ShaderMaterial({ uniforms, vertexShader: FLOW_VERTEX, fragmentShader: FIELD_FRAGMENT, transparent: true, depthWrite: false })
+  );
+  field.name = `${kind}-${value.id}`;
+  field.rotation.x = -Math.PI / 2;
+  field.position.set((value.x + value.w / 2) * tileSize, 0.08, (value.y + value.h / 2) * tileSize);
+  field.renderOrder = 3;
+  field.userData.interactableId = value.id;
+  ctx.root.add(field);
+
+  /* Emitters stay under half a metre: the volume has to be readable from
+     inside it without the emitters becoming a cover ring around it. */
+  const posts = zonePerimeter(value, tileSize, { perSide: 2, height: postHeight, width: 0.34 });
+  const postMesh = addFamily(ctx, `${kind}-emitters-${value.id}`, postGeometry(), materials[postMaterial], posts, postClass);
+  if (postMesh) postMesh.userData.interactableId = value.id;
+
+  ctx.bindings.interactables.push({
+    id: value.id,
+    kind,
+    apply(elapsed) { uniforms.uTime.value = elapsed; },
+    reset() { uniforms.uTime.value = 0; },
+  });
+}
+
+/** Recovery field: one slow inward breath, cool, unmistakably friendly. */
+function recoveryFieldVisual(ctx, value) {
+  fieldVolumeVisual(ctx, value, {
+    kind: "recovery-field", rings: 1, rate: 0.45, opacity: 0.58,
+    color: "secondaryHex", edge: "accentHex",
+    postHeight: 0.46, postGeometry: () => new THREE.CylinderGeometry(0.5, 0.62, 1, 6),
+    postMaterial: "energy", postClass: "recovery-volume",
+  });
+}
+
+/** Reactive flora: three outward fronts, fast, unmistakably a warning. */
+function proximityPulseVisual(ctx, value) {
+  fieldVolumeVisual(ctx, value, {
+    kind: "proximity-pulse", rings: 3, rate: 1.1, opacity: 0.5,
+    color: "accentHex", edge: "secondaryHex",
+    postHeight: 0.42, postGeometry: () => new THREE.IcosahedronGeometry(0.5, 0),
+    postMaterial: "energy", postClass: "reactive-volume",
+  });
+}
+
+/**
+ * Barrier state for one instant.
+ *
+ * Exported because the runtime opens and closes real collision cells on this
+ * schedule. The gate frame reads the same function, so the lamp above a gate
+ * can never say "open" in a frame where the grid says "closed".
+ */
+export function phaseBarrierStateAt(value, elapsed) {
+  const telegraph = value?.telegraph || 0;
+  const active = value?.active || 0;
+  const cycle = telegraph + active + (value?.cooldown || 0);
+  if (!(cycle > 0)) return "open";
+  const t = (((elapsed || 0) + (value.offset || 0)) % cycle + cycle) % cycle;
+  if (t < telegraph) return "telegraph";
+  return t < telegraph + active ? "closed" : "open";
+}
+
+const BARRIER_STYLE = Object.freeze({
+  open: { color: 0x22303f, scale: 0.6 },
+  telegraph: { color: 0xffa42b, scale: 1.25 },
+  closed: { color: 0xff3b1f, scale: 1.85 },
+});
+
+/**
+ * Phase barrier: the runtime already draws the barrier plane and owns the
+ * collision. What was missing is the thing that makes it a *gate* — a frame you
+ * can recognise from down the nave, with a lamp on each pillar.
+ */
+function phaseBarrierVisual(ctx, value) {
+  const { tileSize, materials } = ctx;
+  const along = value.w >= value.h;
+  const cx = (value.x + value.w / 2) * tileSize;
+  const cz = (value.y + value.h / 2) * tileSize;
+  const halfW = value.w * tileSize / 2;
+  const halfH = value.h * tileSize / 2;
+  const height = 3.9;
+  const jambs = along ? [[cx - halfW, cz], [cx + halfW, cz]] : [[cx, cz - halfH], [cx, cz + halfH]];
+
+  const pillars = jambs.map(([x, z]) => transform([x, height / 2, z], [0.42, height, 0.42]));
+  const pillarMesh = addFamily(ctx, `phase-gate-jambs-${value.id}`, new THREE.CylinderGeometry(0.5, 0.56, 1, 6), materials.hard, pillars, "gate-frame");
+  if (pillarMesh) pillarMesh.userData.interactableId = value.id;
+
+  const lintel = [transform([cx, height + 0.18, cz], along ? [value.w * tileSize + 0.6, 0.36, 0.5] : [0.5, 0.36, value.h * tileSize + 0.6])];
+  const lintelMesh = addFamily(ctx, `phase-gate-lintel-${value.id}`, new THREE.BoxGeometry(1, 1, 1), materials.hard, lintel, "gate-frame");
+  if (lintelMesh) lintelMesh.userData.interactableId = value.id;
+
+  const lamps = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(1, 10, 7),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95, depthWrite: false }),
+    jambs.length
+  );
+  lamps.name = `phase-gate-lamps-${value.id}`;
+  lamps.userData.contentFamily = `phase-gate-lamps-${value.id}`;
+  lamps.userData.navigationClass = "gate-state";
+  lamps.userData.interactableId = value.id;
+  lamps.frustumCulled = false;
+  ctx.root.add(lamps);
+  ctx.families.push({ name: `phase-gate-lamps-${value.id}`, instances: jambs.length });
+
+  const write = state => {
+    const style = BARRIER_STYLE[state] || BARRIER_STYLE.open;
+    const radius = 0.34 * style.scale;
+    const color = new THREE.Color(style.color);
+    jambs.forEach(([x, z], slot) => {
+      setInstance(lamps, slot, transform([x, height + 0.62, z], [radius, radius, radius]));
+      lamps.setColorAt(slot, color);
+    });
+    lamps.instanceMatrix.needsUpdate = true;
+    if (lamps.instanceColor) lamps.instanceColor.needsUpdate = true;
+  };
+  write("open");
+
+  ctx.bindings.interactables.push({
+    id: value.id,
+    kind: "phase-gate-frame",
+    state: "open",
+    apply(elapsed) { this.state = phaseBarrierStateAt(value, elapsed); write(this.state); },
+    reset() { this.state = "open"; write("open"); },
+  });
+}
+
 const INTERACTABLE_VISUALS = Object.freeze({
   conveyor: conveyorVisual,
   water: waterVisual,
+  "ice-slide": iceSlideVisual,
+  "covered-route": coveredRouteVisual,
+  "recovery-field": recoveryFieldVisual,
+  "proximity-pulse": proximityPulseVisual,
+  "phase-barrier": phaseBarrierVisual,
 });
 
 function layerInteractableVisuals(ctx) {
@@ -834,6 +1287,224 @@ function abyssFamilies(ctx) {
   addFamily(ctx, "collapsed-shelf-banks", new THREE.BoxGeometry(1, 1, 1), materials.wet, shelves, "flooded-route-cover");
 }
 
+/** Skygrave Bastion: quarried mass hung in open sky, everything crosses the spine. */
+function tempestFamilies(ctx) {
+  const { definition, tileSize, materials } = ctx;
+  const spine = (definition.topology.platforms || [])[0];
+  const deck = spine?.elevation || 0;
+
+  /* Banner masts ring the tower on the spine deck: the vertical reference a
+     rifle player ranges the stair against. Slim enough never to read as cover. */
+  addFamily(ctx, "bastion-banner-masts", new THREE.CylinderGeometry(1, 1, 1, 6), materials.hard,
+    landmarkRing(definition, tileSize, { count: 8, radius: 5.6, radiusStep: 1.1, height: 4.6, heightStep: 0.7, width: 0.22, elevation: deck, phase: 0.3 }),
+    "landmark-family");
+
+  /* Merlons on the cover tops: the crenellation motif that names the arena,
+     and a shape cue for which blocks are tall enough to hold from. */
+  addFamily(ctx, "crenellation-merlons", new THREE.BoxGeometry(1, 1, 1), materials.hard,
+    blockTops(definition, tileSize, { minHeight: 2.4, size: 0.56, height: 0.66, count: 4 }), "cover-top-detail");
+
+  /* Corbels under the wing decks explain why a battlement is hanging in air. */
+  addFamily(ctx, "bastion-buttress-corbels", new THREE.ConeGeometry(0.5, 1, 4), materials.hard,
+    (definition.topology.platforms || []).flatMap(platform =>
+      zonePerimeter(platform, tileSize, { perSide: 2, height: 1.5, width: 0.7, elevation: (platform.elevation || 0) - 1.6 })),
+    "structural-underside");
+
+  addFamily(ctx, "storm-lantern-chains", new THREE.OctahedronGeometry(0.5, 0), materials.energy,
+    overheadField(definition, tileSize, { count: 10, minY: 7.5, maxY: 11, size: 0.7, seed: "tempest-lanterns" }),
+    "overhead-non-interactive");
+}
+
+/** Verdant Overrun: nothing here was manufactured, so nothing gets a straight edge. */
+function verdantFamilies(ctx) {
+  const { definition, tileSize, materials } = ctx;
+
+  /* Low and wide, banked against the ruin rather than standing beside it: a
+     root mass reads from the floor, and never from shot height. */
+  addFamily(ctx, "heart-arterial-roots", new THREE.CylinderGeometry(0.32, 0.5, 1, 6), materials.hard,
+    landmarkRing(definition, tileSize, { count: 11, radius: 14, radiusStep: 2.2, height: 0.85, heightStep: 0.3, width: 1.3 }),
+    "landmark-family");
+
+  /* Root buttresses bank against cover instead of capping it: overgrowth
+     climbs a wall, it does not sit neatly on top of one. */
+  addFamily(ctx, "root-buttress-wedges", new THREE.IcosahedronGeometry(0.5, 0), materials.ground,
+    blockSkirts(definition, tileSize, { height: 0.72, depth: 1.2, inset: 0.86 }), "low-cover-detail");
+
+  /* Pods cluster on the spore hazard's own boundary, so the thing that fires
+     is visibly the thing that grew there. */
+  addFamily(ctx, "nursery-pod-clusters", new THREE.IcosahedronGeometry(0.5, 1), materials.energy,
+    (definition.hazards || []).filter(hazard => hazard.type === "spores")
+      .flatMap(hazard => zonePerimeter(hazard, tileSize, { perSide: 2, height: 0.9, width: 0.6, outward: 0.4 })),
+    "hazard-boundary-detail");
+
+  addFamily(ctx, "canopy-frond-cover", new THREE.ConeGeometry(0.5, 0.3, 6), materials.ground,
+    overheadField(definition, tileSize, { count: 12, minY: 7, maxY: 9.5, size: 3.4, seed: "verdant-canopy" }),
+    "overhead-non-interactive");
+}
+
+/** Cryo Rift: the rift is the map, so every family points at an edge of it. */
+function cryoFamilies(ctx) {
+  const { definition, tileSize, materials } = ctx;
+
+  /* Crystals grow out of the void lips. Voids are already non-walkable, so a
+     dense family on them costs nothing in false cover. */
+  addFamily(ctx, "rift-edge-crystals", new THREE.ConeGeometry(0.5, 1, 6), materials.energy,
+    (definition.topology.voids || []).flatMap(value =>
+      zonePerimeter(value, tileSize, { perSide: 2, height: 1.9, width: 0.55 })),
+    "void-lip-detail");
+
+  /* Fracture veins trace the cracking routes on the deck itself, so the shape
+     of the hazard is legible before the telegraph ever fires. */
+  addFamily(ctx, "shelf-fracture-veins", new THREE.BoxGeometry(1, 1, 1), materials.accent,
+    (definition.hazards || []).filter(hazard => hazard.type === "cracking-ice")
+      .flatMap(hazard => laneSteps({ ...hazard, vector: hazard.w >= hazard.h ? [1, 0] : [0, 1] }, tileSize, 7, ({ x, z, index }) => transform(
+        [x, 0.1, z],
+        hazard.w >= hazard.h ? [hazard.w * tileSize / 9, 0.08, hazard.h * tileSize * 0.7] : [hazard.w * tileSize * 0.7, 0.08, hazard.h * tileSize / 9],
+        index % 2 ? 0.05 : -0.05))),
+    "hazard-footprint-decal");
+
+  addFamily(ctx, "pylon-stabilizer-caps", new THREE.OctahedronGeometry(0.5, 0), materials.wet,
+    blockTops(definition, tileSize, { size: 0.66, height: 0.86 }), "cover-top-detail");
+
+  addFamily(ctx, "frost-drift-banks", new THREE.CylinderGeometry(0.34, 0.5, 1, 7), materials.deck,
+    blockSkirts(definition, tileSize, { height: 0.46, depth: 1, inset: 0.84 }), "low-cover-detail");
+}
+
+/** Null Cathedral: monumental, off-axis, and deliberately not built by humans. */
+function mirageFamilies(ctx) {
+  const { definition, tileSize, materials } = ctx;
+  const landmark = definition.topology.landmark;
+  const origin = [landmark.x * tileSize, landmark.y * tileSize];
+
+  /* Orbit rings laid flat over the nave floor: the ritual motif, and a
+     distance scale on the one lane that decides the round. */
+  const rings = Array.from({ length: 4 }, (_, index) => transform(
+    [origin[0], 0.18 + index * 0.05, origin[1]],
+    [15 + index * 2.6, 1, 15 + index * 2.6],
+    index * 0.55
+  ));
+  const ringMesh = addFamily(ctx, "ritual-orbit-rings", new THREE.TorusGeometry(1, 0.016, 6, 44, Math.PI * 1.45), materials.energy, rings, "landmark-family");
+  if (ringMesh) {
+    rings.forEach((ring, index) => ringMesh.setMatrixAt(index, new THREE.Matrix4().compose(
+      new THREE.Vector3(...ring.position),
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, ring.rotation)),
+      new THREE.Vector3(ring.scale[0], ring.scale[2], 1)
+    )));
+    ringMesh.instanceMatrix.needsUpdate = true;
+    ringMesh.computeBoundingSphere();
+  }
+
+  /* Piers give the nave walls a countable vertical rhythm. */
+  addFamily(ctx, "nave-pier-columns", new THREE.BoxGeometry(1, 1, 1), materials.hard,
+    blockTops(definition, tileSize, { minHeight: 3, size: 0.4, height: 1.5 }), "cover-top-detail");
+
+  addFamily(ctx, "gallery-votive-lamps", new THREE.OctahedronGeometry(0.5, 0), materials.energy,
+    (definition.topology.platforms || []).flatMap(platform =>
+      zonePerimeter(platform, tileSize, { perSide: 3, height: 0.44, width: 0.3, elevation: platform.elevation || 0 })),
+    "elevated-hold-detail");
+
+  addFamily(ctx, "suspended-censers", new THREE.CylinderGeometry(0.5, 0.2, 1, 6), materials.hard,
+    overheadField(definition, tileSize, { count: 11, minY: 8, maxY: 12, size: 1.1, seed: "mirage-censers" }),
+    "overhead-non-interactive");
+}
+
+/** Neon Canopy: a closed rooftop ring, so the family work is roof plant and signage. */
+function neonFamilies(ctx) {
+  const { definition, tileSize, materials } = ctx;
+
+  addFamily(ctx, "core-holo-gantries", new THREE.BoxGeometry(1, 1, 1), materials.energy,
+    landmarkRing(definition, tileSize, { count: 10, radius: 6.4, radiusStep: 0.9, height: 0.5, heightStep: 0.2, width: 1.5, elevation: 5.4 }),
+    "landmark-family");
+
+  /* Roof plant on the cover tops: the reason a rooftop has cover at all. */
+  addFamily(ctx, "rooftop-plant-units", new THREE.BoxGeometry(1, 1, 1), materials.hard,
+    blockTops(definition, tileSize, { size: 0.7, height: 0.8 }), "cover-top-detail");
+
+  /* Signage fins are vertical, thin and lit — they cut a long roof-to-roof
+     lane into readable segments without blocking it. */
+  addFamily(ctx, "signage-fins", new THREE.BoxGeometry(1, 1, 1), materials.accent,
+    blockTops(definition, tileSize, { minHeight: 2.8, lift: 0.9, size: 0.16, height: 2.2 }), "cover-top-detail");
+
+  addFamily(ctx, "parapet-drone-beacons", new THREE.OctahedronGeometry(0.5, 0), materials.energy,
+    overheadField(definition, tileSize, { count: 12, minY: 7, maxY: 10.5, size: 0.5, seed: "neon-drones" }),
+    "overhead-non-interactive");
+}
+
+/** Solar Bastion: exposed courts, so the family work is what casts the shade. */
+function solarFamilies(ctx) {
+  const { definition, tileSize, materials } = ctx;
+
+  addFamily(ctx, "crown-collector-arms", new THREE.CylinderGeometry(0.22, 0.4, 1, 6), materials.hard,
+    landmarkRing(definition, tileSize, { count: 12, radius: 6.2, radiusStep: 1.2, height: 3.4, heightStep: 0.9, width: 0.34,
+      elevation: coverHeightAt(definition, definition.topology.landmark.x, definition.topology.landmark.y) }),
+    "landmark-family");
+
+  /* Mirror ranks stand on the cover tops facing the crown. Nearly flat, so
+     they add silhouette to a hold without adding height to the shot line. */
+  addFamily(ctx, "heliostat-mirror-ranks", new THREE.BoxGeometry(1, 0.08, 1), materials.deck,
+    blockTops(definition, tileSize, { size: 0.86, lift: 0.5, height: 0.9 }), "cover-top-detail");
+
+  /* Manifolds run beside the coolant lane, not on it — the lane itself has to
+     stay clean for the direction read. */
+  addFamily(ctx, "coolant-manifold-runs", new THREE.CylinderGeometry(0.5, 0.5, 1, 6), materials.wet,
+    (definition.interactables || []).filter(value => value.type === "conveyor")
+      .flatMap(value => zonePerimeter(value, tileSize, { perSide: 3, height: 0.5, width: 0.42, outward: 0.5 })),
+    "lane-edge-detail");
+
+  addFamily(ctx, "sand-drift-ridges", new THREE.CylinderGeometry(0.3, 0.5, 1, 6), materials.ground,
+    blockSkirts(definition, tileSize, { height: 0.44, depth: 1.1, inset: 0.86 }), "low-cover-detail");
+}
+
+/** Lunar Excavation: an industrial dig, so the family work is spoil and beacons. */
+function lunarFamilies(ctx) {
+  const { definition, tileSize, materials } = ctx;
+
+  /* The crater void is the arena's centre of gravity: berm its whole lip. */
+  addFamily(ctx, "crater-rim-berms", new THREE.CylinderGeometry(0.28, 0.5, 1, 7), materials.ground,
+    (definition.topology.voids || []).flatMap(value =>
+      zonePerimeter(value, tileSize, { perSide: 3, height: 1.1, width: 1.4 })),
+    "void-lip-detail");
+
+  addFamily(ctx, "beacon-mast-array", new THREE.CylinderGeometry(1, 1, 1, 5), materials.hard,
+    landmarkRing(definition, tileSize, { count: 9, radius: 19, radiusStep: 1.5, height: 4.2, heightStep: 1.1, width: 0.2 }),
+    "landmark-family");
+
+  /* Sleepers under the crawler tracks: the lane reads as rail, not as paint. */
+  addFamily(ctx, "crawler-track-sleepers", new THREE.BoxGeometry(1, 1, 1), materials.deck,
+    (definition.interactables || []).filter(value => value.type === "conveyor")
+      .flatMap(value => laneSteps(value, tileSize, 9, ({ x, z, along }) => transform(
+        [x, 0.09, z],
+        along ? [value.w * tileSize / 11, 0.14, value.h * tileSize * 0.92] : [value.w * tileSize * 0.92, 0.14, value.h * tileSize / 11]))),
+    "timing-route");
+
+  addFamily(ctx, "excavator-spoil-heaps", new THREE.ConeGeometry(0.5, 1, 6), materials.ground,
+    blockSkirts(definition, tileSize, { height: 0.68, depth: 1.2, inset: 0.82 }), "low-cover-detail");
+}
+
+/** Ember Caldera: a horseshoe around a denied centre, so everything faces inward. */
+function calderaFamilies(ctx) {
+  const { definition, tileSize, materials } = ctx;
+  const throat = (definition.topology.voids || [])
+    .reduce((widest, value) => (value.w * value.h > (widest?.w || 0) * (widest?.h || 0) ? value : widest), null);
+
+  /* Columnar fins along the throat lip: the arena's identity motif, and the
+     thing that says "the centre is denied" from any approach. */
+  addFamily(ctx, "throat-obsidian-fins", new THREE.ConeGeometry(0.5, 1, 5), materials.hard,
+    throat ? zonePerimeter(throat, tileSize, { perSide: 4, height: 2.2, width: 0.8 }) : [],
+    "void-lip-detail");
+
+  addFamily(ctx, "terrace-offering-braziers", new THREE.CylinderGeometry(0.5, 0.34, 1, 8), materials.energy,
+    (definition.topology.platforms || []).flatMap(platform =>
+      zonePerimeter(platform, tileSize, { perSide: 2, height: 1.2, width: 0.62, elevation: platform.elevation || 0 })),
+    "elevated-hold-detail");
+
+  addFamily(ctx, "terrace-basalt-columns", new THREE.CylinderGeometry(0.5, 0.5, 1, 6), materials.hard,
+    blockTops(definition, tileSize, { size: 0.52, height: 1.1 }), "cover-top-detail");
+
+  addFamily(ctx, "ash-drift-banks", new THREE.CylinderGeometry(0.3, 0.5, 1, 6), materials.ground,
+    blockSkirts(definition, tileSize, { height: 0.42, depth: 1, inset: 0.86 }), "low-cover-detail");
+}
+
 export const CONTENT_PASS_KITS = Object.freeze({
   forge: Object.freeze({
     id: "forge",
@@ -897,7 +1568,7 @@ export const CONTENT_PASS_KITS = Object.freeze({
         { name: "hanging-masonry", count: 8, minHeight: 2, maxHeight: 5, minWidth: 1.2, maxWidth: 2.6, geometry: () => new THREE.TorusGeometry(0.4, 0.12, 5, 12, Math.PI * 0.7) },
       ],
     },
-    hazardTypes: ["wind", "downdraft"],
+    hazardTypes: ["wind"],
     hazardEmitterCorners: hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y + hazard.h]],
     emitterHeight: 3.6, emitterRadius: 0.52, lampRadius: 0.48,
     families: tempestFamilies,
@@ -943,7 +1614,7 @@ export const CONTENT_PASS_KITS = Object.freeze({
         { name: "frozen-conduits", count: 8, minHeight: 1.5, maxHeight: 4, minWidth: 0.5, maxWidth: 1.6, geometry: () => new THREE.CylinderGeometry(0.25, 0.32, 1, 7) },
       ],
     },
-    hazardTypes: ["cracking-ice", "ice-slide"],
+    hazardTypes: ["cracking-ice"],
     hazardEmitterCorners: hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y + hazard.h]],
     emitterHeight: 3.0, emitterRadius: 0.44, lampRadius: 0.42,
     families: cryoFamilies,
@@ -966,7 +1637,7 @@ export const CONTENT_PASS_KITS = Object.freeze({
         { name: "void-shards", count: 11, minHeight: 3, maxHeight: 8, minWidth: 0.6, maxWidth: 1.9, geometry: () => new THREE.OctahedronGeometry(0.38, 0) },
       ],
     },
-    hazardTypes: ["phase-barrier", "void-surge"],
+    hazardTypes: ["null-pulse", "mist"],
     hazardEmitterCorners: hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y], [hazard.x, hazard.y + hazard.h], [hazard.x + hazard.w, hazard.y + hazard.h]],
     emitterHeight: 3.4, emitterRadius: 0.5, lampRadius: 0.46,
     families: mirageFamilies,
@@ -985,11 +1656,11 @@ export const CONTENT_PASS_KITS = Object.freeze({
       clearance: 3, spread: 7,
       families: [
         { name: "transit-pylons", count: 12, minHeight: 5, maxHeight: 12, minWidth: 1.0, maxWidth: 2.6, geometry: () => new THREE.BoxGeometry(0.8, 1, 0.8) },
-        { name: "holo-billboards", count: 10, minHeight: 2, maxHeight: 5, minWidth: 1.4, maxWidth: 3.2, geometry: () => new THREE.PlaneGeometry(1, 1) },
+        { name: "holo-billboards", count: 10, minHeight: 2, maxHeight: 5, minWidth: 1.4, maxWidth: 3.2, geometry: () => new THREE.BoxGeometry(1, 1, 0.06) },
         { name: "maglev-conduits", count: 8, minHeight: 1.5, maxHeight: 4, minWidth: 0.6, maxWidth: 1.8, geometry: () => new THREE.CylinderGeometry(0.3, 0.38, 1, 8) },
       ],
     },
-    hazardTypes: ["transit-wake", "holo-static"],
+    hazardTypes: ["transit-wake", "wind", "dust"],
     hazardEmitterCorners: hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y + hazard.h]],
     emitterHeight: 2.8, emitterRadius: 0.42, lampRadius: 0.4,
     families: neonFamilies,
@@ -1012,7 +1683,7 @@ export const CONTENT_PASS_KITS = Object.freeze({
         { name: "cooling-vents", count: 8, minHeight: 1.5, maxHeight: 4, minWidth: 0.9, maxWidth: 2.4, geometry: () => new THREE.ConeGeometry(0.35, 1, 6) },
       ],
     },
-    hazardTypes: ["solar-flare", "mirror-glare"],
+    hazardTypes: ["heat", "dust"],
     hazardEmitterCorners: hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y + hazard.h]],
     emitterHeight: 3.0, emitterRadius: 0.46, lampRadius: 0.44,
     families: solarFamilies,
@@ -1035,7 +1706,7 @@ export const CONTENT_PASS_KITS = Object.freeze({
         { name: "excavator-parts", count: 8, minHeight: 1.5, maxHeight: 4, minWidth: 1.0, maxWidth: 2.8, geometry: () => new THREE.TorusGeometry(0.4, 0.14, 6, 14, Math.PI * 0.8) },
       ],
     },
-    hazardTypes: ["regolith-blast", "rim-slip"],
+    hazardTypes: ["dust"],
     hazardEmitterCorners: hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y], [hazard.x, hazard.y + hazard.h], [hazard.x + hazard.w, hazard.y + hazard.h]],
     emitterHeight: 3.1, emitterRadius: 0.48, lampRadius: 0.46,
     families: lunarFamilies,
@@ -1058,7 +1729,7 @@ export const CONTENT_PASS_KITS = Object.freeze({
         { name: "obsidian-shards", count: 10, minHeight: 1.5, maxHeight: 4, minWidth: 0.6, maxWidth: 1.9, geometry: () => new THREE.OctahedronGeometry(0.36, 0) },
       ],
     },
-    hazardTypes: ["magma-breath", "ember-vent"],
+    hazardTypes: ["heat", "dust"],
     hazardEmitterCorners: hazard => [[hazard.x, hazard.y], [hazard.x + hazard.w, hazard.y + hazard.h]],
     emitterHeight: 3.2, emitterRadius: 0.48, lampRadius: 0.46,
     families: calderaFamilies,

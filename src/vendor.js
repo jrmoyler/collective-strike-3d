@@ -51,6 +51,7 @@ import {
   hazardPhaseAt,
   hazardPhaseProgress,
   interactableMovementMultiplier,
+  phaseBarrierStateAt,
   playableBounds
 } from "./arena-content.js";
 import { ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal } from "./divisional-arsenal.js";
@@ -205,6 +206,7 @@ window.CS3D_ARENA_CONTENT = Object.freeze({
   hazardPhaseAt,
   hazardPhaseProgress,
   interactableMovementMultiplier,
+  phaseBarrierStateAt,
   playableBounds
 });
 window.CS3D_ARSENAL = Object.freeze({ ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal });
