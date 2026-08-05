@@ -2,8 +2,10 @@
   "generated": "measured-live-round",
   "ceilings": {
     "directChildren": 180,
-    "liveDrawCalls": 620,
-    "liveTriangles": 420000,
+    "arenaDrawCalls": 140,
+    "arenaTriangles": 60000,
+    "liveDrawCalls": 700,
+    "liveTriangles": 460000,
     "arenaGeometries": 140,
     "arenaTextures": 40,
     "modelBytes": 12582912
@@ -16,24 +18,24 @@
       "phase": "live",
       "state": "live",
       "directChildren": 44,
-      "liveDrawCalls": 568,
-      "liveTriangles": 317630,
+      "liveDrawCalls": 565,
+      "liveTriangles": 313582,
       "arenaDrawCalls": 117,
-      "arenaTriangles": 27782,
-      "sceneDrawCallsWithoutArena": 451,
+      "arenaTriangles": 27766,
+      "sceneDrawCallsWithoutArena": 448,
       "arenaGeometries": 89,
       "arenaTextures": 27,
-      "rendererGeometries": 126,
+      "rendererGeometries": 122,
       "rendererTextures": 26,
       "instancedFamilies": 26,
-      "instances": 878,
+      "instances": 877,
       "contentInstancedFamilies": 18,
-      "contentInstances": 184,
+      "contentInstances": 183,
       "contentPass": "forge-strategy-kit-v2",
       "contentMetadata": {
         "directChildren": 20,
         "families": 18,
-        "instances": 184
+        "instances": 183
       },
       "hazardBindings": [
         "steam-west",
@@ -53,23 +55,23 @@
       "state": "live",
       "directChildren": 39,
       "liveDrawCalls": 554,
-      "liveTriangles": 316452,
-      "arenaDrawCalls": 105,
-      "arenaTriangles": 29292,
-      "sceneDrawCallsWithoutArena": 449,
+      "liveTriangles": 315104,
+      "arenaDrawCalls": 106,
+      "arenaTriangles": 29288,
+      "sceneDrawCallsWithoutArena": 448,
       "arenaGeometries": 78,
       "arenaTextures": 24,
-      "rendererGeometries": 112,
+      "rendererGeometries": 107,
       "rendererTextures": 32,
       "instancedFamilies": 37,
-      "instances": 1008,
+      "instances": 1005,
       "contentInstancedFamilies": 29,
-      "contentInstances": 266,
+      "contentInstances": 263,
       "contentPass": "abyss-strategy-kit-v1",
       "contentMetadata": {
         "directChildren": 31,
         "families": 29,
-        "instances": 266
+        "instances": 263
       },
       "hazardBindings": [
         "memory-surge",
@@ -78,6 +80,291 @@
       "interactableBindings": [
         "flooded-west",
         "flooded-east"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "tempest",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 46,
+      "liveDrawCalls": 545,
+      "liveTriangles": 322266,
+      "arenaDrawCalls": 95,
+      "arenaTriangles": 33762,
+      "sceneDrawCallsWithoutArena": 450,
+      "arenaGeometries": 55,
+      "arenaTextures": 24,
+      "rendererGeometries": 91,
+      "rendererTextures": 32,
+      "instancedFamilies": 27,
+      "instances": 1380,
+      "contentInstancedFamilies": 21,
+      "contentInstances": 297,
+      "contentPass": "tempest-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 23,
+        "families": 21,
+        "instances": 297
+      },
+      "hazardBindings": [
+        "crosswind-west",
+        "crosswind-east",
+        "downdraft-deck"
+      ],
+      "interactableBindings": [
+        "recovery-west",
+        "recovery-east"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "verdant",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 35,
+      "liveDrawCalls": 546,
+      "liveTriangles": 313424,
+      "arenaDrawCalls": 86,
+      "arenaTriangles": 24870,
+      "sceneDrawCallsWithoutArena": 460,
+      "arenaGeometries": 59,
+      "arenaTextures": 21,
+      "rendererGeometries": 95,
+      "rendererTextures": 30,
+      "instancedFamilies": 30,
+      "instances": 891,
+      "contentInstancedFamilies": 22,
+      "contentInstances": 163,
+      "contentPass": "verdant-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 24,
+        "families": 22,
+        "instances": 163
+      },
+      "hazardBindings": [
+        "bramble-nest",
+        "burst-pods"
+      ],
+      "interactableBindings": [
+        "root-tunnel",
+        "reactive-flora"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "cryo",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 37,
+      "liveDrawCalls": 412,
+      "liveTriangles": 230246,
+      "arenaDrawCalls": 87,
+      "arenaTriangles": 25968,
+      "sceneDrawCallsWithoutArena": 325,
+      "arenaGeometries": 58,
+      "arenaTextures": 21,
+      "rendererGeometries": 100,
+      "rendererTextures": 33,
+      "instancedFamilies": 30,
+      "instances": 1088,
+      "contentInstancedFamilies": 22,
+      "contentInstances": 254,
+      "contentPass": "cryo-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 24,
+        "families": 22,
+        "instances": 254
+      },
+      "hazardBindings": [
+        "cracking-north",
+        "cracking-south"
+      ],
+      "interactableBindings": [
+        "slide-west",
+        "slide-east"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "mirage",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 38,
+      "liveDrawCalls": 388,
+      "liveTriangles": 222468,
+      "arenaDrawCalls": 91,
+      "arenaTriangles": 37056,
+      "sceneDrawCallsWithoutArena": 297,
+      "arenaGeometries": 54,
+      "arenaTextures": 24,
+      "rendererGeometries": 96,
+      "rendererTextures": 33,
+      "instancedFamilies": 31,
+      "instances": 1063,
+      "contentInstancedFamilies": 25,
+      "contentInstances": 195,
+      "contentPass": "mirage-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 25,
+        "families": 25,
+        "instances": 195
+      },
+      "hazardBindings": [
+        "null-pulse",
+        "reliquary-chill"
+      ],
+      "interactableBindings": [
+        "phase-gate-west",
+        "phase-gate-east"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "neon",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 45,
+      "liveDrawCalls": 349,
+      "liveTriangles": 200792,
+      "arenaDrawCalls": 87,
+      "arenaTriangles": 30212,
+      "sceneDrawCallsWithoutArena": 262,
+      "arenaGeometries": 51,
+      "arenaTextures": 27,
+      "rendererGeometries": 92,
+      "rendererTextures": 36,
+      "instancedFamilies": 28,
+      "instances": 1237,
+      "contentInstancedFamilies": 22,
+      "contentInstances": 234,
+      "contentPass": "neon-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 24,
+        "families": 22,
+        "instances": 234
+      },
+      "hazardBindings": [
+        "train-wake",
+        "downdraft",
+        "holo-static"
+      ],
+      "interactableBindings": [
+        "boost-rail",
+        "west-spine-cover"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "solar",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 37,
+      "liveDrawCalls": 345,
+      "liveTriangles": 191894,
+      "arenaDrawCalls": 83,
+      "arenaTriangles": 21314,
+      "sceneDrawCallsWithoutArena": 262,
+      "arenaGeometries": 60,
+      "arenaTextures": 24,
+      "rendererGeometries": 100,
+      "rendererTextures": 36,
+      "instancedFamilies": 29,
+      "instances": 922,
+      "contentInstancedFamilies": 21,
+      "contentInstances": 168,
+      "contentPass": "solar-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 23,
+        "families": 21,
+        "instances": 168
+      },
+      "hazardBindings": [
+        "solar-flare",
+        "mirror-glare",
+        "sand-squall"
+      ],
+      "interactableBindings": [
+        "shade-trench",
+        "coolant-conduit"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "lunar",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 41,
+      "liveDrawCalls": 340,
+      "liveTriangles": 178886,
+      "arenaDrawCalls": 91,
+      "arenaTriangles": 30528,
+      "sceneDrawCallsWithoutArena": 249,
+      "arenaGeometries": 63,
+      "arenaTextures": 21,
+      "rendererGeometries": 105,
+      "rendererTextures": 33,
+      "instancedFamilies": 28,
+      "instances": 1086,
+      "contentInstancedFamilies": 20,
+      "contentInstances": 263,
+      "contentPass": "lunar-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 22,
+        "families": 20,
+        "instances": 263
+      },
+      "hazardBindings": [
+        "regolith-blast",
+        "west-rim-slip",
+        "east-rim-slip"
+      ],
+      "interactableBindings": [
+        "crawler-track",
+        "mag-rail"
+      ],
+      "quality": "medium",
+      "modelBytes": 0
+    },
+    {
+      "arena": "caldera",
+      "phase": "live",
+      "state": "live",
+      "directChildren": 38,
+      "liveDrawCalls": 259,
+      "liveTriangles": 151884,
+      "arenaDrawCalls": 83,
+      "arenaTriangles": 29306,
+      "sceneDrawCallsWithoutArena": 176,
+      "arenaGeometries": 55,
+      "arenaTextures": 24,
+      "rendererGeometries": 97,
+      "rendererTextures": 36,
+      "instancedFamilies": 28,
+      "instances": 1142,
+      "contentInstancedFamilies": 20,
+      "contentInstances": 210,
+      "contentPass": "caldera-strategy-kit-v1",
+      "contentMetadata": {
+        "directChildren": 22,
+        "families": 20,
+        "instances": 210
+      },
+      "hazardBindings": [
+        "magma-breath",
+        "ash-fall",
+        "ember-vent"
+      ],
+      "interactableBindings": [
+        "vent-boost",
+        "thermal-lift"
       ],
       "quality": "medium",
       "modelBytes": 0

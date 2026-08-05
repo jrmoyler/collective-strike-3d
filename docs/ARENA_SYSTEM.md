@@ -90,9 +90,29 @@ hazard plane, the rim, the fog volume, the HUD warning, the slow/damage window
 and every content-pass visual describe the same phase in the same frame. Content
 passes add no clock, timer, listener or render loop of their own.
 
-Passes shipped: `forge` (`forge-strategy-kit-v2`), `abyss`
-(`abyss-strategy-kit-v1`). See `docs/FORGE_STRATEGY_AUDIT.md`,
-`docs/ABYSS_STRATEGY_AUDIT.md` and the matching prop ecosystem contracts.
+All ten arenas ship a pass. `docs/ARENA_STRATEGY_KITS.md` is the per-arena
+reference — strategy identity, dressed volumes and prop families for each —
+and `docs/FORGE_STRATEGY_AUDIT.md`, `docs/ABYSS_STRATEGY_AUDIT.md` plus the
+matching prop ecosystem contracts carry the longer write-ups for the two that
+shipped first.
+
+Three contracts hold across the roster and are enforced by
+`tests/arena-content.test.js`, not by convention:
+
+- A block skin never leaves its authored footprint or exceeds its collision
+  height. `unitBounded()` normalises every kit geometry into the unit box on the
+  way into `layerBlockSkins`, so a kit can pick any silhouette — octahedron,
+  torus, icosahedron — and stay footprint-exact.
+- No kit prop that reads as standing on the floor is placed over a void.
+  Families that legitimately are not standing on floor (atmosphere, overhead
+  dressing, void-lip detail, deck undersides) declare it through
+  `userData.navigationClass`.
+- Every authored interactable resolves to a binding, so no gameplay volume ships
+  without a visual that explains it.
+
+`phaseBarrierStateAt()` is shared between the content pass and the runtime, so
+the lamp on a gate frame and the collision cell the grid opens can never
+disagree inside a frame — the same rule `hazardPhaseAt()` enforces for hazards.
 
 Budget is proved in the browser by `npm run budget`, never by declared
 `userData`. See `docs/ARENA_ART_PIPELINE.md` for the measured table.

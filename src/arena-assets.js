@@ -36,17 +36,78 @@ function dataTexture(data, size, colorSpace) {
   return texture;
 }
 
+/**
+ * Finish profiles.
+ *
+ * A finish name has to mean something. Before this table there were four real
+ * finishes and every other name fell through to the same parameters, so an
+ * arena could declare `lunar-regolith` and get worn metal with a different
+ * noise seed. Each entry now decides the four things that actually separate one
+ * material family from another on screen: panel seam pitch and depth,
+ * directional brushing, speckle density, and base roughness.
+ *
+ * `macro` is the low-frequency blotch that carries large-scale colour variation
+ * and `grain` the per-texel noise floor. The first four entries reproduce the
+ * original hard-coded numbers exactly, so the two shipped kits are unchanged.
+ */
+export const SURFACE_FINISHES = Object.freeze({
+  /* Industrial metals. */
+  "worn-metal": { seam: 32, seamDepth: -0.45, brush: 0, speckle: 0.035, speckleDepth: -0.65, rough: 0.42, grain: 0.22, macro: 0.16 },
+  "brushed-steel": { seam: 32, seamDepth: -0.45, brush: 0.12, speckle: 0.035, speckleDepth: -0.65, rough: 0.42, grain: 0.22, macro: 0.16 },
+  "stone": { seam: 32, seamDepth: -0.45, brush: 0, speckle: 0.09, speckleDepth: -0.65, rough: 0.82, grain: 0.22, macro: 0.16 },
+  "painted": { seam: 32, seamDepth: -0.45, brush: 0, speckle: 0.035, speckleDepth: -0.65, rough: 0.56, grain: 0.22, macro: 0.16 },
+
+  /* Skygrave Bastion: quarried masonry, exposed to weather for a long time. */
+  "weathered-stone": { seam: 48, seamDepth: -0.62, brush: 0, speckle: 0.14, speckleDepth: -0.7, rough: 0.88, grain: 0.3, macro: 0.24 },
+
+  /* Verdant Overrun: no panel seams anywhere — nothing here was manufactured. */
+  "organic": { seam: 0, seamDepth: 0, brush: 0.05, speckle: 0.05, speckleDepth: -0.5, rough: 0.9, grain: 0.3, macro: 0.32 },
+  "overgrown": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.12, speckleDepth: -0.55, rough: 0.94, grain: 0.34, macro: 0.26 },
+  "biomech-soil": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.16, speckleDepth: -0.45, rough: 0.92, grain: 0.28, macro: 0.22 },
+
+  /* Cryo Rift: shallow facet seams, almost no pitting, very low roughness. */
+  "ice-crystal": { seam: 24, seamDepth: -0.2, brush: 0.07, speckle: 0.02, speckleDepth: -0.3, rough: 0.18, grain: 0.1, macro: 0.26 },
+  "snow-packed": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.03, speckleDepth: -0.25, rough: 0.5, grain: 0.16, macro: 0.1 },
+  "glacial-stone": { seam: 40, seamDepth: -0.5, brush: 0, speckle: 0.1, speckleDepth: -0.6, rough: 0.66, grain: 0.24, macro: 0.2 },
+
+  /* Null Cathedral: tight cut courses and inlay, deliberately unnatural. */
+  "void-stone": { seam: 16, seamDepth: -0.58, brush: 0, speckle: 0.06, speckleDepth: -0.55, rough: 0.62, grain: 0.18, macro: 0.2 },
+  "ritual-inlay": { seam: 16, seamDepth: -0.6, brush: 0.05, speckle: 0.015, speckleDepth: -0.4, rough: 0.4, grain: 0.12, macro: 0.14 },
+  "dark-matter": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.02, speckleDepth: -0.35, rough: 0.72, grain: 0.3, macro: 0.34 },
+
+  /* Neon Canopy: sprayed metal, composite roofing, unlit city depth. */
+  "painted-metal": { seam: 32, seamDepth: -0.4, brush: 0, speckle: 0.03, speckleDepth: -0.5, rough: 0.46, grain: 0.2, macro: 0.16 },
+  "composite-roof": { seam: 20, seamDepth: -0.55, brush: 0, speckle: 0.07, speckleDepth: -0.5, rough: 0.58, grain: 0.26, macro: 0.18 },
+  "city-deep": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.04, speckleDepth: -0.6, rough: 0.88, grain: 0.32, macro: 0.3 },
+
+  /* Solar Bastion: coarse desert masonry against near-mirror collector glass. */
+  "sandstone": { seam: 26, seamDepth: -0.34, brush: 0, speckle: 0.11, speckleDepth: -0.6, rough: 0.8, grain: 0.28, macro: 0.2 },
+  "solar-panel": { seam: 12, seamDepth: -0.72, brush: 0.09, speckle: 0.005, speckleDepth: -0.2, rough: 0.22, grain: 0.08, macro: 0.08 },
+  "desert-rock": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.13, speckleDepth: -0.66, rough: 0.86, grain: 0.3, macro: 0.28 },
+
+  /* Lunar Excavation: dense shallow cratering, no weathering, no seams. */
+  "lunar-regolith": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.18, speckleDepth: -0.4, rough: 0.94, grain: 0.26, macro: 0.14 },
+  "crawler-plate": { seam: 16, seamDepth: -0.5, brush: 0.07, speckle: 0.05, speckleDepth: -0.55, rough: 0.52, grain: 0.22, macro: 0.16 },
+  "bedrock": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.12, speckleDepth: -0.7, rough: 0.9, grain: 0.3, macro: 0.3 },
+
+  /* Ember Caldera: columnar basalt, heat plate, and the glow below the rim. */
+  "basalt-rock": { seam: 0, seamDepth: 0, brush: 0.06, speckle: 0.1, speckleDepth: -0.72, rough: 0.88, grain: 0.26, macro: 0.34 },
+  "thermal-plate": { seam: 18, seamDepth: -0.5, brush: 0.05, speckle: 0.04, speckleDepth: -0.5, rough: 0.5, grain: 0.2, macro: 0.16 },
+  "magma-deep": { seam: 0, seamDepth: 0, brush: 0, speckle: 0.03, speckleDepth: -0.4, rough: 0.76, grain: 0.34, macro: 0.36 },
+});
+
 /** Independent albedo/roughness/normal signals; no PBR channel aliasing. */
 export function proceduralSurfaceSet(baseValue, accentValue, seed, finish = "worn-metal", size = 128) {
   const random = seededNoise(`${seed}:${finish}`), base = color(baseValue), accent = color(accentValue);
+  const profile = SURFACE_FINISHES[finish] || SURFACE_FINISHES["worn-metal"];
   const heights = new Float32Array(size * size), albedo = new Uint8Array(size * size * 4), roughness = new Uint8Array(size * size * 4), normal = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const index = y * size + x, u = x / size, v = y / size;
     const macro = Math.sin(u * Math.PI * 4 + seed.length) * 0.5 + Math.cos(v * Math.PI * 3) * 0.5;
-    const seam = (x % 32 < 2 || y % 32 < 2) ? -0.45 : 0;
-    const brush = finish === "brushed-steel" ? Math.sin(v * size * 2.8) * 0.12 : 0;
-    const pits = random() < (finish === "stone" ? 0.09 : 0.035) ? -0.65 : 0;
-    const height = macro * 0.16 + seam + brush + pits + (random() - 0.5) * 0.22;
+    const seam = profile.seam && (x % profile.seam < 2 || y % profile.seam < 2) ? profile.seamDepth : 0;
+    const brush = profile.brush ? Math.sin(v * size * 2.8) * profile.brush : 0;
+    const pits = random() < profile.speckle ? profile.speckleDepth : 0;
+    const height = macro * profile.macro + seam + brush + pits + (random() - 0.5) * profile.grain;
     heights[index] = height;
     const wear = Math.max(0, macro * 0.18 + random() * 0.16), tint = base.clone().lerp(accent, Math.min(0.22, wear));
     const cavity = Math.max(0, -height) * 0.24, ai = index * 4;
@@ -54,7 +115,7 @@ export function proceduralSurfaceSet(baseValue, accentValue, seed, finish = "wor
     albedo[ai + 1] = Math.round(THREE.MathUtils.clamp(tint.g * (1 - cavity), 0, 1) * 255);
     albedo[ai + 2] = Math.round(THREE.MathUtils.clamp(tint.b * (1 - cavity), 0, 1) * 255);
     albedo[ai + 3] = 255;
-    const rough = THREE.MathUtils.clamp((finish === "painted" ? 0.56 : finish === "stone" ? 0.82 : 0.42) + (random() - 0.5) * 0.26 + cavity * 0.35 - wear * 0.25, 0.12, 0.96);
+    const rough = THREE.MathUtils.clamp(profile.rough + (random() - 0.5) * 0.26 + cavity * 0.35 - wear * 0.25, 0.12, 0.96);
     roughness[ai] = roughness[ai + 1] = roughness[ai + 2] = Math.round(rough * 255); roughness[ai + 3] = 255;
   }
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
