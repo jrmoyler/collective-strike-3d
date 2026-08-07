@@ -25,6 +25,7 @@ const arenaIds = argOf("--arenas", ARENA_ORDER.join(",")).split(",").map(id => i
 const shotDir = path.resolve(repoRoot, argOf("--shots", "docs/arena-shots"));
 const reportPath = path.resolve(repoRoot, argOf("--report", "docs/arena-shots/budget.json"));
 const captureShots = process.env.CS3D_BUDGET_SHOTS !== "0";
+const captureTimeout = Number(process.env.CS3D_CAPTURE_TIMEOUT || 120_000);
 
 /* Documented ceilings.
  *
@@ -59,8 +60,14 @@ fs.mkdirSync(path.dirname(reportPath), { recursive: true });
 
 const browser = await chromium.launch({ executablePath: resolveChromium(), args: CHROMIUM_ARGS });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const requestedUrls = new Set();
 page.on("console", message => { if (message.type() === "error") problems.push(`console: ${message.text()}`); });
 page.on("pageerror", error => problems.push(`pageerror: ${error.message}`));
+page.on("request", request => requestedUrls.add(request.url()));
+page.on("requestfailed", request => {
+  if (request.resourceType() === "media" && /ERR_ABORTED/i.test(request.failure()?.errorText || "")) return;
+  problems.push(`request failed: ${request.url()} (${request.failure()?.errorText || "unknown"})`);
+});
 
 const measurements = [];
 const modelBytes = directoryBytes("assets/models");
@@ -103,7 +110,13 @@ try {
     console.log(`  ${arenaId}:`, JSON.stringify(measured));
 
     if (!captureShots) continue;
-    const shot = name => page.screenshot({ path: path.join(shotDir, `${arenaId}-${name}.png`) });
+    const shot = async name => {
+      try {
+        await page.screenshot({ path: path.join(shotDir, `${arenaId}-${name}.png`), timeout: captureTimeout, animations: "disabled", caret: "hide" });
+      } catch (error) {
+        problems.push(`${arenaId}: ${name} evidence capture failed (${error.message})`);
+      }
+    };
     await shot("01-gameplay");
     // Elevated three-quarter review view with the HUD out of the way, so the
     // shots can be read for false collision cues and silhouette clarity.
@@ -141,6 +154,9 @@ try {
   await Promise.race([browser.close().catch(() => {}), new Promise(resolve => setTimeout(resolve, 3000))]);
   await server.close();
 }
+
+const remoteRequests = [...requestedUrls].filter(url => !url.startsWith(server.origin) && !url.startsWith("data:") && !url.startsWith("blob:"));
+if (remoteRequests.length) problems.push(`remote runtime requests detected: ${remoteRequests.join(", ")}`);
 
 for (const measured of measurements) {
   if (!measured) { problems.push("an arena reported no budget measurement"); continue; }

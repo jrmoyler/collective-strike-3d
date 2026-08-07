@@ -23,6 +23,44 @@ export function normalizeAxis(value, deadzone = 0.18) {
   return Math.sign(value) * Math.min(1, (magnitude - deadzone) / (1 - deadzone));
 }
 
+/**
+ * Pick the closest focus target in a cardinal direction. The function accepts
+ * plain rectangles so the navigation rule stays deterministic and testable
+ * without a DOM or rendering runtime.
+ */
+export function chooseSpatialFocus(current, candidates, direction) {
+  const dx = Math.sign(Number(direction?.x) || 0);
+  const dy = Math.sign(Number(direction?.y) || 0);
+  const horizontal = Math.abs(dx) >= Math.abs(dy);
+  const axisX = horizontal ? dx : 0;
+  const axisY = horizontal ? 0 : dy;
+  const usable = (candidates || []).filter(candidate => candidate && candidate.id !== current?.id && candidate.width > 0 && candidate.height > 0);
+  if (!usable.length || (!axisX && !axisY)) return null;
+  if (!current) return usable[0];
+
+  const center = rect => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+  const from = center(current);
+  let best = null;
+  let bestScore = Infinity;
+  for (const candidate of usable) {
+    const to = center(candidate);
+    const offsetX = to.x - from.x;
+    const offsetY = to.y - from.y;
+    const forward = offsetX * axisX + offsetY * axisY;
+    if (forward <= 2) continue;
+    const cross = Math.abs(offsetX * axisY - offsetY * axisX);
+    // Strongly prefer targets inside a 45-degree cone, while still allowing a
+    // sparse row or column to be escaped when no perfectly aligned item exists.
+    const conePenalty = cross > forward ? (cross - forward) * 4 : 0;
+    const score = forward + cross * 1.8 + conePenalty;
+    if (score < bestScore) {
+      best = candidate;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
 export function createActionInput({ keyboard = DEFAULT_KEY_BINDINGS } = {}) {
   const down = new Set();
   const edges = new Set();

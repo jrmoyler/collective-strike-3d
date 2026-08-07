@@ -13,6 +13,9 @@ const arenaBallisticsPath = path.join(root, "src", "arena-ballistics.js");
 const arenaAssetsPath = path.join(root, "src", "arena-assets.js");
 const arenaContentPath = path.join(root, "src", "arena-content.js");
 const divisionalArsenalPath = path.join(root, "src", "divisional-arsenal.js");
+const combatProfilesPath = path.join(root, "src", "combat-profiles.js");
+const operatorAssetsPath = path.join(root, "src", "operator-assets.js");
+const tacticalAiPath = path.join(root, "src", "tactical-ai.js");
 const vendorSourcePath = path.join(root, "src", "vendor.js");
 const soundtrackManifestPath = path.join(root, "src", "soundtrack-manifest.js");
 const audioManagerPath = path.join(root, "src", "audio-manager.js");
@@ -23,6 +26,9 @@ const arenaBallisticsSource = fs.existsSync(arenaBallisticsPath) ? fs.readFileSy
 const arenaAssetsSource = fs.existsSync(arenaAssetsPath) ? fs.readFileSync(arenaAssetsPath, "utf8") : "";
 const arenaContentSource = fs.existsSync(arenaContentPath) ? fs.readFileSync(arenaContentPath, "utf8") : "";
 const divisionalArsenalSource = fs.existsSync(divisionalArsenalPath) ? fs.readFileSync(divisionalArsenalPath, "utf8") : "";
+const combatProfilesSource = fs.existsSync(combatProfilesPath) ? fs.readFileSync(combatProfilesPath, "utf8") : "";
+const operatorAssetsSource = fs.existsSync(operatorAssetsPath) ? fs.readFileSync(operatorAssetsPath, "utf8") : "";
+const tacticalAiSource = fs.existsSync(tacticalAiPath) ? fs.readFileSync(tacticalAiPath, "utf8") : "";
 const vendorSource = fs.existsSync(vendorSourcePath) ? fs.readFileSync(vendorSourcePath, "utf8") : "";
 const soundtrackManifestSource = fs.existsSync(soundtrackManifestPath) ? fs.readFileSync(soundtrackManifestPath, "utf8") : "";
 const audioManagerSource = fs.existsSync(audioManagerPath) ? fs.readFileSync(audioManagerPath, "utf8") : "";
@@ -88,6 +94,17 @@ assert(unhandledOnHit.length === 0, `every Ascendant onHit contract is handled${
 assert(/MASTERY=window\.CS3D_MASTERY/.test(html) && /CS3D_MASTERY/.test(vendorSource), "weapon mastery ledger is bundled and wired");
 assert(/MASTERY\.recordWeaponDamage\(/.test(html) && /MASTERY\.recordWeaponTime\(/.test(html) && /MASTERY\.recordWeaponXp\(/.test(html), "weapon usage is tracked while the match runs");
 assert(/MASTERY\.weaponMasteryAwards\(me\.weaponLedger,me\.matchXp/.test(html) && !/CAREER\.weaponMastery\[me\.cur\]/.test(html), "match XP is split across the weapons that earned it");
+
+// Commercial-polish subsystem boundaries remain pure, bundled, and live.
+assert(/export function fireCombatShot\(/.test(combatProfilesSource) && /export function effectiveSpread\(/.test(combatProfilesSource), "combat recoil and bloom profiles are modular");
+assert(/CS3D_COMBAT/.test(vendorSource) && /COMBAT_RUNTIME\.fireCombatShot/.test(html) && /COMBAT_RUNTIME\.advanceCombatState/.test(html), "combat presentation profiles are bundled and drive live shots");
+assert(/OPERATOR_ASSET_MANIFEST/.test(operatorAssetsSource) && /export function createOperatorAssetLoader\(/.test(operatorAssetsSource), "operator GLB validation and fallback boundary is modular");
+assert(/CS3D_OPERATOR_ASSETS/.test(vendorSource) && /selectOperatorSource/.test(html) && /operatorAssets:\{/.test(html), "operator asset source telemetry is bundled and live");
+assert(/export function createTacticalPlan\(/.test(tacticalAiSource) && /export function planDefenderRetake\(/.test(tacticalAiSource), "post-plant squad planning is modular");
+assert(/CS3D_TACTICAL_AI/.test(vendorSource) && /function tacticalPlanFor\(/.test(html) && /tacticalAssignment\(plan,p\)/.test(html), "post-plant squad plans are bundled into botThink");
+assert(/resolveDistinctRallyTargets/.test(tacticalAiSource) && /minSpacing:PLAYER_R\*2/.test(html), "retake rally targets reserve distinct live navigation cells");
+assert(/function handleFakeExecution\(/.test(html) && /function emitFakeSellCue\(/.test(html) && /fakeSellCueKind/.test(html), "fake execute state machine guarantees a sell cue before rejoin");
+assert(/function frameTimeSnapshot\(/.test(html) && /p95Ms/.test(html), "runtime diagnostics expose bounded frame-time percentiles");
 
 // Ten-arena deployment contracts (v1.3)
 assert(/ARENAS\s*=/.test(corpus), "ARENAS registry is present");
@@ -184,6 +201,8 @@ for (const contract of [
   ["collision-safe dash", /function dashPlayer\(/],
   ["touch controls", /function initTouch\(/],
   ["gamepad controls", /function pollGamepad\(/],
+  ["controller spatial menu navigation", /function moveGamepadFocus\(/],
+  ["controller polling survives pause", /pollGamepad\(dt\);if\(paused\)return/],
   ["adaptive quality", /function adaptiveQuality\(/],
   ["WebGL recovery", /webglcontextlost/],
   ["operator rigs grip their weapon", /function twoBoneIK\(/],
@@ -210,7 +229,7 @@ assert(remoteHosts.length === 0, `no remote runtime hosts${remoteHosts.length ? 
 
 for (const asset of ["vendor/cs3d-runtime.js", "vendor/cs3d-fonts.css"]) {
   assert(html.includes(asset), `${asset} is referenced locally`);
-  assert(fs.existsSync(path.join(root, asset)) || true, `${asset} path declared`);
+  assert(fs.existsSync(path.join(root, asset)), `${asset} exists in the offline source tree`);
 }
 
 assert(!/\b(?:TODO|FIXME|lorem ipsum|placeholder)\b/i.test(html), "no placeholder or unfinished-copy markers");
