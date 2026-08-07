@@ -25,6 +25,7 @@ const divisionIndex = Number(argOf("--division", "0"));
 const arenaId = argOf("--arena", "verdant");
 const captureGameplay = process.env.CS3D_CAPTURE_GAMEPLAY !== "0";
 const compactSmoke = process.env.CS3D_COMPACT_SMOKE === "1";
+const captureTimeout = Number(process.env.CS3D_CAPTURE_TIMEOUT || 120_000);
 
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -77,7 +78,31 @@ const browser = await chromium.launch({
   executablePath: resolveChromium(),
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
 });
-const page = await browser.newPage({ viewport: { width: 800, height: 500 } });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const capture = (target, filename) => {
+  const viewport = target.viewportSize();
+  if (target === page && !filename.startsWith("99-") && (viewport?.width !== 1280 || viewport?.height !== 720))
+    throw new Error(`desktop evidence viewport regressed to ${viewport?.width}x${viewport?.height}; expected 1280x720`);
+  return target.screenshot({
+    path: path.join(outDir, filename),
+    timeout: captureTimeout,
+    animations: "disabled",
+    caret: "hide",
+  });
+};
+const pressGamepadButton = async (target, index) => {
+  await target.evaluate(({ index }) => { window.__CS3D_SMOKE_PAD.buttons[index].pressed = true; window.__CS3D_SMOKE_PAD.buttons[index].value = 1; }, { index });
+  await target.waitForFunction(index => window.CS3D_gamepadDiagnostics?.().buttons[index] === true, index, { timeout: 15_000 });
+  await target.evaluate(({ index }) => { window.__CS3D_SMOKE_PAD.buttons[index].pressed = false; window.__CS3D_SMOKE_PAD.buttons[index].value = 0; }, { index });
+  await target.waitForFunction(index => window.CS3D_gamepadDiagnostics?.().buttons[index] === false, index, { timeout: 15_000 });
+};
+const moveGamepadFocusUntil = async (target, selector, buttonIndex, attempts = 14) => {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    if (await target.evaluate(selector => document.activeElement?.matches?.(selector), selector)) return true;
+    await pressGamepadButton(target, buttonIndex);
+  }
+  return target.evaluate(selector => document.activeElement?.matches?.(selector), selector);
+};
 const requestedUrls = new Set();
 
 await page.addInitScript(() => {
@@ -129,7 +154,7 @@ try {
   if (brief.difficulties !== 3 || brief.controls < 10 || brief.doctrineRows !== 20) problems.push(`landing reference panels are incomplete: ${JSON.stringify(brief)}`);
   if (brief.seriesRows !== 41 || brief.baseWeapons !== 4 || brief.survivalPanels !== 4) problems.push(`landing arsenal or survivability panels are incomplete: ${JSON.stringify(brief)}`);
   if (brief.horizontalOverflow > 1) problems.push(`title screen has ${brief.horizontalOverflow}px horizontal overflow`);
-  await page.screenshot({ path: path.join(outDir, "00-title.png") });
+  await capture(page, "00-title.png");
 
   for (const [width, height] of [[360, 800], [768, 1024], [1920, 1080]]) {
     await page.setViewportSize({ width, height });
@@ -144,7 +169,10 @@ try {
     if (layout.overflow > 1) problems.push(`${width}x${height} title has ${layout.overflow}px horizontal overflow`);
     if (!layout.ctaReachable) problems.push(`${width}x${height} title call to action is clipped`);
   }
-  await page.setViewportSize({ width: 800, height: 500 });
+  // Keep desktop captures large enough to include the authored operator preview
+  // and tactical map copy; the responsive matrix above already covers compact
+  // layouts independently.
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.waitForTimeout(90);
 
   await page.locator("#titleEnterBtn").click();
@@ -180,7 +208,8 @@ try {
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         deployReachable: Boolean(deploy && deploy.width > 40 && deploy.height >= 36 && deploy.top >= -1 && deploy.bottom <= height + 1),
         minCardWidth: Math.min(...cards.map(card => card.width)),
-        focusVisibleStyle: getComputedStyle(document.querySelector(".divCard")).outlineStyle,
+        focusVisibleStyle: getComputedStyle(document.activeElement).outlineStyle,
+        focusVisibleWidth: getComputedStyle(document.activeElement).outlineWidth,
       };
       menu.scrollTop = 0;
       return result;
@@ -191,12 +220,20 @@ try {
     if (profile.horizontalOverflow > 1) problems.push(`${profile.width}x${profile.height} menu has ${profile.horizontalOverflow}px horizontal overflow`);
     if (!profile.deployReachable || profile.minCardWidth < 120) problems.push(`${profile.width}x${profile.height} menu controls are clipped or unreadable`);
   }
-  await page.setViewportSize({ width: 800, height: 500 });
+  await page.setViewportSize({ width: 1280, height: 720 });
 
   const cards = page.locator(".divCard");
   await cards.nth(divisionIndex).click();
   await page.waitForTimeout(2500);
-  await page.screenshot({ path: path.join(outDir, "01-operator-select.png") });
+  await cards.nth(divisionIndex).focus();
+  await page.keyboard.press("Tab");
+  const focusedOperator = page.locator(".divCard:focus-visible");
+  const focusCue = await focusedOperator.count() ? await focusedOperator.first().evaluate(card => {
+    const style = getComputedStyle(card);
+    return { style: style.outlineStyle, width: style.outlineWidth, color: style.outlineColor };
+  }) : null;
+  if (!focusCue || focusCue.style === "none" || Number.parseFloat(focusCue.width) < 2) problems.push(`operator focus cue is not visible: ${JSON.stringify(focusCue)}`);
+  await capture(page, "01-operator-select.png");
 
   console.log("smoke: opening live arena selection");
   await page.locator("#deployBtn").click();
@@ -448,7 +485,7 @@ try {
   if (deploymentStats.arenaCards !== 10) problems.push(`expected 10 arena cards, found ${deploymentStats.arenaCards}`);
   if (deploymentStats.markerCount !== 4 || !deploymentStats.markersVisible) problems.push("live diorama is missing site/spawn markers");
   if (!deploymentStats.arenaVisible || !deploymentStats.metadataReady || !deploymentStats.deployVisible) problems.push("arena deployment screen is incomplete");
-  await page.screenshot({ path: path.join(outDir, "02-arena-select.png") });
+  await capture(page, "02-arena-select.png");
 
   console.log("smoke: confirming arena deployment");
   // SwiftShader has a much tighter framebuffer budget than a player GPU.
@@ -476,7 +513,7 @@ try {
     });
   }
   console.log("smoke: round booted");
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "03-round-start.png") });
+  if (captureGameplay) await capture(page, "03-round-start.png");
 
   const buyGate = await page.evaluate(() => {
     const hostile = players.find(player => player.alive && player.team !== me.team);
@@ -506,12 +543,12 @@ try {
   await page.keyboard.up("w");
   await page.mouse.down();
   await page.waitForTimeout(1200);
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "04-firing.png") });
+  if (captureGameplay) await capture(page, "04-firing.png");
   await page.mouse.up();
 
   await page.keyboard.press("r");
   await page.waitForTimeout(500);
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "05-reload.png") });
+  if (captureGameplay) await capture(page, "05-reload.png");
 
   console.log("smoke: pause freeze, reduced motion, and gamepad hot-plug");
   const beforePause = await page.evaluate(() => ({ elapsed: arenaRuntimeState?.elapsed, phaseT, jobs: gameScheduler.size }));
@@ -552,7 +589,7 @@ try {
   if (!inputChecks.reducedMotionStopsShake || !inputChecks.reloadMapped || inputChecks.trackedAfterDisconnect !== 0) problems.push(`input/accessibility validation failed: ${JSON.stringify(inputChecks)}`);
 
   await page.waitForTimeout(captureGameplay ? 7000 : 3200);
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "06-combat.png") });
+  if (captureGameplay) await capture(page, "06-combat.png");
   console.log("smoke: combat capture complete");
   await page.evaluate(() => {
     const now = performance.now() / 1000;
@@ -578,7 +615,7 @@ try {
     arsenalCount: Object.keys(ARSENAL_ROSTER).length,
     doctrineForms: new Set(Object.values(ARSENAL_ROSTER).map(w => w.form)).size,
     equippedSeries03: me.cur.startsWith("series03_"),
-    doctrineTriggered: me.doctrineT > performance.now() / 1000,
+    doctrineTriggered: Boolean(ui.usedDoctrine),
     holdingWeapon: [...rigs.values()].every(r => r.arms && r.arms.length === 2),
     maxSocketError: Math.max(...players.filter(player => player.alive).map(player => rigs.get(player.id)).filter(Boolean).flatMap(r => {
       r.root.updateMatrixWorld(true);
@@ -592,7 +629,12 @@ try {
     arenaArchitectureProfiles: [...document.querySelectorAll(".arenaCard")].length,
     difficultyProfiles: Object.keys(DIFFICULTIES).length,
     pathfinderReady: typeof findGridPath === "function" && findGridPath({x:80,y:880},{x:240,y:160}).length > 0,
-    careerProgressionReady: typeof awardMatchXP === "function" && Number.isFinite(careerLevel())
+    careerProgressionReady: typeof awardMatchXP === "function" && Number.isFinite(careerLevel()),
+    combatStateCount: players.reduce((total, player) => total + Object.keys(player.combatStates || {}).length, 0),
+    combatProfileCount: Object.keys(window.CS3D_COMBAT?.DOCTRINE_FORM_PROFILES || {}).length,
+    tacticalRuntimeReady: typeof window.CS3D_TACTICAL_AI?.createTacticalPlan === "function" && typeof tacticalPlanFor === "function",
+    operatorAssets: window.CS3D_runtimeMetrics().operatorAssets,
+    frameSamples: window.CS3D_runtimeMetrics().frameTime.samples,
   }));
   console.log("runtime:", JSON.stringify(stats));
   if (!stats.holdingWeapon) problems.push("some rigs are missing weapon arms");
@@ -612,6 +654,50 @@ try {
   if (stats.difficultyProfiles !== 3) problems.push(`expected 3 difficulty profiles, found ${stats.difficultyProfiles}`);
   if (!stats.pathfinderReady) problems.push("bot pathfinding did not produce a route");
   if (!stats.careerProgressionReady) problems.push("career progression contract is not callable");
+  if (stats.combatStateCount < stats.rigs || stats.combatProfileCount !== 18) problems.push(`combat profiles are not active for the live roster: ${JSON.stringify({ combatStateCount: stats.combatStateCount, rigs: stats.rigs, combatProfileCount: stats.combatProfileCount })}`);
+  if (!stats.tacticalRuntimeReady) problems.push("tactical squad planner is not wired into botThink");
+  if (!stats.operatorAssets?.manifestValid || stats.operatorAssets.declared !== 20 || stats.operatorAssets.liveProcedural !== stats.rigs || stats.operatorAssets.liveAuthored !== 0) problems.push(`operator asset fallback telemetry is invalid: ${JSON.stringify(stats.operatorAssets)}`);
+  if (stats.frameSamples < 30) problems.push(`frame-time telemetry is undersampled: ${stats.frameSamples}`);
+
+  console.log("smoke: blocked-fire fake sell, hold, and contact rejoin");
+  const fakeExecution = await page.evaluate(() => {
+    const faker = players.find(player => player.alive && player.team === "ATK" && player !== bomb.carrier);
+    const contact = players.find(player => player.alive && player.team === "DEF");
+    const carrier = players.find(player => player.alive && player.team === "ATK" && player !== faker);
+    if (!faker || !contact || !carrier) return { missingRoster: true };
+    const fakeSiteId = "A";
+    const commitSiteId = "B";
+    const fakeSite = SITE_A;
+    const fakePoint = { x: (fakeSite.x + fakeSite.w / 2) * TILE, y: (fakeSite.y + fakeSite.h / 2) * TILE };
+    const plan = { type: "execute", siteId: commitSiteId, fakeSiteId, fakeActorIds: [faker.id] };
+    const now = performance.now() / 1000;
+    bomb.state = "carried";
+    bomb.carrier = carrier;
+    faker.fakeStage = null;
+    faker.fakeSellUntil = 0;
+    faker.fakeSellCueCount = 0;
+    faker.fakeSellCueKind = null;
+    faker.x = fakePoint.x + TILE * 3;
+    faker.y = fakePoint.y;
+    handleFakeExecution(faker, plan, contact, now, 0);
+    const approach = faker.fakeStage;
+    faker.x = fakePoint.x;
+    faker.y = fakePoint.y;
+    const weapon = curW(faker);
+    weapon.ammo = 0;
+    faker.reloadT = 2;
+    faker.swapT = now + 2;
+    handleFakeExecution(faker, plan, contact, now + 0.1, 0);
+    const sell = { stage: faker.fakeStage, cueCount: faker.fakeSellCueCount, cueKind: faker.fakeSellCueKind };
+    handleFakeExecution(faker, plan, contact, now + 0.6, 0);
+    const hold = faker.fakeStage;
+    handleFakeExecution(faker, plan, contact, now + 1.3, 0);
+    const commitSite = SITE_B;
+    const commitPoint = { x: (commitSite.x + commitSite.w / 2) * TILE, y: (commitSite.y + commitSite.h / 2) * TILE };
+    return { approach, sell, hold, rejoin: faker.fakeStage, pathGoal: faker.pathGoal, commitPoint, contactId: contact.id };
+  });
+  const fakeRejoinDistance = fakeExecution.pathGoal && fakeExecution.commitPoint ? Math.hypot(fakeExecution.pathGoal.x - fakeExecution.commitPoint.x, fakeExecution.pathGoal.y - fakeExecution.commitPoint.y) : Infinity;
+  if (fakeExecution.missingRoster || fakeExecution.approach !== "approach" || fakeExecution.sell?.stage !== "sell" || fakeExecution.sell?.cueCount !== 1 || fakeExecution.sell?.cueKind !== "decoy" || fakeExecution.hold !== "sell" || fakeExecution.rejoin !== "rejoin" || fakeRejoinDistance > 1) problems.push(`fake execution state machine failed: ${JSON.stringify({ ...fakeExecution, fakeRejoinDistance })}`);
 
   console.log("smoke: planting and defusing objective");
   const objectiveState = await page.evaluate(() => {
@@ -631,12 +717,23 @@ try {
     bomb = { state: "carried", carrier: attacker, x: 0, y: 0, timer: 0, beepT: 0 };
     updateChannel(attacker, chanTime(attacker, true) + 0.01, true);
     const planted = bomb.state === "planted" && Boolean(spikeMesh);
+    tacticalPlanCache = { ATK: null, DEF: null };
+    const defenderPlan = tacticalPlanFor("DEF", performance.now() / 1000);
+    const attackerPlan = tacticalPlanFor("ATK", performance.now() / 1000);
     defender.x = bomb.x;
     defender.y = bomb.y;
     updateChannel(defender, chanTime(defender, false) + 0.01, true);
-    return { planted, defused: bomb.state === "defused", state: gameState.state, phase };
+    return {
+      planted,
+      defused: bomb.state === "defused",
+      state: gameState.state,
+      phase,
+      defenderPlan: { type: defenderPlan?.type, phase: defenderPlan?.phase, roles: defenderPlan?.assignments?.map(value => value.role) || [] },
+      attackerPlan: { type: attackerPlan?.type, phase: attackerPlan?.phase, roles: attackerPlan?.assignments?.map(value => value.role) || [] },
+    };
   });
   if (!objectiveState.planted || !objectiveState.defused || objectiveState.state !== "round-end") problems.push(`plant/defuse flow failed: ${JSON.stringify(objectiveState)}`);
+  if (objectiveState.defenderPlan.type !== "defender-retake" || !objectiveState.defenderPlan.roles.includes("defuser") || objectiveState.attackerPlan.type !== "attacker-postplant" || !objectiveState.attackerPlan.roles.includes("anchor")) problems.push(`live post-plant roles are incomplete: ${JSON.stringify(objectiveState)}`);
 
   console.log("smoke: validating boss runtime");
   const bossStats = await page.evaluate(() => {
@@ -831,7 +928,7 @@ try {
   await page.waitForFunction(() => document.getElementById("endScreen")?.style.display === "grid" && gameState.state === "results");
   const reportState = await page.evaluate(() => ({ stats: document.querySelectorAll("#endStats .resultStat").length, contracts: document.querySelectorAll("#endContracts .contract").length, rank: document.getElementById("operationSummary").textContent, next: document.getElementById("nextOperationBtn").offsetParent !== null, arena: document.getElementById("changeArenaBtn").offsetParent !== null }));
   if (reportState.stats !== 5 || reportState.contracts !== 3 || !/OPERATION RANK/.test(reportState.rank) || !reportState.next || !reportState.arena) problems.push(`after-action report is incomplete: ${JSON.stringify(reportState)}`);
-  if (captureGameplay) await page.screenshot({ path: path.join(outDir, "07-results.png") });
+  if (captureGameplay) await capture(page, "07-results.png");
   await page.locator("#rematchBtn").click();
   await page.waitForFunction(() => document.getElementById("hud")?.style.display === "block" && gameState.state === "buy");
   const rematchState = await page.evaluate(() => ({ arena: window.CS3D_selectedArenaId, playlist: selectedPlaylist, division: myDiv.id, scoreATK, scoreDEF, players: players.length }));
@@ -861,11 +958,75 @@ try {
   if (waveState.planLength < 2 || waveState.firstWave !== 0 || waveState.nextWave !== 1 || waveState.transitionState !== "round-end" || waveState.state !== "buy") problems.push(`wave transition failed: ${JSON.stringify(waveState)}`);
   await page.evaluate(() => window.CS3D_returnToMenu());
 
+  console.log("smoke: controller-only title, squad, arena, and deployment journey");
+  const gamepadPage = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  gamepadPage.on("console", msg => { if (msg.type() === "error") problems.push(`gamepad console: ${msg.text()}`); });
+  gamepadPage.on("pageerror", error => problems.push(`gamepad pageerror: ${error.message}`));
+  gamepadPage.on("requestfailed", request => {
+    if (request.resourceType() === "media" && /ERR_ABORTED/i.test(request.failure()?.errorText || "")) return;
+    problems.push(`gamepad request failed: ${request.url()} (${request.failure()?.errorText || "unknown"})`);
+  });
+  gamepadPage.on("request", request => requestedUrls.add(request.url()));
+  await gamepadPage.addInitScript(() => {
+    addEventListener("unhandledrejection", event => console.error(`UNHANDLED REJECTION: ${event.reason?.stack || event.reason || "unknown"}`));
+    localStorage.setItem("cs3d.settings.v2", JSON.stringify({ version: 2, tutorialCompleted: true, quality: "low", reducedMotion: true }));
+    const buttons = Array.from({ length: 16 }, () => ({ pressed: false, touched: false, value: 0 }));
+    const pad = { index: 0, id: "Smoke Standard Gamepad", mapping: "standard", connected: true, timestamp: 1, axes: [0, 0, 0, 0], buttons };
+    Object.defineProperty(navigator, "getGamepads", { configurable: true, value: () => [pad] });
+    window.__CS3D_SMOKE_PAD = pad;
+  });
+  await gamepadPage.goto(`${origin}/index.html`, { waitUntil: "load" });
+  await gamepadPage.waitForFunction(() => document.getElementById("titleScreen")?.classList.contains("on"), { timeout: 30_000 });
+  await pressGamepadButton(gamepadPage, 0);
+  await gamepadPage.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
+  const playlistFocused = await moveGamepadFocusUntil(gamepadPage, ".playlistBtn", 12, 16);
+  if (!playlistFocused) problems.push("controller could not focus a playlist from operator selection");
+  else {
+    await pressGamepadButton(gamepadPage, 15);
+    await pressGamepadButton(gamepadPage, 0);
+  }
+  const operatorFocused = await moveGamepadFocusUntil(gamepadPage, ".divCard", 13, 16);
+  if (!operatorFocused) problems.push("controller could not move from playlist selection into the operator grid");
+  for (let attempt = 0; attempt < 20 && await gamepadPage.locator(".divCard.squad").count() < 5; attempt++) {
+    const focusedOperatorState = await gamepadPage.evaluate(() => ({ operator: document.activeElement?.classList.contains("divCard"), selected: document.activeElement?.classList.contains("squad") }));
+    if (focusedOperatorState.operator && !focusedOperatorState.selected) await pressGamepadButton(gamepadPage, 0);
+    if (await gamepadPage.locator(".divCard.squad").count() < 5) await pressGamepadButton(gamepadPage, 15);
+  }
+  const squadReady = await gamepadPage.locator(".divCard.squad").count();
+  if (squadReady !== 5) problems.push(`controller squad selection stopped at ${squadReady}/5 operators`);
+  const deployFocused = await moveGamepadFocusUntil(gamepadPage, "#deployBtn", 13, 16);
+  if (!deployFocused) problems.push("controller could not focus the deployment action");
+  else await pressGamepadButton(gamepadPage, 0);
+  await gamepadPage.waitForFunction(() => document.getElementById("arenaSelectScreen")?.classList.contains("open"), { timeout: 30_000 });
+  const arenaBeforePad = await gamepadPage.evaluate(() => window.CS3D_selectedArenaId);
+  await pressGamepadButton(gamepadPage, 15);
+  await pressGamepadButton(gamepadPage, 15);
+  const arenaAfterPad = await gamepadPage.evaluate(() => window.CS3D_selectedArenaId);
+  await pressGamepadButton(gamepadPage, 0);
+  await gamepadPage.waitForFunction(() => document.getElementById("hud")?.style.display === "block", { timeout: 30_000 });
+  const gamepadDeployment = await gamepadPage.evaluate(() => ({ inputMode: window.CS3D_runtimeMetrics().inputMode, phase, state: gameState.state, playlist: selectedPlaylist, squadSize: selectedSquad.length, arena: window.CS3D_selectedArenaId, controlled: myDiv.id }));
+  console.log("gamepad deployment:", JSON.stringify(gamepadDeployment));
+  if (arenaBeforePad === arenaAfterPad || gamepadDeployment.inputMode !== "gamepad" || gamepadDeployment.playlist !== "boss" || gamepadDeployment.arena !== "tempest" || gamepadDeployment.squadSize !== 5 || gamepadDeployment.state !== "buy") problems.push(`controller-only deployment failed: ${JSON.stringify({ arenaBeforePad, arenaAfterPad, ...gamepadDeployment })}`);
+  await pressGamepadButton(gamepadPage, 9);
+  await gamepadPage.waitForFunction(() => paused && gameState.state === "paused", { timeout: 15_000 });
+  await pressGamepadButton(gamepadPage, 9);
+  await gamepadPage.waitForFunction(() => !paused && gameState.state === "buy", { timeout: 15_000 });
+  await gamepadPage.evaluate(() => window.CS3D_AUDIO?.disposeAudio?.()).catch(() => {});
+  await gamepadPage.close();
+
   console.log("smoke: touch-only mobile gameplay");
   const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   mobilePage.on("console", msg => { if (msg.type() === "error") problems.push(`mobile console: ${msg.text()}`); });
   mobilePage.on("pageerror", error => problems.push(`mobile pageerror: ${error.message}`));
-  await mobilePage.addInitScript(() => localStorage.setItem("cs3d.settings.v2", JSON.stringify({ version: 2, tutorialCompleted: true, quality: "low" })));
+  mobilePage.on("requestfailed", request => {
+    if (request.resourceType() === "media" && /ERR_ABORTED/i.test(request.failure()?.errorText || "")) return;
+    problems.push(`mobile request failed: ${request.url()} (${request.failure()?.errorText || "unknown"})`);
+  });
+  mobilePage.on("request", request => requestedUrls.add(request.url()));
+  await mobilePage.addInitScript(() => {
+    addEventListener("unhandledrejection", event => console.error(`UNHANDLED REJECTION: ${event.reason?.stack || event.reason || "unknown"}`));
+    localStorage.setItem("cs3d.settings.v2", JSON.stringify({ version: 2, tutorialCompleted: true, quality: "low" }));
+  });
   await mobilePage.goto(`${origin}/index.html`, { waitUntil: "load" });
   await mobilePage.waitForFunction(() => document.getElementById("titleScreen")?.classList.contains("on"), { timeout: 30_000 });
   const mobileTitle = await mobilePage.evaluate(() => ({
@@ -874,7 +1035,7 @@ try {
     ctaHeight: document.getElementById("titleEnterBtn").getBoundingClientRect().height,
   }));
   if (mobileTitle.overflow > 1 || !mobileTitle.railHidden || mobileTitle.ctaHeight < 44) problems.push(`mobile title layout failed: ${JSON.stringify(mobileTitle)}`);
-  await mobilePage.screenshot({ path: path.join(outDir, "07-mobile-title.png") });
+  await capture(mobilePage, "07-mobile-title.png");
   await mobilePage.locator("#titleEnterBtn").tap();
   await mobilePage.waitForFunction(() => document.getElementById("menu")?.style.display === "grid", { timeout: 30_000 });
   await mobilePage.locator(".divCard").first().tap();
@@ -894,7 +1055,7 @@ try {
     };
   });
   if (mobileArena.overflow > 1 || !mobileArena.actionsReachable || mobileArena.navKeys !== 3 || mobileArena.shapeKeys !== 3) problems.push(`mobile arena selection failed: ${JSON.stringify(mobileArena)}`);
-  await mobilePage.screenshot({ path: path.join(outDir, "08-mobile-arena-select.png") });
+  await capture(mobilePage, "08-mobile-arena-select.png");
   await mobilePage.locator("#arenaDeployBtn").tap();
   await mobilePage.waitForFunction(() => document.getElementById("hud")?.style.display === "block", { timeout: 30_000 });
   await mobilePage.evaluate(() => { phaseT = 0; updateSim(0.016); curW(me).ammo = Math.max(0, curW(me).mag - 2); me.reloadT = 0; });
@@ -923,14 +1084,15 @@ try {
   });
   console.log("mobile touch:", JSON.stringify(touchState));
   if (touchState.mode !== "touch" || !touchState.reloadStarted || !touchState.controlsVisible || touchState.horizontalOverflow > 1 || touchState.minTarget < 44 || touchState.overlapsPads || touchState.overlaysTouchTargets || !touchState.leftHanded || !touchState.orientationVisible) problems.push(`touch-only layout/input failed: ${JSON.stringify(touchState)}`);
-  await mobilePage.screenshot({ path: path.join(outDir, "09-mobile-gameplay.png") });
+  await mobilePage.locator("#orientationGuide button").tap();
+  await capture(mobilePage, "09-mobile-gameplay.png");
   await mobilePage.close();
 
   const remoteRequests = [...requestedUrls].filter(url => !url.startsWith(origin) && !url.startsWith("data:") && !url.startsWith("blob:"));
   if (remoteRequests.length) problems.push(`remote runtime requests detected: ${remoteRequests.join(", ")}`);
 } catch (error) {
   problems.push(`flow: ${error.message}`);
-  await page.screenshot({ path: path.join(outDir, "99-failure.png") }).catch(() => {});
+  await capture(page, "99-failure.png").catch(() => {});
 } finally {
   await page.evaluate(() => window.CS3D_AUDIO?.disposeAudio?.()).catch(() => {});
   await page.waitForTimeout(100).catch(() => {});

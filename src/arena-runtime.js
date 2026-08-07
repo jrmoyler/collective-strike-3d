@@ -51,7 +51,7 @@
   const setText = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = value; };
 
   function animateArenaDetails() {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || !window.animejs?.createTimeline) return;
+    if (window.CS3D_reducedMotion?.() || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || !window.animejs?.createTimeline) return;
     detailMotion?.revert?.();
     const { createTimeline, stagger } = window.animejs;
     detailMotion = createTimeline({ defaults: { duration: 420, ease: "outExpo" } })
@@ -116,7 +116,7 @@
     if (!screen) return;
     screen.classList.add("open");
     screen.setAttribute("aria-hidden", "false");
-    selectArena(selectedArenaId);
+    selectArena(selectedArenaId, { focus: true });
     window.CS3D_enterMapSelect?.(ARENAS[selectedArenaId]);
   }
 

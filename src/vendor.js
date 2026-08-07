@@ -81,7 +81,7 @@ import {
   createGameStateMachine,
   recoverNavigationPath
 } from "./game-runtime.js";
-import { ACTIONS, DEFAULT_KEY_BINDINGS, GAMEPAD_BINDINGS, createActionInput, normalizeAxis } from "./input-actions.js";
+import { ACTIONS, DEFAULT_KEY_BINDINGS, GAMEPAD_BINDINGS, chooseSpatialFocus, createActionInput, normalizeAxis } from "./input-actions.js";
 import {
   DAMAGE_WEIGHT,
   SECOND_WEIGHT,
@@ -120,6 +120,9 @@ import {
   createNeonRainEffect,
   createLunarDustEffect
 } from "./cs3d-particles.js";
+import * as COMBAT from "./combat-profiles.js";
+import * as OPERATOR_ASSETS from "./operator-assets.js";
+import * as TACTICAL_AI from "./tactical-ai.js";
 
 /* v3-compatible surface used by the existing HUD/menu animations */
 function animeCompat(params) {
@@ -229,7 +232,7 @@ window.CS3D_RUNTIME = Object.freeze({
   createGameStateMachine,
   recoverNavigationPath
 });
-window.CS3D_INPUT = Object.freeze({ ACTIONS, DEFAULT_KEY_BINDINGS, GAMEPAD_BINDINGS, createActionInput, normalizeAxis });
+window.CS3D_INPUT = Object.freeze({ ACTIONS, DEFAULT_KEY_BINDINGS, GAMEPAD_BINDINGS, chooseSpatialFocus, createActionInput, normalizeAxis });
 window.CS3D_MASTERY = Object.freeze({
   DAMAGE_WEIGHT,
   SECOND_WEIGHT,
@@ -269,3 +272,6 @@ window.CS3D_PARTICLES = Object.freeze({
   createNeonRainEffect,
   createLunarDustEffect
 });
+window.CS3D_COMBAT = Object.freeze({ ...COMBAT });
+window.CS3D_OPERATOR_ASSETS = Object.freeze({ ...OPERATOR_ASSETS });
+window.CS3D_TACTICAL_AI = Object.freeze({ ...TACTICAL_AI });
