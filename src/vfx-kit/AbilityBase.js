@@ -34,7 +34,12 @@ export class AbilityBase {
     this.id = id;
     this.scene = scene;
     this.ctx = context;
+
+    if (!settings[id]) {
+      throw new Error(`[VFXKit] AbilityBase: unknown ability id "${id}" — no settings block found`);
+    }
     this.cfg = settings[id];
+
     this.phase = Phase.IDLE;
     this.age = 0;
     this.travelT = 0;          // 0..1 along the line
@@ -56,7 +61,7 @@ export class AbilityBase {
   // ------------------------------------------------------------------
 
   /**
-   * Spawn a new cast.
+   * Spawn a new cast. Safe to call on a pooled (reset) instance.
    * @param {THREE.Vector3} origin
    * @param {THREE.Vector3} direction  unit vector
    * @param {number} distance
@@ -87,6 +92,40 @@ export class AbilityBase {
   }
 
   /**
+   * Soft reset for pool reuse. Removes scene objects and disposes GPU
+   * resources without marking the instance as permanently disposed.
+   */
+  resetForPool() {
+    this._alive = false;
+    this.phase = Phase.IDLE;
+    this.age = 0;
+    this.travelT = 0;
+
+    for (const m of this.meshes) {
+      this.scene.remove(m);
+      m.geometry?.dispose();
+      if (Array.isArray(m.material)) {
+        m.material.forEach(mat => mat.dispose());
+      } else {
+        m.material?.dispose();
+      }
+    }
+    this.meshes.length = 0;
+
+    for (const l of this.lights) {
+      this.scene.remove(l);
+    }
+    this.lights.length = 0;
+
+    for (const e of this.particleEmitters) {
+      e.dispose?.();
+    }
+    this.particleEmitters.length = 0;
+
+    this.onResetForPool?.();
+  }
+
+  /**
    * Called every simulation frame (respects pause via zero delta).
    * @param {number} dt  scaled delta
    * @param {number} realDt  unscaled real time (for indicators)
@@ -94,18 +133,19 @@ export class AbilityBase {
   update(dt, realDt = dt) {
     if (!this._alive || this.phase === Phase.DEAD) return;
 
-    this.age += dt * (settings.global.timeScale || 1);
+    const scaledDt = dt * (settings.global.timeScale || 1);
+    this.age += scaledDt;
 
     switch (this.phase) {
       case Phase.TRAVEL: {
         const speed = this.cfg.speed || 40;
         if (speed > 0) {
-          this.travelT = Math.min(1, this.travelT + (speed * dt) / this.distance);
+          this.travelT = Math.min(1, this.travelT + (speed * scaledDt) / this.distance);
         } else {
           // sustained / zone abilities jump to impact after charge
           this.travelT = 1;
         }
-        this.onTravel(dt);
+        this.onTravel(scaledDt);
         if (this.travelT >= 1) {
           this.phase = Phase.IMPACT;
           this.onImpact();
@@ -117,7 +157,7 @@ export class AbilityBase {
         // fall through
       case Phase.HOLD: {
         const holdTime = this.cfg.lifetime || 3;
-        this.onHold?.(dt);
+        this.onHold?.(scaledDt);
         if (this.age > holdTime) {
           this.phase = Phase.FADE;
           this.onFadeStart?.();
@@ -125,8 +165,9 @@ export class AbilityBase {
         break;
       }
       case Phase.FADE: {
-        this.onFade(dt);
-        if (this.age > (this.cfg.lifetime || 3) + 1.2) {
+        this.onFade(scaledDt);
+        const fadeTime = this.cfg.fadeTime ?? settings.global.fadeTime ?? 1.2;
+        if (this.age > (this.cfg.lifetime || 3) + fadeTime) {
           this.kill();
         }
         break;
@@ -141,7 +182,8 @@ export class AbilityBase {
   }
 
   /**
-   * Full teardown. Must release every GPU resource.
+   * Full terminal teardown. Marks the instance unusable.
+   * Call only when discarding (pool ceiling, manager shutdown).
    */
   dispose() {
     if (this._disposed) return;
@@ -177,9 +219,14 @@ export class AbilityBase {
   // Geometry helpers (resolve against live settings)
   // ------------------------------------------------------------------
 
-  /** World position at fraction t along the cast line */
-  pointAt(t) {
-    return this.origin.clone().addScaledVector(this.dir, t * this.distance);
+  /**
+   * World position at fraction t along the cast line.
+   * @param {number} t
+   * @param {THREE.Vector3} [out] optional target vector (avoids allocation)
+   */
+  pointAt(t, out) {
+    const target = out || new THREE.Vector3();
+    return target.copy(this.origin).addScaledVector(this.dir, t * this.distance);
   }
 
   /** Local → world using the cast frame */
@@ -200,4 +247,5 @@ export class AbilityBase {
   onFade(dt) {}
   onKill() {}
   onDispose() {}
+  onResetForPool() {}
 }

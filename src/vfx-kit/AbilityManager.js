@@ -40,10 +40,15 @@ export class AbilityManager {
 
   /**
    * Acquire an ability instance (pool or create).
+   * Never returns a disposed instance.
    */
   _acquire(id) {
     const free = this.pool.get(id) || [];
     let ability = free.pop();
+    if (ability && ability._disposed) {
+      // Safety: never reuse a disposed instance
+      ability = null;
+    }
     if (!ability) {
       const Cls = ABILITY_CLASSES.get(id);
       if (!Cls) {
@@ -64,15 +69,23 @@ export class AbilityManager {
   }
 
   /**
-   * Return an ability to the pool after dispose.
+   * Return an ability to the pool after soft reset.
+   * Does NOT call terminal dispose() so the instance remains reusable.
+   * Terminal dispose is reserved for pool-ceiling discard and manager shutdown.
    */
   _release(ability) {
     if (!ability) return;
-    ability.dispose();
+    if (ability._disposed) return;
+
+    ability.resetForPool();
+
     const free = this.pool.get(ability.id) || [];
     if (free.length < 3) { // soft ceiling per type
       free.push(ability);
       this.pool.set(ability.id, free);
+    } else {
+      // Over soft ceiling — discard permanently
+      ability.dispose();
     }
   }
 
@@ -85,18 +98,20 @@ export class AbilityManager {
    * @returns {AbilityBase|null}
    */
   cast(id, origin, direction, distance) {
-    // Enforce concurrent ceiling
+    // Validate id before any eviction so unknown ids never displace active abilities
+    if (!ABILITY_CLASSES.has(id) && !settings[id]) {
+      console.warn(`[VFXKit] cast: unknown ability id "${id}"`);
+      return null;
+    }
+
+    // Enforce concurrent ceiling only after id is known valid
     if (this.active.length >= this.maxConcurrent) {
-      // Kill oldest
       const oldest = this.active.shift();
       this._release(oldest);
     }
 
     const ability = this._acquire(id);
     if (!ability) return null;
-
-    // Apply live quality scale
-    settings.global.qualityScale = this.getQualityScale();
 
     ability.spawn(origin, direction, distance);
     this.active.push(ability);
@@ -116,8 +131,6 @@ export class AbilityManager {
    * @param {number} realDt
    */
   update(dt, realDt = dt) {
-    settings.global.qualityScale = this.getQualityScale();
-
     for (let i = this.active.length - 1; i >= 0; i--) {
       const a = this.active[i];
       a.update(dt, realDt);

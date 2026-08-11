@@ -60,9 +60,14 @@ export function attachVFXKit(kit, {
 
     /**
      * Fire a zone ability (reads centre as far end of the line).
+     * Invokes onDoctrineCast on success (distinct from fire / onAbilityCast).
      */
     fireZone(elementId, origin, direction, distance) {
-      return this.fire(elementId, origin, direction, distance);
+      const ability = kit.cast(elementId, origin, direction, distance);
+      if (ability && typeof onDoctrineCast === 'function') {
+        onDoctrineCast(elementId, ability);
+      }
+      return ability;
     },
 
     update: kit.update.bind(kit),

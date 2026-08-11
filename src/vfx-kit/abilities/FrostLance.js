@@ -13,7 +13,6 @@ import { settings } from '../settings.js';
 function makeCrystalGeometry(facets = 6, taper = 0.72, radius = 0.22, height = 1.4) {
   const geo = new THREE.CylinderGeometry(radius * taper, radius, height, facets, 1, false);
   geo.translate(0, height * 0.5, 0);
-  // slight random lean baked into instances later
   return geo;
 }
 
@@ -24,12 +23,17 @@ class FrostLance extends AbilityBase {
     this.shockRing = null;
     this.mistEmitter = null;
     this._records = []; // fractional records only
+    // Scratch vectors to avoid per-frame allocation
+    this._tmpPos = new THREE.Vector3();
+    this._tmpRight = new THREE.Vector3();
+    this._tmpUp = new THREE.Vector3(0, 1, 0);
+    this._dummy = new THREE.Object3D();
   }
 
   onSpawn() {
     this._records.length = 0;
     const cfg = this.cfg;
-    const q = settings.global.qualityScale;
+    const q = this.ctx?.getQualityScale?.() ?? 1.0;
     const count = Math.floor(48 * q);
 
     // Build fractional records (never store metres)
@@ -44,6 +48,9 @@ class FrostLance extends AbilityBase {
   }
 
   createShaders() {
+    // Soft reset of any prior resources so pooled instances stay reusable
+    this._clearShaderResources();
+
     const cfg = this.cfg;
     const geo = makeCrystalGeometry(cfg.facets, cfg.taper);
     const mat = new THREE.MeshPhysicalMaterial({
@@ -66,7 +73,7 @@ class FrostLance extends AbilityBase {
     this.scene.add(this.crystals);
     this.meshes.push(this.crystals);
 
-    // Shock ring (simple torus for now)
+    // Shock ring
     const ringGeo = new THREE.TorusGeometry(1, 0.06, 8, 48);
     const ringMat = new THREE.MeshBasicMaterial({
       color: cfg.colorShockA,
@@ -81,13 +88,36 @@ class FrostLance extends AbilityBase {
     this.meshes.push(this.shockRing);
   }
 
+  _clearShaderResources() {
+    if (this.crystals) {
+      this.scene.remove(this.crystals);
+      this.crystals.geometry?.dispose();
+      this.crystals.material?.dispose();
+      const idx = this.meshes.indexOf(this.crystals);
+      if (idx >= 0) this.meshes.splice(idx, 1);
+      this.crystals = null;
+    }
+    if (this.shockRing) {
+      this.scene.remove(this.shockRing);
+      this.shockRing.geometry?.dispose();
+      this.shockRing.material?.dispose();
+      const idx = this.meshes.indexOf(this.shockRing);
+      if (idx >= 0) this.meshes.splice(idx, 1);
+      this.shockRing = null;
+    }
+  }
+
+  onResetForPool() {
+    this._clearShaderResources();
+    this._records.length = 0;
+  }
+
   onTravel(dt) {
     this._syncInstances();
   }
 
   onImpact() {
-    // Place shock ring at impact point
-    const impact = this.pointAt(1);
+    const impact = this.pointAt(1, this._tmpPos);
     this.shockRing.position.copy(impact);
     this.shockRing.position.y = 0.05;
     this.shockRing.scale.setScalar(0.2);
@@ -97,8 +127,7 @@ class FrostLance extends AbilityBase {
 
   onHold(dt) {
     this._syncInstances();
-    // Expand & fade shock
-    if (this.shockRing.visible) {
+    if (this.shockRing?.visible) {
       const s = this.shockRing.scale.x + dt * 4.5;
       this.shockRing.scale.setScalar(s);
       this.shockRing.material.opacity = Math.max(0, 0.85 - (s - 0.2) * 0.25);
@@ -116,12 +145,13 @@ class FrostLance extends AbilityBase {
   _syncInstances() {
     if (!this.crystals) return;
     const cfg = this.cfg;
-    const dummy = new THREE.Object3D();
-    const up = new THREE.Vector3(0, 1, 0);
+    const dummy = this._dummy;
+    const up = this._tmpUp;
+    const right = this._tmpRight;
+    const pos = this._tmpPos;
 
     for (let i = 0; i < this._records.length; i++) {
       const r = this._records[i];
-      // Only reveal crystals that the front has reached
       if (r.t > this.travelT + 0.02) {
         dummy.scale.setScalar(0);
         dummy.updateMatrix();
@@ -129,9 +159,8 @@ class FrostLance extends AbilityBase {
         continue;
       }
 
-      // Resolve all dimensions live from settings
-      const pos = this.pointAt(r.t);
-      const right = new THREE.Vector3().crossVectors(this.dir, up).normalize();
+      this.pointAt(r.t, pos);
+      right.crossVectors(this.dir, up).normalize();
       pos.addScaledVector(right, r.lateral * (0.8 + r.t * 1.4));
 
       const h = THREE.MathUtils.lerp(cfg.heightMin, cfg.heightMax, r.heightJitter) * r.scale;
@@ -139,7 +168,7 @@ class FrostLance extends AbilityBase {
 
       dummy.position.copy(pos);
       dummy.scale.set(r.scale * 0.7, h / 1.4, r.scale * 0.7);
-      dummy.rotation.set(r.lean, Math.random() * 0.1, r.lean * 0.6);
+      dummy.rotation.set(r.lean, 0, r.lean * 0.6);
       dummy.updateMatrix();
       this.crystals.setMatrixAt(i, dummy.matrix);
     }
@@ -147,6 +176,7 @@ class FrostLance extends AbilityBase {
   }
 
   onDispose() {
+    this._clearShaderResources();
     this._records.length = 0;
   }
 }

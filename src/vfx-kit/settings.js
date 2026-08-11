@@ -31,7 +31,9 @@ export const ELEMENTS = Object.keys(ELEMENT_META);
 export const settings = {
   global: {
     timeScale: 1.0,
-    qualityScale: 1.0, // 0.4–1.2 driven by CS3D quality profile
+    fadeTime: 1.2, // default fade duration after lifetime (seconds)
+    // qualityScale is no longer mutated here — each AbilityManager keeps its
+    // own resolved scale and exposes it via context.getQualityScale()
   },
 
   // ------------------------------------------------------------------
