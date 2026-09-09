@@ -312,3 +312,85 @@ test("an unsafe custom registry path can never reach asset probing or loading", 
   assert.equal(result.reason, "unsafe-asset-path");
   assert.equal(touched, false);
 });
+
+test('operator finish preserves every DNA identity and anatomy while adding bounded attached hardware', async () => {
+  const THREE = await import('three');
+  const {polishProceduralOperator} = await import('../src/operator-assets.js');
+  for (const entry of OPERATOR_ASSET_MANIFEST) {
+    const body = new THREE.Group();
+    const torso = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6), new THREE.MeshStandardMaterial());
+    torso.position.y = 1; body.add(torso);
+    const rig = {body, torso, dna: entry.dna, scale: entry.dna.scale};
+    const originalMatrix = torso.matrix.clone();
+    polishProceduralOperator(THREE, rig);
+    const count = body.children.length;
+    polishProceduralOperator(THREE, rig);
+    assert.equal(rig.dna, entry.dna);
+    assert.equal(rig.torso, torso);
+    assert.deepEqual(torso.matrix.elements, originalMatrix.elements);
+    assert.equal(body.children.length, count, 'repeated finish must not duplicate geometry');
+    assert.equal(rig.finish.fasteners.count, 4);
+    assert.equal(rig.finish.fasteners.parent, body);
+    assert.ok([...rig.finish.fasteners.instanceMatrix.array].every(Number.isFinite));
+  }
+});
+
+test('hands remain on weapon sockets through recoil pitch, reload roll and transformed roots', async () => {
+  const THREE = await import('three');
+  const {weaponSocketInRig} = await import('../src/operator-assets.js');
+  const root = new THREE.Group(), weapon = new THREE.Group(); root.add(weapon);
+  root.position.set(12, 3, -7); root.scale.setScalar(1.08);
+  root.rotation.y = .4;
+  weapon.position.set(.4, 1.2, .8); weapon.scale.setScalar(.72);
+  weapon.rotation.set(.24, 1.8, .6);
+  const socket = new THREE.Vector3(.1, -.2, .5);
+  const solved = weaponSocketInRig({root, weapon}, socket.x, socket.y, socket.z, new THREE.Vector3());
+  const worldHand = root.localToWorld(solved.clone());
+  const worldSocket = weapon.localToWorld(socket.clone());
+  assert.ok(worldHand.distanceTo(worldSocket) < 1e-10);
+});
+
+test('original face attachments retain intended dimensions under all scaled procedural heads', async () => {
+  const THREE = await import('three');
+  const {polishProceduralOperator} = await import('../src/operator-assets.js');
+  for (const entry of OPERATOR_ASSET_MANIFEST.filter(entry => entry.dna.head > 0)) {
+    const body = new THREE.Group();
+    const torso = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshStandardMaterial());
+    const head = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshStandardMaterial());
+    const headSize = entry.dna.head * entry.dna.scale;
+    head.scale.set(headSize, headSize * (entry.dna.brain ? 1.18 : 1), headSize);
+    head.position.set(0, 2, .1);
+    body.add(torso, head);
+    // Eyes, visor, lens, beak, ears and helmet all use this same builder convention.
+    const feature = new THREE.Object3D();
+    feature.position.set(headSize * .34, headSize * .1, headSize * .82);
+    feature.scale.setScalar(headSize * .16);
+    feature.rotation.z = .2;
+    head.add(feature);
+    const originalHeadScale = head.scale.clone();
+    const rig = {body, torso, head, dna: entry.dna, scale: entry.dna.scale, assetSource: 'procedural'};
+    polishProceduralOperator(THREE, rig);
+    body.updateMatrixWorld(true);
+    const visiblePosition = feature.getWorldPosition(new THREE.Vector3());
+    const visibleScale = feature.getWorldScale(new THREE.Vector3());
+    assert.ok(Math.abs(visiblePosition.z - (.1 + headSize * .82)) < 1e-10, `${entry.id}: face buried`);
+    assert.ok(Math.abs(visiblePosition.y - (2 + headSize * .1 * (entry.dna.brain ? 1.18 : 1))) < 1e-10);
+    assert.ok(Math.abs(visibleScale.z - headSize * .16) < 1e-10);
+    assert.deepEqual(head.scale.toArray(), originalHeadScale.toArray());
+    assert.equal(feature.rotation.z, .2);
+    const once = feature.position.clone();
+    polishProceduralOperator(THREE, rig);
+    assert.deepEqual(feature.position.toArray(), once.toArray(), 'face correction must be idempotent');
+  }
+});
+
+test('authored assets are never subjected to procedural face normalization', async () => {
+  const THREE = await import('three');
+  const {polishProceduralOperator} = await import('../src/operator-assets.js');
+  const body = new THREE.Group(), head = new THREE.Group(), feature = new THREE.Object3D();
+  head.scale.setScalar(.4); feature.position.z = .8; head.add(feature); body.add(head);
+  const rig = {body, torso: head, head, assetSource: 'authored'};
+  polishProceduralOperator(THREE, rig);
+  assert.equal(feature.position.z, .8);
+  assert.equal(rig.finish, undefined);
+});

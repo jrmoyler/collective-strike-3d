@@ -1,0 +1,26 @@
+{
+  "metrics": [
+    {
+      "frame": 2,
+      "calls": 54,
+      "triangles": 6100,
+      "points": 0,
+      "lines": 0
+    },
+    {
+      "frame": 3,
+      "calls": 54,
+      "triangles": 6100,
+      "points": 0,
+      "lines": 0
+    },
+    {
+      "frame": 4,
+      "calls": 54,
+      "triangles": 6100,
+      "points": 0,
+      "lines": 0
+    }
+  ],
+  "errors": []
+}

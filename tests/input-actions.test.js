@@ -56,3 +56,41 @@ test("spatial focus rejects backwards and zero-area candidates", () => {
   ];
   assert.equal(chooseSpatialFocus(current, candidates, { x: 1, y: 0 }), null);
 });
+
+test("idle controller polling does not release keyboard or touch interaction", () => {
+  const input = createActionInput();
+  input.handleKey("KeyF", true);
+  input.setAction("interact", false, "gamepad");
+  assert.equal(input.isDown("interact"), true);
+  input.setAction("interact", true, "touch");
+  input.handleKey("KeyF", false);
+  assert.equal(input.isDown("interact"), true);
+  input.setAction("interact", false, "touch");
+  assert.equal(input.isDown("interact"), false);
+});
+
+test("releasing one of two bound movement keys preserves the other hold", () => {
+  const input = createActionInput();
+  input.handleKey("KeyW", true);
+  input.handleKey("ArrowUp", true);
+  input.handleKey("KeyW", false);
+  assert.equal(input.movement().y, -1);
+  input.releaseAll();
+  assert.equal(input.movement().y, 0);
+});
+
+test("disconnect releases controller fire without clearing a mouse hold", () => {
+  const input = createActionInput();
+  input.connectGamepad({ index: 0 });
+  input.setAction("fire", true, "gamepad");
+  input.setAction("fire", true, "keyboard");
+  input.disconnectGamepad(0);
+  assert.equal(input.isDown("fire"), true);
+  input.setAction("fire", false, "keyboard");
+  assert.equal(input.isDown("fire"), false);
+});
+
+test("invalid controller axes never inject non-finite movement", () => {
+  for (const value of [NaN, Infinity, -Infinity]) assert.equal(normalizeAxis(value), 0);
+  for (const deadzone of [1, -1, NaN]) assert.ok(Number.isFinite(normalizeAxis(0.8, deadzone)));
+});

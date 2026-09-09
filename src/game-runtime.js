@@ -87,7 +87,7 @@ export class GameScheduler {
   get size() { return this.#jobs.length; }
   schedule(callback, delaySeconds = 0, tag = "match") {
     if (typeof callback !== "function") throw new TypeError("Scheduled callback must be a function");
-    const job = { id: this.#nextId++, at: this.#elapsed + Math.max(0, Number(delaySeconds) || 0), callback, tag };
+    const job = { id: this.#nextId++, at: this.#elapsed + (Number.isFinite(Number(delaySeconds)) ? Math.max(0, Number(delaySeconds)) : 0), callback, tag };
     this.#jobs.push(job);
     this.#jobs.sort((a, b) => a.at - b.at || a.id - b.id);
     return job.id;
@@ -104,11 +104,23 @@ export class GameScheduler {
   }
   clear() { const count = this.#jobs.length; this.#jobs = []; return count; }
   tick(deltaSeconds) {
-    this.#elapsed += Math.max(0, Number(deltaSeconds) || 0);
-    const due = [];
-    while (this.#jobs[0]?.at <= this.#elapsed) due.push(this.#jobs.shift());
-    for (const job of due) job.callback();
-    return due.length;
+    const elapsed = Number(deltaSeconds);
+    if (!Number.isFinite(elapsed) || elapsed < 0) return 0;
+    this.#elapsed += elapsed;
+    // Keep due jobs cancellable while callbacks run (round-end may clear the
+    // rest). Jobs scheduled by a callback wait for the next tick.
+    const dueIds = this.#jobs.filter(job => job.at <= this.#elapsed).map(job => job.id);
+    let count = 0;
+    const errors = [];
+    for (const id of dueIds) {
+      const index = this.#jobs.findIndex(job => job.id === id);
+      if (index < 0) continue;
+      const [job] = this.#jobs.splice(index, 1);
+      try { job.callback(); } catch (error) { errors.push(error); }
+      count++;
+    }
+    if (errors.length) throw new AggregateError(errors, "Scheduled callbacks failed");
+    return count;
   }
 }
 

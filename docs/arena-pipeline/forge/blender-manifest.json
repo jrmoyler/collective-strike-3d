@@ -1,0 +1,76 @@
+{
+  "blender": "4.5.3 LTS",
+  "source": "src/arena-assets.js",
+  "meshCount": 114,
+  "materialCount": 3,
+  "textures": "Procedural runtime textures intentionally not baked in this geometry inspection; WebGL is material acceptance authority.",
+  "sockets": [
+    "pour-socket"
+  ],
+  "groups": {
+    "foundation": [
+      "reactor-deck",
+      "reactor-deck-trim"
+    ],
+    "reactor": [
+      "furnace-body",
+      "ceramic-jacket",
+      "ceramic-panel-0",
+      "ceramic-panel-1",
+      "ceramic-panel-3",
+      "ceramic-panel-4",
+      "ceramic-panel-5",
+      "ceramic-panel-6",
+      "ceramic-panel-7",
+      "molten-window",
+      "window-frame-left",
+      "window-frame-right",
+      "window-frame-top",
+      "window-frame-bottom",
+      "furnace-band-0",
+      "furnace-band-1",
+      "furnace-band-2",
+      "lower-molten-port",
+      "lower-port-left",
+      "lower-port-right",
+      "lower-port-top",
+      "furnace-band-fasteners",
+      "open-molten-reservoir"
+    ],
+    "pour-system": [
+      "crucible",
+      "pour-stream",
+      "overhead-carriage",
+      "carriage-heat-core"
+    ],
+    "frame": [
+      "furnace-leg-0",
+      "furnace-foot-0",
+      "furnace-leg-1",
+      "furnace-foot-1",
+      "furnace-leg-2",
+      "furnace-foot-2",
+      "furnace-leg-3",
+      "furnace-foot-3",
+      "furnace-leg-4",
+      "furnace-foot-4",
+      "furnace-leg-5",
+      "furnace-foot-5",
+      "gantry-pillar-0",
+      "gantry-pillar-1",
+      "gantry-pillar-2",
+      "gantry-pillar-3",
+      "overhead-pour-ring"
+    ],
+    "services": [
+      "service-pod-0",
+      "service-pod-1",
+      "service-pod-2",
+      "service-pod-3",
+      "service-pod-4",
+      "service-pod-5",
+      "coolant-loop",
+      "service-ladder"
+    ]
+  }
+}

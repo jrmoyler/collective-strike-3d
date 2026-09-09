@@ -91,3 +91,43 @@ test("bot path recovery rejects unreachable goals and returns a nearby reachable
   });
   assert.deepEqual(result, { path: [{ x: 80, y: 80 }], goal: { x: 80, y: 80 }, recovered: true });
 });
+
+test("round teardown inside a scheduled callback cancels simultaneous damage", () => {
+  const scheduler = new GameScheduler();
+  const events = [];
+  scheduler.schedule(() => { events.push("round-end"); scheduler.clear(); }, 1);
+  scheduler.schedule(() => events.push("stale-damage"), 1);
+  assert.equal(scheduler.tick(1), 1);
+  assert.deepEqual(events, ["round-end"]);
+});
+
+test("callbacks scheduled while ticking wait until the next simulation step", () => {
+  const scheduler = new GameScheduler();
+  let calls = 0;
+  scheduler.schedule(() => { calls++; scheduler.schedule(() => calls++); });
+  assert.equal(scheduler.tick(0), 1);
+  assert.equal(calls, 1);
+  assert.equal(scheduler.tick(0), 1);
+  assert.equal(calls, 2);
+});
+
+test("invalid delta cannot poison the scheduler clock", () => {
+  const scheduler = new GameScheduler();
+  let called = false;
+  scheduler.schedule(() => called = true, 1);
+  scheduler.tick(Infinity);
+  scheduler.tick(NaN);
+  assert.equal(called, false);
+  scheduler.tick(1);
+  assert.equal(called, true);
+});
+
+test("a failed effect reports its error without discarding unrelated due jobs", () => {
+  const scheduler = new GameScheduler();
+  let advanced = false;
+  scheduler.schedule(() => { throw new Error("effect failed"); });
+  scheduler.schedule(() => advanced = true);
+  assert.throws(() => scheduler.tick(0), AggregateError);
+  assert.equal(advanced, true);
+  assert.equal(scheduler.size, 0);
+});

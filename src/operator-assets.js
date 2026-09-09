@@ -530,3 +530,76 @@ export function createOperatorAssetLoader(options = {}) {
     },
   });
 }
+
+/** Finish the existing DNA rig in place; never swap its anatomy or animation anchors. */
+export function polishProceduralOperator(THREE, rig) {
+  if (!rig?.body || !rig.torso || rig.finish || (rig.assetSource && rig.assetSource !== 'procedural')) return rig;
+  const dna = rig.dna || {}, materials = new Set();
+  // The authored procedural builder sizes face attachments in body-space units,
+  // then parents them to a head mesh already scaled by headSize. Cancel that
+  // duplicate uniform size once: preserve every existing feature and retain the
+  // deliberate extra Y stretch on Cognara's brain silhouette.
+  if (rig.head && Number.isFinite(rig.head.scale.x) && rig.head.scale.x > 0) {
+    const headSize = rig.head.scale.x;
+    for (const feature of rig.head.children) {
+      feature.position.divideScalar(headSize);
+      feature.scale.divideScalar(headSize);
+    }
+  }
+  rig.body.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    mesh.receiveShadow = true;
+    for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+      if (!material?.isShaderMaterial || materials.has(material) || !material.uniforms.uGradSpan) continue;
+      materials.add(material);
+      // A proper normal transform prevents stretched torsos from acquiring false highlights.
+      material.vertexShader = material.vertexShader.replace(
+        'vNormal=normalize(mat3(modelMatrix)*normal);',
+        'vNormal=normalize((vec4(normalMatrix*normal,0.0)*viewMatrix).xyz);',
+      ).replace('varying vec3 vWorldPos;', 'varying vec3 vSurface; varying vec3 vWorldPos;')
+        .replace('vWorldPos=wp.xyz;', 'vWorldPos=wp.xyz; vSurface=position;');
+      material.fragmentShader = material.fragmentShader.replace(
+        'varying vec3 vWorldPos;', 'varying vec3 vSurface; varying vec3 vWorldPos;',
+      ).replace(
+        'float band=0.35+0.30*smoothstep(0.30,0.34,ndl)+0.35*smoothstep(0.62,0.66,ndl);',
+        'float band=0.30+0.70*smoothstep(0.08,0.94,ndl);',
+      ).replace(
+        'lit+=vec3(0.9)*step(0.972,dot(n,h))*0.55;',
+        `float spec=pow(max(dot(n,h),0.0),${dna.mech || dna.plates || dna.coin ? '68.0' : '34.0'});
+        float grain=sin(vSurface.x*102.0)*sin(vSurface.y*114.0)*sin(vSurface.z*98.0);
+        lit*=1.0+grain*0.018;
+        lit+=mix(vec3(0.86),uColorTop,0.24)*spec*0.28;`,
+      );
+      material.needsUpdate = true;
+    }
+  });
+  // Recessed fasteners sit inside the existing chest footprint. Their instancing
+  // keeps the addition to one draw call per operator and follows body articulation.
+  const hardware = new THREE.MeshStandardMaterial({color: dna.cBot || '#263344', metalness: .78, roughness: .34});
+  const geometry = new THREE.CylinderGeometry(1, 1, 1, 6);
+  const fasteners = new THREE.InstancedMesh(geometry, hardware, 4);
+  fasteners.name = 'division_chest_fasteners';
+  const transform = new THREE.Object3D(), torso = rig.torso;
+  for (let i = 0; i < 4; i++) {
+    const x = i % 2 ? 1 : -1, y = i < 2 ? 1 : -1;
+    transform.position.set(x * torso.scale.x * .43, torso.position.y + y * torso.scale.y * .28, torso.scale.z * .91);
+    transform.rotation.set(Math.PI / 2, 0, Math.PI / 6);
+    transform.scale.set(.027 * (rig.scale || 1), .018 * (rig.scale || 1), .027 * (rig.scale || 1));
+    transform.updateMatrix(); fasteners.setMatrixAt(i, transform.matrix);
+  }
+  fasteners.instanceMatrix.needsUpdate = true;
+  fasteners.castShadow = true; fasteners.receiveShadow = true;
+  rig.body.add(fasteners);
+  rig.finish = {version: 1, materialCount: materials.size, fasteners};
+  return rig;
+}
+
+/** Resolve an animated weapon socket into rig space, including pitch and roll.
+ * The previous yaw-only solve detached hands during recoil, reload and swaps.
+ */
+export function weaponSocketInRig(rig, x, y, z, target) {
+  rig.weapon.updateWorldMatrix(true, false);
+  target.set(x, y, z);
+  rig.weapon.localToWorld(target);
+  return rig.root.worldToLocal(target);
+}

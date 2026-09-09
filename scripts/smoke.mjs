@@ -10,12 +10,14 @@ import http from "node:http";
 import path from "node:path";
 import process from "node:process";
 import { chromium } from "playwright-core";
+import { resolveChromium, CHROMIUM_ARGS } from "./browser.mjs";
 
 import { ARENA_ORDER } from "../src/arena-core.js";
 
 const root = path.resolve(import.meta.dirname, "..");
 const ARENA_IDS = ARENA_ORDER;
 const args = process.argv.slice(2);
+const inputsOnly = args.includes("--inputs-only");
 const argOf = (flag, fallback) => {
   const i = args.indexOf(flag);
   return i === -1 ? fallback : args[i + 1];
@@ -52,31 +54,9 @@ const origin = `http://127.0.0.1:${server.address().port}`;
 
 fs.mkdirSync(outDir, { recursive: true });
 const problems = [];
-/* playwright-core ships no browsers, so point it at an installed Chromium.
-   Set CS3D_CHROMIUM, or PLAYWRIGHT_BROWSERS_PATH to a Playwright browser pool. */
-const resolveChromium = () => {
-  const explicit = process.env.CS3D_CHROMIUM;
-  if (explicit) {
-    if (!fs.existsSync(explicit)) throw new Error(`CS3D_CHROMIUM points at a missing binary: ${explicit}`);
-    return explicit;
-  }
-  const pool = process.env.PLAYWRIGHT_BROWSERS_PATH;
-  if (pool && fs.existsSync(pool)) {
-    const build = fs.readdirSync(pool).filter(entry => /^chromium(_headless_shell)?-\d+$/.test(entry)).sort().pop();
-    for (const candidate of build ? [
-      path.join(pool, build, "chrome-linux", "chrome"),
-      path.join(pool, build, "chrome-linux", "headless_shell")
-    ] : []) if (fs.existsSync(candidate)) return candidate;
-  }
-  for (const candidate of ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome"]) {
-    if (fs.existsSync(candidate)) return candidate;
-  }
-  throw new Error("No Chromium found. Set CS3D_CHROMIUM to a Chrome/Chromium binary.");
-};
-
 const browser = await chromium.launch({
   executablePath: resolveChromium(),
-  args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
+  args: CHROMIUM_ARGS
 });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const capture = (target, filename) => {
@@ -122,6 +102,7 @@ page.on("requestfailed", request => {
 page.on("request", request => requestedUrls.add(request.url()));
 
 try {
+  if (!inputsOnly) {
   console.log("smoke: loading game");
   await page.goto(`${origin}/index.html`, { waitUntil: "load" });
 
@@ -957,6 +938,8 @@ try {
   console.log("wave transition:", JSON.stringify(waveState));
   if (waveState.planLength < 2 || waveState.firstWave !== 0 || waveState.nextWave !== 1 || waveState.transitionState !== "round-end" || waveState.state !== "buy") problems.push(`wave transition failed: ${JSON.stringify(waveState)}`);
   await page.evaluate(() => window.CS3D_returnToMenu());
+
+  }
 
   console.log("smoke: controller-only title, squad, arena, and deployment journey");
   const gamepadPage = await browser.newPage({ viewport: { width: 1280, height: 720 } });

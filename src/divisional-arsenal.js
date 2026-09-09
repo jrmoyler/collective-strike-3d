@@ -88,3 +88,63 @@ export function validateAscendantArsenal(divisions) {
   }
   return errors;
 }
+
+/** Refine existing weapon meshes without altering combat or grip contracts. */
+export function polishWeaponAssembly(THREE, weapon) {
+  const data = weapon?.userData;
+  if (!data?.body || data.finish) return weapon;
+  const seen = new Set(), emitters = [];
+  weapon.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+      if (!material?.isMeshStandardMaterial || seen.has(material)) continue;
+      seen.add(material);
+      const energy = material.emissiveIntensity > 1;
+      material.metalness = energy ? .4 : .76;
+      material.roughness = energy ? .27 : .38;
+      if (energy) {
+        material.emissiveIntensity = Math.min(material.emissiveIntensity, 1.2);
+        emitters.push({material, base: material.emissiveIntensity});
+      }
+      mesh.receiveShadow = true;
+    }
+  });
+  const steel = new THREE.MeshStandardMaterial({color: '#84919c', metalness: .88, roughness: .3});
+  const recess = new THREE.MeshStandardMaterial({color: '#090f17', metalness: .45, roughness: .62});
+  const box = new THREE.BoxGeometry(1, 1, 1);
+  const pin = new THREE.CylinderGeometry(1, 1, 1, 8);
+  // Details live in normalized receiver coordinates, so pistol / SMG / rifle /
+  // sniper changes keep them seated on the actual receiver, not floating nearby.
+  const pins = new THREE.InstancedMesh(pin, steel, 8), transform = new THREE.Object3D();
+  pins.name = 'receiver_captive_pins';
+  for (let i = 0; i < 8; i++) {
+    transform.position.set(i < 4 ? -.505 : .505, i % 2 ? -.26 : .26, (i % 4 < 2 ? -.3 : .3));
+    transform.rotation.set(0, 0, Math.PI / 2);
+    transform.scale.set(.026, .013, .026);
+    transform.updateMatrix(); pins.setMatrixAt(i, transform.matrix);
+  }
+  pins.instanceMatrix.needsUpdate = true;
+  data.body.add(pins);
+  const vents = new THREE.InstancedMesh(box, recess, 10);
+  vents.name = 'receiver_cooling_recesses';
+  for (let i = 0; i < 10; i++) {
+    transform.position.set(i < 5 ? -.503 : .503, .03, -.18 + (i % 5) * .09);
+    transform.rotation.set(0, 0, -.18);
+    transform.scale.set(.012, .15, .027);
+    transform.updateMatrix(); vents.setMatrixAt(i, transform.matrix);
+  }
+  vents.instanceMatrix.needsUpdate = true;
+  data.body.add(vents);
+  data.finish = {heat: 0, emitters, pins, vents};
+  return weapon;
+}
+
+/** Time-based thermal afterglow; no allocations or scene changes during combat. */
+export function updateWeaponFinish(weapon, dt, kick = 0) {
+  const finish = weapon?.userData?.finish;
+  if (!finish) return;
+  const seconds = Number.isFinite(dt) ? Math.max(0, Math.min(dt, .1)) : 0;
+  const impulse = Number.isFinite(kick) ? Math.max(0, Math.min(1, kick)) : 0;
+  finish.heat = Math.min(1, Math.max(finish.heat * Math.exp(-seconds * 2.8), impulse * .8));
+  for (const emitter of finish.emitters) emitter.material.emissiveIntensity = emitter.base + finish.heat * .38;
+}

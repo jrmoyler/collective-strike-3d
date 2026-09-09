@@ -1,0 +1,817 @@
+FAIL
+warning: quality: preSpecAssessment has unresolved unknowns before implementation
+warning: quality: replace generic starter featureReviewTargets with object-specific identity-defining semantic systems before strict validation
+warning: quality: material-pass needs reference-derived albedo palette or secondary/accent color zones
+warning: quality: material 'surface-0' textureResolution must be >= 1024
+warning: quality: material 'surface-0' needs textureProjection.mode and texel-density intent
+warning: quality: material 'surface-0' missing surface frequency bands: macro, meso, micro
+warning: quality: material 'surface-0' needs an independent roughness map
+warning: quality: material 'surface-0' needs an independent ambient-occlusion response
+warning: quality: material 'surface-0' needs usable referencePbr extracted from source pixels
+warning: quality: material 'surface-1' textureResolution must be >= 1024
+warning: quality: material 'surface-1' needs textureProjection.mode and texel-density intent
+warning: quality: material 'surface-1' missing surface frequency bands: macro, meso, micro
+warning: quality: material 'surface-1' needs an independent roughness map
+warning: quality: material 'surface-1' needs an independent ambient-occlusion response
+warning: quality: material 'surface-1' needs usable referencePbr extracted from source pixels
+warning: quality: material 'surface-2' textureResolution must be >= 1024
+warning: quality: material 'surface-2' needs textureProjection.mode and texel-density intent
+warning: quality: material 'surface-2' missing surface frequency bands: macro, meso, micro
+warning: quality: material 'surface-2' needs an independent roughness map
+warning: quality: material 'surface-2' needs an independent ambient-occlusion response
+warning: quality: material 'surface-2' needs usable referencePbr extracted from source pixels
+warning: quality: lighting-pass needs concrete key/fill/rim or environment light entries
+warning: quality: component 'reactor-deck-visual' is missing colorMaterialRecipe
+warning: quality: component 'reactor-deck-trim-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-body-visual' is missing colorMaterialRecipe
+warning: quality: component 'ceramic-jacket-visual' is missing colorMaterialRecipe
+warning: quality: component 'ceramic-panel-0-visual' is missing colorMaterialRecipe
+warning: quality: component 'ceramic-panel-1-visual' is missing colorMaterialRecipe
+warning: quality: component 'ceramic-panel-3-visual' is missing colorMaterialRecipe
+warning: quality: component 'ceramic-panel-4-visual' is missing colorMaterialRecipe
+warning: quality: component 'ceramic-panel-5-visual' is missing colorMaterialRecipe
+warning: quality: component 'ceramic-panel-6-visual' is missing colorMaterialRecipe
+warning: quality: component 'ceramic-panel-7-visual' is missing colorMaterialRecipe
+warning: quality: component 'molten-window-visual' is missing colorMaterialRecipe
+warning: quality: component 'window-frame-left-visual' is missing colorMaterialRecipe
+warning: quality: component 'window-frame-right-visual' is missing colorMaterialRecipe
+warning: quality: component 'window-frame-top-visual' is missing colorMaterialRecipe
+warning: quality: component 'window-frame-bottom-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-0-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-1-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-2-visual' is missing colorMaterialRecipe
+warning: quality: component 'lower-molten-port-visual' is missing colorMaterialRecipe
+warning: quality: component 'lower-port-left-visual' is missing colorMaterialRecipe
+warning: quality: component 'lower-port-right-visual' is missing colorMaterialRecipe
+warning: quality: component 'lower-port-top-visual' is missing colorMaterialRecipe
+warning: quality: component 'crucible-visual' is missing colorMaterialRecipe
+warning: quality: component 'pour-stream-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-leg-0-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-foot-0-visual' is missing colorMaterialRecipe
+warning: quality: component 'service-pod-0-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-leg-1-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-foot-1-visual' is missing colorMaterialRecipe
+warning: quality: component 'service-pod-1-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-leg-2-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-foot-2-visual' is missing colorMaterialRecipe
+warning: quality: component 'service-pod-2-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-leg-3-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-foot-3-visual' is missing colorMaterialRecipe
+warning: quality: component 'service-pod-3-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-leg-4-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-foot-4-visual' is missing colorMaterialRecipe
+warning: quality: component 'service-pod-4-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-leg-5-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-foot-5-visual' is missing colorMaterialRecipe
+warning: quality: component 'service-pod-5-visual' is missing colorMaterialRecipe
+warning: quality: component 'gantry-pillar-0-visual' is missing colorMaterialRecipe
+warning: quality: component 'gantry-pillar-1-visual' is missing colorMaterialRecipe
+warning: quality: component 'gantry-pillar-2-visual' is missing colorMaterialRecipe
+warning: quality: component 'gantry-pillar-3-visual' is missing colorMaterialRecipe
+warning: quality: component 'overhead-pour-ring-visual' is missing colorMaterialRecipe
+warning: quality: component 'overhead-carriage-visual' is missing colorMaterialRecipe
+warning: quality: component 'carriage-heat-core-visual' is missing colorMaterialRecipe
+warning: quality: component 'coolant-loop-visual' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-0' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-1' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-2' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-3' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-4' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-5' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-6' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-7' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-8' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-9' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-10' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-11' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-12' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-13' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-14' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-15' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-16' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-17' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-18' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-19' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-20' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-21' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-22' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-23' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-24' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-25' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-26' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-27' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-28' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-29' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-30' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-31' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-32' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-33' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-34' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-35' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-36' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-37' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-38' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-39' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-40' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-41' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-42' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-43' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-44' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-45' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-46' is missing colorMaterialRecipe
+warning: quality: component 'furnace-band-fasteners-47' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-0' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-1' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-2' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-3' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-4' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-5' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-6' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-7' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-8' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-9' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-10' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-11' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-12' is missing colorMaterialRecipe
+warning: quality: component 'service-ladder-13' is missing colorMaterialRecipe
+warning: quality: component 'open-molten-reservoir-visual' is missing colorMaterialRecipe
+warning: quality: macroComponents below qualityContract minimum (0 < 3)
+warning: quality: detailInventory detail 'window-frame-left-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'window-frame-left-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'window-frame-right-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'window-frame-right-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'window-frame-top-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'window-frame-top-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'window-frame-bottom-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'window-frame-bottom-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-0-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-0-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-1-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-1-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-2-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-2-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'lower-molten-port-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'lower-molten-port-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'lower-port-left-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'lower-port-left-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'lower-port-right-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'lower-port-right-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'lower-port-top-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'lower-port-top-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'coolant-loop-visual-detail' has unknown kind None
+warning: quality: detailInventory detail 'coolant-loop-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-0-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-0-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-1-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-1-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-2-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-2-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-3-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-3-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-4-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-4-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-5-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-5-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-6-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-6-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-7-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-7-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-8-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-8-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-9-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-9-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-10-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-10-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-11-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-11-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-12-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-12-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-13-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-13-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-14-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-14-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-15-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-15-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-16-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-16-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-17-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-17-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-18-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-18-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-19-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-19-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-20-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-20-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-21-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-21-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-22-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-22-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-23-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-23-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-24-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-24-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-25-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-25-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-26-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-26-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-27-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-27-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-28-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-28-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-29-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-29-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-30-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-30-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-31-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-31-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-32-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-32-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-33-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-33-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-34-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-34-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-35-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-35-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-36-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-36-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-37-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-37-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-38-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-38-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-39-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-39-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-40-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-40-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-41-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-41-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-42-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-42-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-43-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-43-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-44-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-44-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-45-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-45-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-46-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-46-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'furnace-band-fasteners-47-detail' has unknown kind None
+warning: quality: detailInventory detail 'furnace-band-fasteners-47-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-0-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-0-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-1-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-1-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-2-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-2-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-3-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-3-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-4-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-4-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-5-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-5-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-6-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-6-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-7-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-7-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-8-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-8-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-9-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-9-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-10-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-10-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-11-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-11-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-12-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-12-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+warning: quality: detailInventory detail 'service-ladder-13-detail' has unknown kind None
+warning: quality: detailInventory detail 'service-ladder-13-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: preSpecAssessment.complexity.scores.silhouetteComplexity must be an integer from 0 to 3
+error: preSpecAssessment.complexity.scores.componentCount must be an integer from 0 to 3
+error: preSpecAssessment.complexity.scores.hierarchyDepth must be an integer from 0 to 3
+error: preSpecAssessment.complexity.scores.repetitionDensity must be an integer from 0 to 3
+error: preSpecAssessment.complexity.scores.materialLayerCount must be an integer from 0 to 3
+error: preSpecAssessment.complexity.scores.localDetailDensity must be an integer from 0 to 3
+error: preSpecAssessment.complexity.scores.occlusionRisk must be an integer from 0 to 3
+error: preSpecAssessment.complexity.scores.actionReadinessNeed must be an integer from 0 to 3
+error: score 'object_isolation' must be an integer from 0 to 3
+error: score 'silhouette_readability' must be an integer from 0 to 3
+error: score 'depth_inference' must be an integer from 0 to 3
+error: score 'primitive_decomposition' must be an integer from 0 to 3
+error: score 'material_procedurality' must be an integer from 0 to 3
+error: score 'occlusion_risk' must be an integer from 0 to 3
+error: score 'interaction_fit' must be an integer from 0 to 3
+error: material 'surface-0' baseColor/color should be #RGB or #RRGGBB
+error: material 'surface-1' baseColor/color should be #RGB or #RRGGBB
+error: material 'surface-2' baseColor/color should be #RGB or #RRGGBB
+error: component 'reactor-deck-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'reactor-deck-visual' materialLayers references unknown material 'base'
+error: component 'reactor-deck-trim-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'reactor-deck-trim-visual' materialLayers references unknown material 'base'
+error: component 'furnace-body-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-body-visual' materialLayers references unknown material 'base'
+error: component 'ceramic-jacket-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'ceramic-jacket-visual' materialLayers references unknown material 'base'
+error: component 'ceramic-panel-0-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'ceramic-panel-0-visual' materialLayers references unknown material 'base'
+error: component 'ceramic-panel-1-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'ceramic-panel-1-visual' materialLayers references unknown material 'base'
+error: component 'ceramic-panel-3-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'ceramic-panel-3-visual' materialLayers references unknown material 'base'
+error: component 'ceramic-panel-4-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'ceramic-panel-4-visual' materialLayers references unknown material 'base'
+error: component 'ceramic-panel-5-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'ceramic-panel-5-visual' materialLayers references unknown material 'base'
+error: component 'ceramic-panel-6-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'ceramic-panel-6-visual' materialLayers references unknown material 'base'
+error: component 'ceramic-panel-7-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'ceramic-panel-7-visual' materialLayers references unknown material 'base'
+error: component 'molten-window-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'molten-window-visual' materialLayers references unknown material 'base'
+error: component 'window-frame-left-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'window-frame-left-visual' materialLayers references unknown material 'base'
+error: component 'window-frame-right-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'window-frame-right-visual' materialLayers references unknown material 'base'
+error: component 'window-frame-top-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'window-frame-top-visual' materialLayers references unknown material 'base'
+error: component 'window-frame-bottom-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'window-frame-bottom-visual' materialLayers references unknown material 'base'
+error: component 'furnace-band-0-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-0-visual' materialLayers references unknown material 'base'
+error: component 'furnace-band-1-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-1-visual' materialLayers references unknown material 'base'
+error: component 'furnace-band-2-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-2-visual' materialLayers references unknown material 'base'
+error: component 'lower-molten-port-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'lower-molten-port-visual' materialLayers references unknown material 'base'
+error: component 'lower-port-left-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'lower-port-left-visual' materialLayers references unknown material 'base'
+error: component 'lower-port-right-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'lower-port-right-visual' materialLayers references unknown material 'base'
+error: component 'lower-port-top-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'lower-port-top-visual' materialLayers references unknown material 'base'
+error: component 'crucible-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'crucible-visual' materialLayers references unknown material 'base'
+error: component 'pour-stream-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'pour-stream-visual' materialLayers references unknown material 'base'
+error: component 'furnace-leg-0-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-leg-0-visual' materialLayers references unknown material 'base'
+error: component 'furnace-foot-0-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-foot-0-visual' materialLayers references unknown material 'base'
+error: component 'service-pod-0-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-pod-0-visual' materialLayers references unknown material 'base'
+error: component 'furnace-leg-1-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-leg-1-visual' materialLayers references unknown material 'base'
+error: component 'furnace-foot-1-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-foot-1-visual' materialLayers references unknown material 'base'
+error: component 'service-pod-1-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-pod-1-visual' materialLayers references unknown material 'base'
+error: component 'furnace-leg-2-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-leg-2-visual' materialLayers references unknown material 'base'
+error: component 'furnace-foot-2-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-foot-2-visual' materialLayers references unknown material 'base'
+error: component 'service-pod-2-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-pod-2-visual' materialLayers references unknown material 'base'
+error: component 'furnace-leg-3-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-leg-3-visual' materialLayers references unknown material 'base'
+error: component 'furnace-foot-3-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-foot-3-visual' materialLayers references unknown material 'base'
+error: component 'service-pod-3-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-pod-3-visual' materialLayers references unknown material 'base'
+error: component 'furnace-leg-4-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-leg-4-visual' materialLayers references unknown material 'base'
+error: component 'furnace-foot-4-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-foot-4-visual' materialLayers references unknown material 'base'
+error: component 'service-pod-4-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-pod-4-visual' materialLayers references unknown material 'base'
+error: component 'furnace-leg-5-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-leg-5-visual' materialLayers references unknown material 'base'
+error: component 'furnace-foot-5-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-foot-5-visual' materialLayers references unknown material 'base'
+error: component 'service-pod-5-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-pod-5-visual' materialLayers references unknown material 'base'
+error: component 'gantry-pillar-0-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'gantry-pillar-0-visual' materialLayers references unknown material 'base'
+error: component 'gantry-pillar-1-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'gantry-pillar-1-visual' materialLayers references unknown material 'base'
+error: component 'gantry-pillar-2-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'gantry-pillar-2-visual' materialLayers references unknown material 'base'
+error: component 'gantry-pillar-3-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'gantry-pillar-3-visual' materialLayers references unknown material 'base'
+error: component 'overhead-pour-ring-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'overhead-pour-ring-visual' materialLayers references unknown material 'base'
+error: component 'overhead-carriage-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'overhead-carriage-visual' materialLayers references unknown material 'base'
+error: component 'carriage-heat-core-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'carriage-heat-core-visual' materialLayers references unknown material 'base'
+error: component 'coolant-loop-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'coolant-loop-visual' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-0' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-0' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-1' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-1' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-2' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-2' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-3' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-3' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-4' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-4' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-5' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-5' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-6' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-6' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-7' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-7' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-8' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-8' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-9' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-9' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-10' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-10' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-11' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-11' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-12' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-12' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-13' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-13' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-14' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-14' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-15' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-15' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-16' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-16' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-17' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-17' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-18' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-18' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-19' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-19' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-20' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-20' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-21' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-21' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-22' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-22' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-23' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-23' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-24' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-24' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-25' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-25' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-26' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-26' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-27' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-27' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-28' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-28' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-29' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-29' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-30' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-30' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-31' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-31' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-32' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-32' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-33' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-33' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-34' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-34' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-35' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-35' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-36' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-36' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-37' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-37' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-38' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-38' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-39' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-39' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-40' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-40' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-41' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-41' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-42' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-42' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-43' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-43' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-44' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-44' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-45' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-45' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-46' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-46' materialLayers references unknown material 'base'
+error: component 'furnace-band-fasteners-47' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'furnace-band-fasteners-47' materialLayers references unknown material 'base'
+error: component 'service-ladder-0' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-0' materialLayers references unknown material 'base'
+error: component 'service-ladder-1' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-1' materialLayers references unknown material 'base'
+error: component 'service-ladder-2' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-2' materialLayers references unknown material 'base'
+error: component 'service-ladder-3' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-3' materialLayers references unknown material 'base'
+error: component 'service-ladder-4' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-4' materialLayers references unknown material 'base'
+error: component 'service-ladder-5' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-5' materialLayers references unknown material 'base'
+error: component 'service-ladder-6' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-6' materialLayers references unknown material 'base'
+error: component 'service-ladder-7' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-7' materialLayers references unknown material 'base'
+error: component 'service-ladder-8' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-8' materialLayers references unknown material 'base'
+error: component 'service-ladder-9' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-9' materialLayers references unknown material 'base'
+error: component 'service-ladder-10' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-10' materialLayers references unknown material 'base'
+error: component 'service-ladder-11' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-11' materialLayers references unknown material 'base'
+error: component 'service-ladder-12' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-12' materialLayers references unknown material 'base'
+error: component 'service-ladder-13' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'service-ladder-13' materialLayers references unknown material 'base'
+error: component 'open-molten-reservoir-visual' primitive must be one of: box, capsule, cone, curve-sweep, cylinder, ellipsoid, extrude, ground-blade, instanced-cluster, lathe, plane-card, sphere, torus, tube
+error: component 'open-molten-reservoir-visual' materialLayers references unknown material 'base'
+error: strict quality failure: preSpecAssessment has unresolved unknowns before implementation
+error: strict quality failure: replace generic starter featureReviewTargets with object-specific identity-defining semantic systems before strict validation
+error: strict quality failure: material-pass needs reference-derived albedo palette or secondary/accent color zones
+error: strict quality failure: material 'surface-0' textureResolution must be >= 1024
+error: strict quality failure: material 'surface-0' needs textureProjection.mode and texel-density intent
+error: strict quality failure: material 'surface-0' missing surface frequency bands: macro, meso, micro
+error: strict quality failure: material 'surface-0' needs an independent roughness map
+error: strict quality failure: material 'surface-0' needs an independent ambient-occlusion response
+error: strict quality failure: material 'surface-0' needs usable referencePbr extracted from source pixels
+error: strict quality failure: material 'surface-1' textureResolution must be >= 1024
+error: strict quality failure: material 'surface-1' needs textureProjection.mode and texel-density intent
+error: strict quality failure: material 'surface-1' missing surface frequency bands: macro, meso, micro
+error: strict quality failure: material 'surface-1' needs an independent roughness map
+error: strict quality failure: material 'surface-1' needs an independent ambient-occlusion response
+error: strict quality failure: material 'surface-1' needs usable referencePbr extracted from source pixels
+error: strict quality failure: material 'surface-2' textureResolution must be >= 1024
+error: strict quality failure: material 'surface-2' needs textureProjection.mode and texel-density intent
+error: strict quality failure: material 'surface-2' missing surface frequency bands: macro, meso, micro
+error: strict quality failure: material 'surface-2' needs an independent roughness map
+error: strict quality failure: material 'surface-2' needs an independent ambient-occlusion response
+error: strict quality failure: material 'surface-2' needs usable referencePbr extracted from source pixels
+error: strict quality failure: lighting-pass needs concrete key/fill/rim or environment light entries
+error: strict quality failure: component 'reactor-deck-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'reactor-deck-trim-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-body-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'ceramic-jacket-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'ceramic-panel-0-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'ceramic-panel-1-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'ceramic-panel-3-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'ceramic-panel-4-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'ceramic-panel-5-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'ceramic-panel-6-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'ceramic-panel-7-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'molten-window-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'window-frame-left-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'window-frame-right-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'window-frame-top-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'window-frame-bottom-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-0-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-1-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-2-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'lower-molten-port-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'lower-port-left-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'lower-port-right-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'lower-port-top-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'crucible-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'pour-stream-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-leg-0-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-foot-0-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-pod-0-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-leg-1-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-foot-1-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-pod-1-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-leg-2-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-foot-2-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-pod-2-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-leg-3-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-foot-3-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-pod-3-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-leg-4-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-foot-4-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-pod-4-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-leg-5-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-foot-5-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-pod-5-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'gantry-pillar-0-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'gantry-pillar-1-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'gantry-pillar-2-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'gantry-pillar-3-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'overhead-pour-ring-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'overhead-carriage-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'carriage-heat-core-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'coolant-loop-visual' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-0' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-1' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-2' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-3' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-4' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-5' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-6' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-7' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-8' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-9' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-10' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-11' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-12' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-13' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-14' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-15' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-16' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-17' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-18' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-19' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-20' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-21' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-22' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-23' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-24' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-25' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-26' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-27' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-28' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-29' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-30' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-31' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-32' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-33' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-34' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-35' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-36' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-37' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-38' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-39' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-40' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-41' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-42' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-43' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-44' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-45' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-46' is missing colorMaterialRecipe
+error: strict quality failure: component 'furnace-band-fasteners-47' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-0' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-1' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-2' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-3' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-4' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-5' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-6' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-7' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-8' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-9' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-10' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-11' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-12' is missing colorMaterialRecipe
+error: strict quality failure: component 'service-ladder-13' is missing colorMaterialRecipe
+error: strict quality failure: component 'open-molten-reservoir-visual' is missing colorMaterialRecipe
+error: strict quality failure: macroComponents below qualityContract minimum (0 < 3)
+error: strict quality failure: detailInventory detail 'window-frame-left-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'window-frame-left-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'window-frame-right-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'window-frame-right-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'window-frame-top-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'window-frame-top-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'window-frame-bottom-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'window-frame-bottom-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-0-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-0-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-1-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-1-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-2-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-2-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'lower-molten-port-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'lower-molten-port-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'lower-port-left-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'lower-port-left-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'lower-port-right-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'lower-port-right-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'lower-port-top-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'lower-port-top-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'coolant-loop-visual-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'coolant-loop-visual-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-0-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-0-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-1-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-1-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-2-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-2-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-3-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-3-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-4-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-4-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-5-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-5-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-6-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-6-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-7-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-7-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-8-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-8-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-9-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-9-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-10-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-10-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-11-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-11-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-12-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-12-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-13-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-13-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-14-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-14-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-15-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-15-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-16-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-16-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-17-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-17-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-18-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-18-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-19-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-19-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-20-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-20-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-21-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-21-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-22-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-22-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-23-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-23-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-24-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-24-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-25-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-25-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-26-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-26-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-27-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-27-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-28-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-28-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-29-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-29-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-30-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-30-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-31-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-31-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-32-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-32-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-33-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-33-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-34-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-34-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-35-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-35-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-36-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-36-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-37-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-37-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-38-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-38-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-39-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-39-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-40-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-40-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-41-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-41-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-42-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-42-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-43-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-43-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-44-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-44-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-45-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-45-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-46-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-46-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-47-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'furnace-band-fasteners-47-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-0-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-0-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-1-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-1-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-2-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-2-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-3-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-3-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-4-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-4-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-5-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-5-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-6-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-6-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-7-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-7-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-8-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-8-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-9-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-9-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-10-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-10-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-11-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-11-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-12-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-12-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)
+error: strict quality failure: detailInventory detail 'service-ladder-13-detail' has unknown kind None
+error: strict quality failure: detailInventory detail 'service-ladder-13-detail' does not map to a component.localFeatures or material.localOverrides entry (no prose-only details)

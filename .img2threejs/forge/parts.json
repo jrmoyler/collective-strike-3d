@@ -1,0 +1,574 @@
+{
+  "parts": [
+    {
+      "id": "reactor-deck-visual",
+      "name": "reactor-deck-visual",
+      "meshName": "reactor-deck-visual"
+    },
+    {
+      "id": "reactor-deck-trim-visual",
+      "name": "reactor-deck-trim-visual",
+      "meshName": "reactor-deck-trim-visual"
+    },
+    {
+      "id": "furnace-body-visual",
+      "name": "furnace-body-visual",
+      "meshName": "furnace-body-visual"
+    },
+    {
+      "id": "ceramic-jacket-visual",
+      "name": "ceramic-jacket-visual",
+      "meshName": "ceramic-jacket-visual"
+    },
+    {
+      "id": "ceramic-panel-0-visual",
+      "name": "ceramic-panel-0-visual",
+      "meshName": "ceramic-panel-0-visual"
+    },
+    {
+      "id": "ceramic-panel-1-visual",
+      "name": "ceramic-panel-1-visual",
+      "meshName": "ceramic-panel-1-visual"
+    },
+    {
+      "id": "ceramic-panel-3-visual",
+      "name": "ceramic-panel-3-visual",
+      "meshName": "ceramic-panel-3-visual"
+    },
+    {
+      "id": "ceramic-panel-4-visual",
+      "name": "ceramic-panel-4-visual",
+      "meshName": "ceramic-panel-4-visual"
+    },
+    {
+      "id": "ceramic-panel-5-visual",
+      "name": "ceramic-panel-5-visual",
+      "meshName": "ceramic-panel-5-visual"
+    },
+    {
+      "id": "ceramic-panel-6-visual",
+      "name": "ceramic-panel-6-visual",
+      "meshName": "ceramic-panel-6-visual"
+    },
+    {
+      "id": "ceramic-panel-7-visual",
+      "name": "ceramic-panel-7-visual",
+      "meshName": "ceramic-panel-7-visual"
+    },
+    {
+      "id": "molten-window-visual",
+      "name": "molten-window-visual",
+      "meshName": "molten-window-visual"
+    },
+    {
+      "id": "window-frame-left-visual",
+      "name": "window-frame-left-visual",
+      "meshName": "window-frame-left-visual"
+    },
+    {
+      "id": "window-frame-right-visual",
+      "name": "window-frame-right-visual",
+      "meshName": "window-frame-right-visual"
+    },
+    {
+      "id": "window-frame-top-visual",
+      "name": "window-frame-top-visual",
+      "meshName": "window-frame-top-visual"
+    },
+    {
+      "id": "window-frame-bottom-visual",
+      "name": "window-frame-bottom-visual",
+      "meshName": "window-frame-bottom-visual"
+    },
+    {
+      "id": "furnace-band-0-visual",
+      "name": "furnace-band-0-visual",
+      "meshName": "furnace-band-0-visual"
+    },
+    {
+      "id": "furnace-band-1-visual",
+      "name": "furnace-band-1-visual",
+      "meshName": "furnace-band-1-visual"
+    },
+    {
+      "id": "furnace-band-2-visual",
+      "name": "furnace-band-2-visual",
+      "meshName": "furnace-band-2-visual"
+    },
+    {
+      "id": "lower-molten-port-visual",
+      "name": "lower-molten-port-visual",
+      "meshName": "lower-molten-port-visual"
+    },
+    {
+      "id": "lower-port-left-visual",
+      "name": "lower-port-left-visual",
+      "meshName": "lower-port-left-visual"
+    },
+    {
+      "id": "lower-port-right-visual",
+      "name": "lower-port-right-visual",
+      "meshName": "lower-port-right-visual"
+    },
+    {
+      "id": "lower-port-top-visual",
+      "name": "lower-port-top-visual",
+      "meshName": "lower-port-top-visual"
+    },
+    {
+      "id": "crucible-visual",
+      "name": "crucible-visual",
+      "meshName": "crucible-visual"
+    },
+    {
+      "id": "pour-stream-visual",
+      "name": "pour-stream-visual",
+      "meshName": "pour-stream-visual"
+    },
+    {
+      "id": "furnace-leg-0-visual",
+      "name": "furnace-leg-0-visual",
+      "meshName": "furnace-leg-0-visual"
+    },
+    {
+      "id": "furnace-foot-0-visual",
+      "name": "furnace-foot-0-visual",
+      "meshName": "furnace-foot-0-visual"
+    },
+    {
+      "id": "service-pod-0-visual",
+      "name": "service-pod-0-visual",
+      "meshName": "service-pod-0-visual"
+    },
+    {
+      "id": "furnace-leg-1-visual",
+      "name": "furnace-leg-1-visual",
+      "meshName": "furnace-leg-1-visual"
+    },
+    {
+      "id": "furnace-foot-1-visual",
+      "name": "furnace-foot-1-visual",
+      "meshName": "furnace-foot-1-visual"
+    },
+    {
+      "id": "service-pod-1-visual",
+      "name": "service-pod-1-visual",
+      "meshName": "service-pod-1-visual"
+    },
+    {
+      "id": "furnace-leg-2-visual",
+      "name": "furnace-leg-2-visual",
+      "meshName": "furnace-leg-2-visual"
+    },
+    {
+      "id": "furnace-foot-2-visual",
+      "name": "furnace-foot-2-visual",
+      "meshName": "furnace-foot-2-visual"
+    },
+    {
+      "id": "service-pod-2-visual",
+      "name": "service-pod-2-visual",
+      "meshName": "service-pod-2-visual"
+    },
+    {
+      "id": "furnace-leg-3-visual",
+      "name": "furnace-leg-3-visual",
+      "meshName": "furnace-leg-3-visual"
+    },
+    {
+      "id": "furnace-foot-3-visual",
+      "name": "furnace-foot-3-visual",
+      "meshName": "furnace-foot-3-visual"
+    },
+    {
+      "id": "service-pod-3-visual",
+      "name": "service-pod-3-visual",
+      "meshName": "service-pod-3-visual"
+    },
+    {
+      "id": "furnace-leg-4-visual",
+      "name": "furnace-leg-4-visual",
+      "meshName": "furnace-leg-4-visual"
+    },
+    {
+      "id": "furnace-foot-4-visual",
+      "name": "furnace-foot-4-visual",
+      "meshName": "furnace-foot-4-visual"
+    },
+    {
+      "id": "service-pod-4-visual",
+      "name": "service-pod-4-visual",
+      "meshName": "service-pod-4-visual"
+    },
+    {
+      "id": "furnace-leg-5-visual",
+      "name": "furnace-leg-5-visual",
+      "meshName": "furnace-leg-5-visual"
+    },
+    {
+      "id": "furnace-foot-5-visual",
+      "name": "furnace-foot-5-visual",
+      "meshName": "furnace-foot-5-visual"
+    },
+    {
+      "id": "service-pod-5-visual",
+      "name": "service-pod-5-visual",
+      "meshName": "service-pod-5-visual"
+    },
+    {
+      "id": "gantry-pillar-0-visual",
+      "name": "gantry-pillar-0-visual",
+      "meshName": "gantry-pillar-0-visual"
+    },
+    {
+      "id": "gantry-pillar-1-visual",
+      "name": "gantry-pillar-1-visual",
+      "meshName": "gantry-pillar-1-visual"
+    },
+    {
+      "id": "gantry-pillar-2-visual",
+      "name": "gantry-pillar-2-visual",
+      "meshName": "gantry-pillar-2-visual"
+    },
+    {
+      "id": "gantry-pillar-3-visual",
+      "name": "gantry-pillar-3-visual",
+      "meshName": "gantry-pillar-3-visual"
+    },
+    {
+      "id": "overhead-pour-ring-visual",
+      "name": "overhead-pour-ring-visual",
+      "meshName": "overhead-pour-ring-visual"
+    },
+    {
+      "id": "overhead-carriage-visual",
+      "name": "overhead-carriage-visual",
+      "meshName": "overhead-carriage-visual"
+    },
+    {
+      "id": "carriage-heat-core-visual",
+      "name": "carriage-heat-core-visual",
+      "meshName": "carriage-heat-core-visual"
+    },
+    {
+      "id": "coolant-loop-visual",
+      "name": "coolant-loop-visual",
+      "meshName": "coolant-loop-visual"
+    },
+    {
+      "id": "furnace-band-fasteners-0",
+      "name": "furnace-band-fasteners-0",
+      "meshName": "furnace-band-fasteners-0"
+    },
+    {
+      "id": "furnace-band-fasteners-1",
+      "name": "furnace-band-fasteners-1",
+      "meshName": "furnace-band-fasteners-1"
+    },
+    {
+      "id": "furnace-band-fasteners-2",
+      "name": "furnace-band-fasteners-2",
+      "meshName": "furnace-band-fasteners-2"
+    },
+    {
+      "id": "furnace-band-fasteners-3",
+      "name": "furnace-band-fasteners-3",
+      "meshName": "furnace-band-fasteners-3"
+    },
+    {
+      "id": "furnace-band-fasteners-4",
+      "name": "furnace-band-fasteners-4",
+      "meshName": "furnace-band-fasteners-4"
+    },
+    {
+      "id": "furnace-band-fasteners-5",
+      "name": "furnace-band-fasteners-5",
+      "meshName": "furnace-band-fasteners-5"
+    },
+    {
+      "id": "furnace-band-fasteners-6",
+      "name": "furnace-band-fasteners-6",
+      "meshName": "furnace-band-fasteners-6"
+    },
+    {
+      "id": "furnace-band-fasteners-7",
+      "name": "furnace-band-fasteners-7",
+      "meshName": "furnace-band-fasteners-7"
+    },
+    {
+      "id": "furnace-band-fasteners-8",
+      "name": "furnace-band-fasteners-8",
+      "meshName": "furnace-band-fasteners-8"
+    },
+    {
+      "id": "furnace-band-fasteners-9",
+      "name": "furnace-band-fasteners-9",
+      "meshName": "furnace-band-fasteners-9"
+    },
+    {
+      "id": "furnace-band-fasteners-10",
+      "name": "furnace-band-fasteners-10",
+      "meshName": "furnace-band-fasteners-10"
+    },
+    {
+      "id": "furnace-band-fasteners-11",
+      "name": "furnace-band-fasteners-11",
+      "meshName": "furnace-band-fasteners-11"
+    },
+    {
+      "id": "furnace-band-fasteners-12",
+      "name": "furnace-band-fasteners-12",
+      "meshName": "furnace-band-fasteners-12"
+    },
+    {
+      "id": "furnace-band-fasteners-13",
+      "name": "furnace-band-fasteners-13",
+      "meshName": "furnace-band-fasteners-13"
+    },
+    {
+      "id": "furnace-band-fasteners-14",
+      "name": "furnace-band-fasteners-14",
+      "meshName": "furnace-band-fasteners-14"
+    },
+    {
+      "id": "furnace-band-fasteners-15",
+      "name": "furnace-band-fasteners-15",
+      "meshName": "furnace-band-fasteners-15"
+    },
+    {
+      "id": "furnace-band-fasteners-16",
+      "name": "furnace-band-fasteners-16",
+      "meshName": "furnace-band-fasteners-16"
+    },
+    {
+      "id": "furnace-band-fasteners-17",
+      "name": "furnace-band-fasteners-17",
+      "meshName": "furnace-band-fasteners-17"
+    },
+    {
+      "id": "furnace-band-fasteners-18",
+      "name": "furnace-band-fasteners-18",
+      "meshName": "furnace-band-fasteners-18"
+    },
+    {
+      "id": "furnace-band-fasteners-19",
+      "name": "furnace-band-fasteners-19",
+      "meshName": "furnace-band-fasteners-19"
+    },
+    {
+      "id": "furnace-band-fasteners-20",
+      "name": "furnace-band-fasteners-20",
+      "meshName": "furnace-band-fasteners-20"
+    },
+    {
+      "id": "furnace-band-fasteners-21",
+      "name": "furnace-band-fasteners-21",
+      "meshName": "furnace-band-fasteners-21"
+    },
+    {
+      "id": "furnace-band-fasteners-22",
+      "name": "furnace-band-fasteners-22",
+      "meshName": "furnace-band-fasteners-22"
+    },
+    {
+      "id": "furnace-band-fasteners-23",
+      "name": "furnace-band-fasteners-23",
+      "meshName": "furnace-band-fasteners-23"
+    },
+    {
+      "id": "furnace-band-fasteners-24",
+      "name": "furnace-band-fasteners-24",
+      "meshName": "furnace-band-fasteners-24"
+    },
+    {
+      "id": "furnace-band-fasteners-25",
+      "name": "furnace-band-fasteners-25",
+      "meshName": "furnace-band-fasteners-25"
+    },
+    {
+      "id": "furnace-band-fasteners-26",
+      "name": "furnace-band-fasteners-26",
+      "meshName": "furnace-band-fasteners-26"
+    },
+    {
+      "id": "furnace-band-fasteners-27",
+      "name": "furnace-band-fasteners-27",
+      "meshName": "furnace-band-fasteners-27"
+    },
+    {
+      "id": "furnace-band-fasteners-28",
+      "name": "furnace-band-fasteners-28",
+      "meshName": "furnace-band-fasteners-28"
+    },
+    {
+      "id": "furnace-band-fasteners-29",
+      "name": "furnace-band-fasteners-29",
+      "meshName": "furnace-band-fasteners-29"
+    },
+    {
+      "id": "furnace-band-fasteners-30",
+      "name": "furnace-band-fasteners-30",
+      "meshName": "furnace-band-fasteners-30"
+    },
+    {
+      "id": "furnace-band-fasteners-31",
+      "name": "furnace-band-fasteners-31",
+      "meshName": "furnace-band-fasteners-31"
+    },
+    {
+      "id": "furnace-band-fasteners-32",
+      "name": "furnace-band-fasteners-32",
+      "meshName": "furnace-band-fasteners-32"
+    },
+    {
+      "id": "furnace-band-fasteners-33",
+      "name": "furnace-band-fasteners-33",
+      "meshName": "furnace-band-fasteners-33"
+    },
+    {
+      "id": "furnace-band-fasteners-34",
+      "name": "furnace-band-fasteners-34",
+      "meshName": "furnace-band-fasteners-34"
+    },
+    {
+      "id": "furnace-band-fasteners-35",
+      "name": "furnace-band-fasteners-35",
+      "meshName": "furnace-band-fasteners-35"
+    },
+    {
+      "id": "furnace-band-fasteners-36",
+      "name": "furnace-band-fasteners-36",
+      "meshName": "furnace-band-fasteners-36"
+    },
+    {
+      "id": "furnace-band-fasteners-37",
+      "name": "furnace-band-fasteners-37",
+      "meshName": "furnace-band-fasteners-37"
+    },
+    {
+      "id": "furnace-band-fasteners-38",
+      "name": "furnace-band-fasteners-38",
+      "meshName": "furnace-band-fasteners-38"
+    },
+    {
+      "id": "furnace-band-fasteners-39",
+      "name": "furnace-band-fasteners-39",
+      "meshName": "furnace-band-fasteners-39"
+    },
+    {
+      "id": "furnace-band-fasteners-40",
+      "name": "furnace-band-fasteners-40",
+      "meshName": "furnace-band-fasteners-40"
+    },
+    {
+      "id": "furnace-band-fasteners-41",
+      "name": "furnace-band-fasteners-41",
+      "meshName": "furnace-band-fasteners-41"
+    },
+    {
+      "id": "furnace-band-fasteners-42",
+      "name": "furnace-band-fasteners-42",
+      "meshName": "furnace-band-fasteners-42"
+    },
+    {
+      "id": "furnace-band-fasteners-43",
+      "name": "furnace-band-fasteners-43",
+      "meshName": "furnace-band-fasteners-43"
+    },
+    {
+      "id": "furnace-band-fasteners-44",
+      "name": "furnace-band-fasteners-44",
+      "meshName": "furnace-band-fasteners-44"
+    },
+    {
+      "id": "furnace-band-fasteners-45",
+      "name": "furnace-band-fasteners-45",
+      "meshName": "furnace-band-fasteners-45"
+    },
+    {
+      "id": "furnace-band-fasteners-46",
+      "name": "furnace-band-fasteners-46",
+      "meshName": "furnace-band-fasteners-46"
+    },
+    {
+      "id": "furnace-band-fasteners-47",
+      "name": "furnace-band-fasteners-47",
+      "meshName": "furnace-band-fasteners-47"
+    },
+    {
+      "id": "service-ladder-0",
+      "name": "service-ladder-0",
+      "meshName": "service-ladder-0"
+    },
+    {
+      "id": "service-ladder-1",
+      "name": "service-ladder-1",
+      "meshName": "service-ladder-1"
+    },
+    {
+      "id": "service-ladder-2",
+      "name": "service-ladder-2",
+      "meshName": "service-ladder-2"
+    },
+    {
+      "id": "service-ladder-3",
+      "name": "service-ladder-3",
+      "meshName": "service-ladder-3"
+    },
+    {
+      "id": "service-ladder-4",
+      "name": "service-ladder-4",
+      "meshName": "service-ladder-4"
+    },
+    {
+      "id": "service-ladder-5",
+      "name": "service-ladder-5",
+      "meshName": "service-ladder-5"
+    },
+    {
+      "id": "service-ladder-6",
+      "name": "service-ladder-6",
+      "meshName": "service-ladder-6"
+    },
+    {
+      "id": "service-ladder-7",
+      "name": "service-ladder-7",
+      "meshName": "service-ladder-7"
+    },
+    {
+      "id": "service-ladder-8",
+      "name": "service-ladder-8",
+      "meshName": "service-ladder-8"
+    },
+    {
+      "id": "service-ladder-9",
+      "name": "service-ladder-9",
+      "meshName": "service-ladder-9"
+    },
+    {
+      "id": "service-ladder-10",
+      "name": "service-ladder-10",
+      "meshName": "service-ladder-10"
+    },
+    {
+      "id": "service-ladder-11",
+      "name": "service-ladder-11",
+      "meshName": "service-ladder-11"
+    },
+    {
+      "id": "service-ladder-12",
+      "name": "service-ladder-12",
+      "meshName": "service-ladder-12"
+    },
+    {
+      "id": "service-ladder-13",
+      "name": "service-ladder-13",
+      "meshName": "service-ladder-13"
+    },
+    {
+      "id": "open-molten-reservoir-visual",
+      "name": "open-molten-reservoir-visual",
+      "meshName": "open-molten-reservoir-visual"
+    }
+  ]
+}

@@ -573,3 +573,25 @@ test("round planner sends the nearest survivor to recover a dropped spike", () =
   assert.deepEqual(plan.assignments, [{ actorId: "near", role: "carrier", intent: "recover", target: { x: 100, y: 0 } }]);
   assert.equal(tactical.createTacticalPlan({ team: "ATK", actors: [], bomb: { state: "dropped", x: 100, y: 0 } }).phase, "unavailable");
 });
+
+test("retake reassigns an unreachable prior defuser to a reachable teammate", () => {
+  const assignments = tactical.assignDefenderPostPlantRoles({
+    actors: [
+      { id: "blocked", x: 1, y: 0, retakeReachable: false },
+      { id: "reachable", x: 100, y: 0, retakeDistance: 120, retakeReachable: true },
+    ],
+    bomb: { x: 0, y: 0 },
+    previousAssignments: { blocked: "defuser", reachable: "cover" },
+  });
+  assert.equal(assignments.find(value => value.role === "defuser").actorId, "reachable");
+});
+
+test("defuser selection prefers navigable route length over distance through cover", () => {
+  const assignments = tactical.assignDefenderPostPlantRoles({
+    actors: [
+      { id: "detour", x: 10, y: 0, retakeDistance: 900 },
+      { id: "direct", x: 150, y: 0, retakeDistance: 150 },
+    ], bomb: { x: 0, y: 0 },
+  });
+  assert.equal(assignments.find(value => value.role === "defuser").actorId, "direct");
+});
