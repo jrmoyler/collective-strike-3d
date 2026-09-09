@@ -18,7 +18,10 @@ export const GAMEPAD_BINDINGS = Object.freeze({
 });
 
 export function normalizeAxis(value, deadzone = 0.18) {
-  const magnitude = Math.abs(Number(value) || 0);
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  deadzone = Number.isFinite(deadzone) ? Math.max(0, Math.min(0.99, deadzone)) : 0.18;
+  const magnitude = Math.abs(numeric);
   if (magnitude <= deadzone) return 0;
   return Math.sign(value) * Math.min(1, (magnitude - deadzone) / (1 - deadzone));
 }
@@ -64,16 +67,23 @@ export function chooseSpatialFocus(current, candidates, direction) {
 export function createActionInput({ keyboard = DEFAULT_KEY_BINDINGS } = {}) {
   const down = new Set();
   const edges = new Set();
+  const sources = new Map();
   const pads = new Map();
   let mode = "keyboard";
 
-  const setAction = (action, active, nextMode = mode) => {
+  const setAction = (action, active, nextMode = mode, source = nextMode) => {
     if (!ACTIONS.includes(action)) return false;
+    const held = sources.get(action) || new Set();
     if (active) {
+      held.add(source);
+      sources.set(action, held);
       mode = nextMode;
       if (!down.has(action)) edges.add(action);
       down.add(action);
-    } else down.delete(action);
+    } else {
+      held.delete(source);
+      if (!held.size) { sources.delete(action); down.delete(action); }
+    }
     return true;
   };
 
@@ -85,17 +95,25 @@ export function createActionInput({ keyboard = DEFAULT_KEY_BINDINGS } = {}) {
     handleKey(code, active) {
       const action = keyboard[code];
       if (!action) return null;
-      setAction(action, active, "keyboard");
+      setAction(action, active, "keyboard", `key:${code}`);
       return action;
     },
     isDown(action) { return down.has(action); },
     consume(action) { const active = edges.has(action); edges.delete(action); return active; },
-    releaseAll() { down.clear(); edges.clear(); },
+    releaseAll() { down.clear(); edges.clear(); sources.clear(); },
     connectGamepad(gamepad) {
       pads.set(gamepad.index, { index: gamepad.index, id: gamepad.id || "Standard Gamepad" });
       mode = "gamepad";
     },
-    disconnectGamepad(index) { pads.delete(index); },
+    disconnectGamepad(index) {
+      pads.delete(index);
+      // Polling supplies a single active controller source. Release its holds
+      // immediately so unplugging during fire or interaction cannot latch them.
+      for (const action of ACTIONS) {
+        setAction(action, false, "gamepad");
+        if (!down.has(action)) edges.delete(action);
+      }
+    },
     movement() {
       return { x: Number(down.has("moveRight")) - Number(down.has("moveLeft")), y: Number(down.has("moveDown")) - Number(down.has("moveUp")) };
     },

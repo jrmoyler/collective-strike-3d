@@ -1,7 +1,7 @@
 /*
  * Collective Strike 3D - runtime dependency bundle.
  *
- * Pins three@0.185.x and animejs@4.5.x, exposes them on window so the
+ * Pins three@0.186.x and animejs@4.5.x, exposes them on window so the
  * single-file game never reaches for a CDN. Anime v4 is published both as
  * the modern named API and a thin v3-compatible shim so existing UI
  * animations keep working while new code can use animate()/stagger().
@@ -40,7 +40,7 @@ import {
   validateArenaDefinition,
   validateArenaRegistry
 } from "./arena-core.js";
-import { ARENA_ASSET_VERSION, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability } from "./arena-assets.js";
+import { ARENA_ASSET_VERSION, buildArenaAtmosphere, buildArenaLandmark, buildArenaLivingSet, buildArenaMaterialSet, buildExclusionReadability } from "./arena-assets.js";
 import {
   ARENA_CONTENT_VERSION,
   CONTENT_PASS_ARENAS,
@@ -120,6 +120,9 @@ import {
   createNeonRainEffect,
   createLunarDustEffect
 } from "./cs3d-particles.js";
+import { createReflectionEnvironment } from "./scene-lighting.js";
+import * as PRESENTATION from "./combat-presentation.js";
+import * as ARSENAL_FINISH from "./divisional-arsenal.js";
 import * as COMBAT from "./combat-profiles.js";
 import * as OPERATOR_ASSETS from "./operator-assets.js";
 import * as TACTICAL_AI from "./tactical-ai.js";
@@ -194,6 +197,7 @@ window.CS3D_ARENA_SYSTEM = Object.freeze({
 });
 window.CS3D_ARENA_ASSETS = Object.freeze({
   version: ARENA_ASSET_VERSION,
+  buildArenaAtmosphere,
   buildArenaLandmark,
   buildArenaLivingSet,
   buildArenaMaterialSet,
@@ -212,7 +216,7 @@ window.CS3D_ARENA_CONTENT = Object.freeze({
   phaseBarrierStateAt,
   playableBounds
 });
-window.CS3D_ARSENAL = Object.freeze({ ASCENDANT_BY_ID, ASCENDANT_WEAPONS, validateAscendantArsenal });
+window.CS3D_ARSENAL = Object.freeze({ ...ARSENAL_FINISH });
 window.CS3D_OPERATIONS = Object.freeze({
   LATTICE_RANK_COUNT,
   OPERATIONS_VERSION,
@@ -275,3 +279,7 @@ window.CS3D_PARTICLES = Object.freeze({
 window.CS3D_COMBAT = Object.freeze({ ...COMBAT });
 window.CS3D_OPERATOR_ASSETS = Object.freeze({ ...OPERATOR_ASSETS });
 window.CS3D_TACTICAL_AI = Object.freeze({ ...TACTICAL_AI });
+
+window.CS3D_PRESENTATION = Object.freeze({ ...PRESENTATION });
+
+window.CS3D_LIGHTING = Object.freeze({ createReflectionEnvironment });

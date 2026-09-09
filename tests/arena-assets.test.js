@@ -104,3 +104,33 @@ test("exclusion rendering differentiates voids, perimeter, boundaries, and solid
     disposeTree(root);
   }
 });
+
+test('albedo encodes linear working color once and normals stay unit length', async () => {
+  const { proceduralSurfaceSet } = await import('../src/arena-assets.js');
+  const maps = proceduralSurfaceSet(0x808080, 0x808080, 'neutral', 'organic', 32);
+  const bytes = maps.map.image.data;
+  const average = bytes.filter((_,i)=>i%4===0).reduce((a,b)=>a+b,0)/(32*32);
+  assert.ok(average > 105 && average < 135, `neutral sRGB should remain near 128, got ${average}`);
+  const normal=maps.normalMap.image.data;
+  for(let i=0;i<normal.length;i+=4){
+    const length=Math.hypot(normal[i]/255*2-1,normal[i+1]/255*2-1,normal[i+2]/255*2-1);
+    assert.ok(Math.abs(length-1)<0.012, `normal length ${length}`);
+  }
+});
+
+test('all arenas receive bounded sky geometry and biome-specific authored finishes', async () => {
+  const { buildArenaAtmosphere, ARENA_SURFACE_PALETTES }=await import('../src/arena-assets.js');
+  const signatures=new Set();
+  for(const id of ARENA_ORDER){
+    const result=buildArenaAtmosphere(ARENA_DEFINITIONS[id],{...theme,id});
+    assert.equal(result.root.children.length,1);
+    const sky=result.root.children[0];
+    assert.equal(sky.material.depthWrite,false);
+    assert.equal(sky.geometry.index.count/3,528);
+    assert.equal(result.animations.length,0);
+    assert.ok(sky.userData.visualOnly);
+    signatures.add(ARENA_SURFACE_PALETTES[id].join('|'));
+    disposeTree(result.root);
+  }
+  assert.equal(signatures.size,10);
+});

@@ -1,0 +1,33 @@
+{
+  "route": "direct-authoring-continuation",
+  "functionalUpgradeReview": "accepted-with-explicit-reference-limits",
+  "reviewedArtifacts": [
+    "docs/arena-pipeline/forge/webgl-angle-0.png",
+    "docs/arena-pipeline/forge/webgl-angle-1.png",
+    "docs/arena-pipeline/forge/webgl-angle-2.png",
+    "docs/arena-pipeline/forge/blender-angle-0.png",
+    "docs/arena-pipeline/forge/blender-angle-1.png"
+  ],
+  "observations": [
+    "Revised WebGL visibly removes checker/sparkle aliasing from first capture.",
+    "Ceramic panels and oxidized chassis read separately from molten ports.",
+    "Ladder and fasteners attach to existing assemblies; runtime sockets retained."
+  ],
+  "equivalentGates": {
+    "intake": "conditional admitted PNG conversion",
+    "geometry": "114 specified and 114 actual meshes; no missing/fused parts",
+    "materials": "independent channels, correct sRGB encoding, mipmapped filtering and restrained unit normals; actual WebGL inspected",
+    "orbit": "area ratios 1.014 and .997; no degenerate collapse",
+    "runtime": "54 draws, 6100 triangles, no errors",
+    "interaction": "source runtime nodes/sockets/colliders/groups preserved; no topology changes",
+    "integration": "original budgets retained; parent integrated arena budget/smoke evidence authoritative"
+  },
+  "exactReferenceAccepted": false,
+  "exactReferenceLimits": [
+    "Wider buttressed base, grated decks, rail carriage, pipe joints and wear remain simplified.",
+    "Camera approximate, not solved.",
+    "PBR extraction inference from lit mixed-material crops, not inverse rendering.",
+    "Historical sequential generator stages never existed; strict generator gate remains unaccepted. No likeness score manufactured."
+  ],
+  "nextPass": "If exact concept reconstruction becomes required, author wider buttressed base and grated service decks from additional orthogonal references, retaining source and budget."
+}

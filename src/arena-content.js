@@ -372,19 +372,19 @@ function contentMaterials(theme, kit) {
     hard: new THREE.MeshPhysicalMaterial({
       color: 0xffffff, metalness: kit.metalness ?? 0.52, roughness: kit.roughness ?? 0.54,
       clearcoat: 0.12, clearcoatRoughness: 0.56, emissive: theme.wallEmissive, emissiveIntensity: 0.06,
-      ...hard, normalScale: new THREE.Vector2(0.44, 0.44),
+      ...hard, normalScale: new THREE.Vector2(0.16, 0.16),
     }),
     /* Walkable decks and treads: the 30% describing routes. */
     deck: new THREE.MeshStandardMaterial({
       color: 0xffffff, metalness: kit.deckMetalness ?? 0.24, roughness: kit.deckRoughness ?? 0.68,
       emissive: theme.wallEmissive, emissiveIntensity: 0.04,
-      ...deck, normalScale: new THREE.Vector2(0.5, 0.5),
+      ...deck, normalScale: new THREE.Vector2(0.18, 0.18),
     }),
     /* Atmosphere and non-colliding mass: deliberately matte and unlit-looking. */
     ground: new THREE.MeshStandardMaterial({
       color: 0xffffff, metalness: 0.08, roughness: 0.9,
       emissive: theme.wallEmissive, emissiveIntensity: 0.025,
-      ...ground, normalScale: new THREE.Vector2(0.62, 0.62),
+      ...ground, normalScale: new THREE.Vector2(0.22, 0.22),
     }),
     /* Wet/reflective family: restrained specular, no transmission pass. */
     wet: new THREE.MeshPhysicalMaterial({

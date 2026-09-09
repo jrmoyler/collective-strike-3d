@@ -273,7 +273,7 @@ export function advanceCombatState(stateValue, profileValue, elapsedSeconds) {
   const state = createCombatState(profile, stateValue);
   const elapsed = clamp(finite(elapsedSeconds, 0), 0, 60);
   const recoveryTime = Math.max(0, elapsed - state.recoveryDelay);
-  return {
+  const recovered = {
     ...state,
     bloom: rounded(Math.max(0, state.bloom - recoveryTime * profile.bloom.recoveryPerSecond)),
     recoveryDelay: rounded(Math.max(0, state.recoveryDelay - elapsed)),
@@ -282,6 +282,10 @@ export function advanceCombatState(stateValue, profileValue, elapsedSeconds) {
       yaw: rounded(decayToZero(state.recoil.yaw, elapsed * profile.recoil.returnPerSecond * 0.7)),
     },
   };
+  // A settled weapon starts a fresh, learnable burst instead of carrying an
+  // ever-increasing recoil climb across the entire match.
+  if (!recovered.bloom && !recovered.recoveryDelay && !recovered.recoil.pitch && !recovered.recoil.yaw) recovered.shotIndex = 0;
+  return recovered;
 }
 
 function controlMultiplier(control) {

@@ -1,0 +1,20 @@
+{
+  "referenceAreaFraction": 0.44967447916666664,
+  "angles": [
+    {
+      "path": "docs/arena-pipeline/forge/webgl-angle-1.png",
+      "areaFraction": 0.45598795572916667,
+      "ratio": 1.0140401042420732,
+      "degenerate": false
+    },
+    {
+      "path": "docs/arena-pipeline/forge/webgl-angle-2.png",
+      "areaFraction": 0.44841796875,
+      "ratio": 0.9972057333140293,
+      "degenerate": false
+    }
+  ],
+  "degenerate": false,
+  "collapseRatio": 0.15,
+  "note": "deterministic; zero token; a flat-plane-faking-a-volume collapses in silhouette area when orbited"
+}

@@ -7,6 +7,7 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import process from "node:process";
+import os from "node:os";
 
 export const repoRoot = path.resolve(import.meta.dirname, "..");
 
@@ -26,11 +27,13 @@ export function resolveChromium() {
     if (!fs.existsSync(explicit)) throw new Error(`CS3D_CHROMIUM points at a missing binary: ${explicit}`);
     return explicit;
   }
-  const pool = process.env.PLAYWRIGHT_BROWSERS_PATH;
-  if (pool && fs.existsSync(pool)) {
+  const pool = process.env.PLAYWRIGHT_BROWSERS_PATH || path.join(os.homedir(), ".cache", "ms-playwright");
+  if (fs.existsSync(pool)) {
     const builds = fs.readdirSync(pool).filter(entry => /^chromium(_headless_shell)?-\d+$/.test(entry)).sort();
     for (const build of builds.reverse()) {
       for (const candidate of [
+        path.join(pool, build, "chrome-linux64", "chrome"),
+        path.join(pool, build, "chrome-headless-shell-linux64", "chrome-headless-shell"),
         path.join(pool, build, "chrome-linux", "chrome"),
         path.join(pool, build, "chrome-linux", "headless_shell")
       ]) if (fs.existsSync(candidate)) return candidate;

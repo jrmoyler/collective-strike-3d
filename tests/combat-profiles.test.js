@@ -196,3 +196,15 @@ test("arsenal analysis reports band counts and unsafe entries deterministically"
   assert.deepEqual(report.invalid, ["broken"]);
   assert.deepEqual(report.byBand, { competitive: 1, fast: 1, invalid: 1, slow: 1, standard: 1 });
 });
+
+test("fully recovered bursts regain their original recoil pattern", () => {
+  const profile = resolveCombatProfile("rifle");
+  const initial = createCombatState(profile);
+  const first = fireCombatShot(initial, profile);
+  let state = first.state;
+  for (let i = 0; i < 15; i++) state = fireCombatShot(state, profile).state;
+  assert.ok(advanceCombatState(state, profile, 0.02).shotIndex > 0);
+  state = advanceCombatState(state, profile, 10);
+  assert.equal(state.shotIndex, 0);
+  assert.deepEqual(fireCombatShot(state, profile).impulse, first.impulse);
+});

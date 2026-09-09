@@ -120,7 +120,7 @@ const roleTarget = (role, bomb, enemies, actor) => {
 const defenderScore = (role, actor, bomb, enemies) => {
   const bombDistance = distance(actor, bomb);
   const healthPenalty = (1 - healthRatio(actor)) * 300;
-  if (role === "defuser") return bombDistance + healthPenalty * 0.45;
+  if (role === "defuser") return (Number.isFinite(actor.retakeDistance) ? Math.max(0, actor.retakeDistance) : bombDistance) + healthPenalty * 0.45;
   if (role === "entry") {
     const threat = nearest(enemies, actor);
     return healthPenalty + bombDistance * 0.25 + (threat ? distance(actor, threat) * 0.1 : 0);
@@ -141,9 +141,9 @@ export function assignDefenderPostPlantRoles({ actors = [], enemies = [], bomb =
   const fillOrder = TACTICAL_ROLES.defender.slice(0, squad.length);
 
   for (const role of fillOrder) {
-    const prior = squad.find(actor => available.has(actor.id) && previousRole(previousAssignments, actor.id) === role);
-    const actor = prior ?? squad
-      .filter(value => available.has(value.id))
+    const eligible = squad.filter(actor => available.has(actor.id) && (role !== "defuser" || actor.retakeReachable !== false));
+    const prior = eligible.find(actor => previousRole(previousAssignments, actor.id) === role);
+    const actor = prior ?? eligible
       .sort((a, b) => defenderScore(role, a, bomb, hostiles) - defenderScore(role, b, bomb, hostiles)
         || seededRank(seed, a.id, role) - seededRank(seed, b.id, role)
         || String(a.id).localeCompare(String(b.id)))[0];

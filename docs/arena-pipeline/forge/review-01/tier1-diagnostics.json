@@ -1,0 +1,23 @@
+{
+  "passed": false,
+  "checks": {
+    "silhouetteIoU": 0.7237,
+    "aspectRatioDelta": 0.1491,
+    "scaleDelta": 0.2286,
+    "bilateralSymmetryError": 0.0475,
+    "colorDelta": {
+      "checked": 0,
+      "maxDeltaE": 0.0,
+      "perComponent": [],
+      "gated": false
+    }
+  },
+  "failures": [
+    "silhouette IoU 0.724 is below threshold 0.85",
+    "aspect-ratio delta 0.149 exceeds threshold 0.05",
+    "scale delta 0.229 exceeds threshold 0.08",
+    "blockout requires --map-stripped-render evidence"
+  ],
+  "renderHash": "71e72e928984ee40",
+  "passId": "blockout"
+}

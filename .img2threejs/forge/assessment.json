@@ -1,0 +1,752 @@
+{
+  "targetName": "Forge furnace reactor",
+  "sourceImage": ".img2threejs/forge/reference.png",
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "industrial furnace reactor",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "cylindrical-shell",
+        "radial-struts"
+      ],
+      "structureKind": [
+        "assembled-mechanical"
+      ],
+      "motionPotential": [
+        "overhead-carriage",
+        "molten-stream"
+      ],
+      "materialFamilies": [
+        "ceramic",
+        "oxidized-steel",
+        "molten-metal"
+      ],
+      "notes": "Direct isolated concept inspection: see analysis.md."
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 0.8,
+        "componentCount": 0.8,
+        "hierarchyDepth": 0.8,
+        "repetitionDensity": 0.8,
+        "materialLayerCount": 0.8,
+        "localDetailDensity": 0.8,
+        "occlusionRisk": 0.8,
+        "actionReadinessNeed": 0.8
+      },
+      "estimatedCounts": {
+        "macroComponents": 6,
+        "mesoComponents": 48,
+        "microFeatureGroups": 5,
+        "materialLayers": 4,
+        "repetitionSystems": 3
+      },
+      "reasoning": [
+        "Cylindrical body with radial supports, independent window frame, services, crown rail and repeated fasteners."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Choose simple/moderate/complex/ultra-complex from observed structure, not from a hardcoded domain."
+    },
+    "unknownsToResolveBeforeImplementation": [
+      "Exact hidden rear service routing and physical dimensions are inferred; source does not reveal them."
+    ],
+    "detailInventory": {
+      "scanMethod": "component-zones",
+      "targetMinDetails": 10,
+      "note": "Enumerate every identity-defining small detail before authoring the spec. Each detail must map to a component.localFeatures entry or material.localOverrides entry, never prose only. Use forge/stage1_intake/build_detail_inventory.py to scan zones.",
+      "details": [
+        {
+          "id": "window-frame-left-visual-detail",
+          "componentRefs": [
+            "window-frame-left-visual"
+          ],
+          "description": "window-frame-left-visual"
+        },
+        {
+          "id": "window-frame-right-visual-detail",
+          "componentRefs": [
+            "window-frame-right-visual"
+          ],
+          "description": "window-frame-right-visual"
+        },
+        {
+          "id": "window-frame-top-visual-detail",
+          "componentRefs": [
+            "window-frame-top-visual"
+          ],
+          "description": "window-frame-top-visual"
+        },
+        {
+          "id": "window-frame-bottom-visual-detail",
+          "componentRefs": [
+            "window-frame-bottom-visual"
+          ],
+          "description": "window-frame-bottom-visual"
+        },
+        {
+          "id": "furnace-band-0-visual-detail",
+          "componentRefs": [
+            "furnace-band-0-visual"
+          ],
+          "description": "furnace-band-0-visual"
+        },
+        {
+          "id": "furnace-band-1-visual-detail",
+          "componentRefs": [
+            "furnace-band-1-visual"
+          ],
+          "description": "furnace-band-1-visual"
+        },
+        {
+          "id": "furnace-band-2-visual-detail",
+          "componentRefs": [
+            "furnace-band-2-visual"
+          ],
+          "description": "furnace-band-2-visual"
+        },
+        {
+          "id": "lower-molten-port-visual-detail",
+          "componentRefs": [
+            "lower-molten-port-visual"
+          ],
+          "description": "lower-molten-port-visual"
+        },
+        {
+          "id": "lower-port-left-visual-detail",
+          "componentRefs": [
+            "lower-port-left-visual"
+          ],
+          "description": "lower-port-left-visual"
+        },
+        {
+          "id": "lower-port-right-visual-detail",
+          "componentRefs": [
+            "lower-port-right-visual"
+          ],
+          "description": "lower-port-right-visual"
+        },
+        {
+          "id": "lower-port-top-visual-detail",
+          "componentRefs": [
+            "lower-port-top-visual"
+          ],
+          "description": "lower-port-top-visual"
+        },
+        {
+          "id": "coolant-loop-visual-detail",
+          "componentRefs": [
+            "coolant-loop-visual"
+          ],
+          "description": "coolant-loop-visual"
+        },
+        {
+          "id": "furnace-band-fasteners-0-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-0"
+          ],
+          "description": "furnace-band-fasteners-0"
+        },
+        {
+          "id": "furnace-band-fasteners-1-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-1"
+          ],
+          "description": "furnace-band-fasteners-1"
+        },
+        {
+          "id": "furnace-band-fasteners-2-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-2"
+          ],
+          "description": "furnace-band-fasteners-2"
+        },
+        {
+          "id": "furnace-band-fasteners-3-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-3"
+          ],
+          "description": "furnace-band-fasteners-3"
+        },
+        {
+          "id": "furnace-band-fasteners-4-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-4"
+          ],
+          "description": "furnace-band-fasteners-4"
+        },
+        {
+          "id": "furnace-band-fasteners-5-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-5"
+          ],
+          "description": "furnace-band-fasteners-5"
+        },
+        {
+          "id": "furnace-band-fasteners-6-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-6"
+          ],
+          "description": "furnace-band-fasteners-6"
+        },
+        {
+          "id": "furnace-band-fasteners-7-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-7"
+          ],
+          "description": "furnace-band-fasteners-7"
+        },
+        {
+          "id": "furnace-band-fasteners-8-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-8"
+          ],
+          "description": "furnace-band-fasteners-8"
+        },
+        {
+          "id": "furnace-band-fasteners-9-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-9"
+          ],
+          "description": "furnace-band-fasteners-9"
+        },
+        {
+          "id": "furnace-band-fasteners-10-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-10"
+          ],
+          "description": "furnace-band-fasteners-10"
+        },
+        {
+          "id": "furnace-band-fasteners-11-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-11"
+          ],
+          "description": "furnace-band-fasteners-11"
+        },
+        {
+          "id": "furnace-band-fasteners-12-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-12"
+          ],
+          "description": "furnace-band-fasteners-12"
+        },
+        {
+          "id": "furnace-band-fasteners-13-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-13"
+          ],
+          "description": "furnace-band-fasteners-13"
+        },
+        {
+          "id": "furnace-band-fasteners-14-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-14"
+          ],
+          "description": "furnace-band-fasteners-14"
+        },
+        {
+          "id": "furnace-band-fasteners-15-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-15"
+          ],
+          "description": "furnace-band-fasteners-15"
+        },
+        {
+          "id": "furnace-band-fasteners-16-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-16"
+          ],
+          "description": "furnace-band-fasteners-16"
+        },
+        {
+          "id": "furnace-band-fasteners-17-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-17"
+          ],
+          "description": "furnace-band-fasteners-17"
+        },
+        {
+          "id": "furnace-band-fasteners-18-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-18"
+          ],
+          "description": "furnace-band-fasteners-18"
+        },
+        {
+          "id": "furnace-band-fasteners-19-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-19"
+          ],
+          "description": "furnace-band-fasteners-19"
+        },
+        {
+          "id": "furnace-band-fasteners-20-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-20"
+          ],
+          "description": "furnace-band-fasteners-20"
+        },
+        {
+          "id": "furnace-band-fasteners-21-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-21"
+          ],
+          "description": "furnace-band-fasteners-21"
+        },
+        {
+          "id": "furnace-band-fasteners-22-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-22"
+          ],
+          "description": "furnace-band-fasteners-22"
+        },
+        {
+          "id": "furnace-band-fasteners-23-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-23"
+          ],
+          "description": "furnace-band-fasteners-23"
+        },
+        {
+          "id": "furnace-band-fasteners-24-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-24"
+          ],
+          "description": "furnace-band-fasteners-24"
+        },
+        {
+          "id": "furnace-band-fasteners-25-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-25"
+          ],
+          "description": "furnace-band-fasteners-25"
+        },
+        {
+          "id": "furnace-band-fasteners-26-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-26"
+          ],
+          "description": "furnace-band-fasteners-26"
+        },
+        {
+          "id": "furnace-band-fasteners-27-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-27"
+          ],
+          "description": "furnace-band-fasteners-27"
+        },
+        {
+          "id": "furnace-band-fasteners-28-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-28"
+          ],
+          "description": "furnace-band-fasteners-28"
+        },
+        {
+          "id": "furnace-band-fasteners-29-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-29"
+          ],
+          "description": "furnace-band-fasteners-29"
+        },
+        {
+          "id": "furnace-band-fasteners-30-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-30"
+          ],
+          "description": "furnace-band-fasteners-30"
+        },
+        {
+          "id": "furnace-band-fasteners-31-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-31"
+          ],
+          "description": "furnace-band-fasteners-31"
+        },
+        {
+          "id": "furnace-band-fasteners-32-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-32"
+          ],
+          "description": "furnace-band-fasteners-32"
+        },
+        {
+          "id": "furnace-band-fasteners-33-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-33"
+          ],
+          "description": "furnace-band-fasteners-33"
+        },
+        {
+          "id": "furnace-band-fasteners-34-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-34"
+          ],
+          "description": "furnace-band-fasteners-34"
+        },
+        {
+          "id": "furnace-band-fasteners-35-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-35"
+          ],
+          "description": "furnace-band-fasteners-35"
+        },
+        {
+          "id": "furnace-band-fasteners-36-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-36"
+          ],
+          "description": "furnace-band-fasteners-36"
+        },
+        {
+          "id": "furnace-band-fasteners-37-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-37"
+          ],
+          "description": "furnace-band-fasteners-37"
+        },
+        {
+          "id": "furnace-band-fasteners-38-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-38"
+          ],
+          "description": "furnace-band-fasteners-38"
+        },
+        {
+          "id": "furnace-band-fasteners-39-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-39"
+          ],
+          "description": "furnace-band-fasteners-39"
+        },
+        {
+          "id": "furnace-band-fasteners-40-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-40"
+          ],
+          "description": "furnace-band-fasteners-40"
+        },
+        {
+          "id": "furnace-band-fasteners-41-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-41"
+          ],
+          "description": "furnace-band-fasteners-41"
+        },
+        {
+          "id": "furnace-band-fasteners-42-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-42"
+          ],
+          "description": "furnace-band-fasteners-42"
+        },
+        {
+          "id": "furnace-band-fasteners-43-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-43"
+          ],
+          "description": "furnace-band-fasteners-43"
+        },
+        {
+          "id": "furnace-band-fasteners-44-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-44"
+          ],
+          "description": "furnace-band-fasteners-44"
+        },
+        {
+          "id": "furnace-band-fasteners-45-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-45"
+          ],
+          "description": "furnace-band-fasteners-45"
+        },
+        {
+          "id": "furnace-band-fasteners-46-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-46"
+          ],
+          "description": "furnace-band-fasteners-46"
+        },
+        {
+          "id": "furnace-band-fasteners-47-detail",
+          "componentRefs": [
+            "furnace-band-fasteners-47"
+          ],
+          "description": "furnace-band-fasteners-47"
+        },
+        {
+          "id": "service-ladder-0-detail",
+          "componentRefs": [
+            "service-ladder-0"
+          ],
+          "description": "service-ladder-0"
+        },
+        {
+          "id": "service-ladder-1-detail",
+          "componentRefs": [
+            "service-ladder-1"
+          ],
+          "description": "service-ladder-1"
+        },
+        {
+          "id": "service-ladder-2-detail",
+          "componentRefs": [
+            "service-ladder-2"
+          ],
+          "description": "service-ladder-2"
+        },
+        {
+          "id": "service-ladder-3-detail",
+          "componentRefs": [
+            "service-ladder-3"
+          ],
+          "description": "service-ladder-3"
+        },
+        {
+          "id": "service-ladder-4-detail",
+          "componentRefs": [
+            "service-ladder-4"
+          ],
+          "description": "service-ladder-4"
+        },
+        {
+          "id": "service-ladder-5-detail",
+          "componentRefs": [
+            "service-ladder-5"
+          ],
+          "description": "service-ladder-5"
+        },
+        {
+          "id": "service-ladder-6-detail",
+          "componentRefs": [
+            "service-ladder-6"
+          ],
+          "description": "service-ladder-6"
+        },
+        {
+          "id": "service-ladder-7-detail",
+          "componentRefs": [
+            "service-ladder-7"
+          ],
+          "description": "service-ladder-7"
+        },
+        {
+          "id": "service-ladder-8-detail",
+          "componentRefs": [
+            "service-ladder-8"
+          ],
+          "description": "service-ladder-8"
+        },
+        {
+          "id": "service-ladder-9-detail",
+          "componentRefs": [
+            "service-ladder-9"
+          ],
+          "description": "service-ladder-9"
+        },
+        {
+          "id": "service-ladder-10-detail",
+          "componentRefs": [
+            "service-ladder-10"
+          ],
+          "description": "service-ladder-10"
+        },
+        {
+          "id": "service-ladder-11-detail",
+          "componentRefs": [
+            "service-ladder-11"
+          ],
+          "description": "service-ladder-11"
+        },
+        {
+          "id": "service-ladder-12-detail",
+          "componentRefs": [
+            "service-ladder-12"
+          ],
+          "description": "service-ladder-12"
+        },
+        {
+          "id": "service-ladder-13-detail",
+          "componentRefs": [
+            "service-ladder-13"
+          ],
+          "description": "service-ladder-13"
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": false,
+      "styleHeads": 0.0,
+      "proportions": {
+        "headUnit": 0.0,
+        "torso": 0.0,
+        "legs": 0.0,
+        "shoulderWidth": 0.0,
+        "hipWidth": 0.0
+      },
+      "pose": {
+        "type": "unassessed",
+        "jointAngles": {}
+      },
+      "faceLandmarks": {
+        "eyeLine": 0.0,
+        "eyeSpacing": 0.0,
+        "noseBase": 0.0,
+        "mouthLine": 0.0,
+        "hairline": 0.0
+      },
+      "features": [],
+      "confidence": 0.0,
+      "note": "Only meaningful when objectClass.primaryDomain is character or hybrid. Set applies=true and fill from forge/stage1_intake/extract_landmarks.py. See grimoire/character/reconstruction.md and grimoire/character/likeness_maximization.md."
+    },
+    "sourceImage": "docs/arena-concepts/forge-furnace-core.webp"
+  },
+  "qualityContract": {
+    "qualityBar": "complex",
+    "definitionOfDone": [
+      "The rendered model matches the reference silhouette, primary proportions, visible component hierarchy, material response, and most recognizable local features for the selected fidelity tier."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 3,
+      "mesoComponents": 8,
+      "microFeatureGroups": 5,
+      "materialLayers": 3,
+      "repetitionSystems": 1,
+      "reviewViewpoints": 4
+    },
+    "featureGroups": [
+      {
+        "id": "overall-silhouette",
+        "name": "Overall silhouette and proportions",
+        "required": true,
+        "qualityCriteria": [
+          "Bounding shape, dominant curves, negative spaces, and scale relationships are explicitly described."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "model reads as a generic placeholder instead of the reference object",
+          "major proportions are guessed without evidence"
+        ]
+      },
+      {
+        "id": "primary-structure",
+        "name": "Primary structure and hierarchy",
+        "required": true,
+        "qualityCriteria": [
+          "Major parts, joints, seams, contact points, and parent-child relationships are named before code generation."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "large visible parts are merged into one mesh",
+          "component hierarchy is too shallow for the observed complexity"
+        ]
+      },
+      {
+        "id": "attachment-joint-correctness",
+        "name": "Attachment and joint correctness",
+        "required": true,
+        "qualityCriteria": [
+          "Every visible child appendage, branch, limb, handle, connector, tube, cable, horn, wing, leg, or hinged part has an attachment contract with parent socket, localStart/localEnd, contact type, embed/overlap, and gap tolerance."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "child part root floats away from the parent",
+          "branch/limb/tube is centered in space instead of pivoting from its root",
+          "parent-child transform mixes world and local coordinates"
+        ]
+      },
+      {
+        "id": "surface-material-response",
+        "name": "Surface material response",
+        "required": true,
+        "qualityCriteria": [
+          "Albedo zones, roughness, normal/bump/displacement intent, cavity dirt, edge wear, and local overrides are specified where visible.",
+          "Important materials define independent albedo, roughness, height/normal, and AO responses instead of reusing one texture for unrelated PBR channels.",
+          "Surface response is decomposed into macro, meso, and micro frequency bands with scale and amplitude tied to object scale."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "surface looks like flat plastic",
+          "local material variation is missing or not tied to image evidence"
+        ]
+      },
+      {
+        "id": "reference-lookdev",
+        "name": "Reference color, material, and lighting response",
+        "required": true,
+        "qualityCriteria": [
+          "Material-pass names the reference-derived albedo palette, roughness variation, tactile normal/bump/displacement response, and local masks.",
+          "When a source image is available, run reference PBR extraction and require confidence >= 0.7 before treating maps as implementation-ready.",
+          "Lighting-pass names key/fill/rim or environment light, exposure, tone mapping, background, and contact shadow behavior.",
+          "Neutral, grazing-angle, and reference-matched renders prove that surface relief survives relighting and is not painted into albedo."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "model has acceptable shape but reads as flat shaded or plastic",
+          "colors are a generic average instead of reference-observed local color zones",
+          "lighting is evenly ambient and cannot reproduce the source value range"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "silhouette and negative-space delta",
+      "component hierarchy depth delta",
+      "repetition density and distribution delta",
+      "material albedo/roughness/normal response delta",
+      "local feature placement and scale delta"
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md).",
+      "Adjacent components must overlap by at least 0.02 world units at shared seams (source: grimoire/build/geometry_patterns.md).",
+      "Raised or recessed relief and fasteners must be geometry, instanced micro-parts, or displacement; a map alone is an approximation (source: grimoire/build/geometry_patterns.md)."
+    ],
+    "mustNotDo": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md).",
+      "Adjacent components must overlap by at least 0.02 world units at shared seams (source: grimoire/build/geometry_patterns.md).",
+      "Raised or recessed relief and fasteners must be geometry, instanced micro-parts, or displacement; a map alone is an approximation (source: grimoire/build/geometry_patterns.md)."
+    ]
+  }
+}

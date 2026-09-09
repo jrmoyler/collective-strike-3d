@@ -13,8 +13,10 @@
 
 import * as THREE from "three";
 
-// These will be available on window.THREE from vendor.js
-const { ShaderPass, EffectComposer, RenderPass, UnrealBloomPass } = THREE;
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 // ============================================================================
 // SHADER CHUNKS - Custom post-processing shaders
@@ -109,7 +111,7 @@ const dynamicVignetteFragmentShader = `
     // Vignette from center (with offset for ability use direction)
     vec2 center = vec2(0.5, 0.5) + centerOffset * 0.1;
     float dist = distance(vUv, center);
-    float vignette = smoothstep(0.8, 0.2, dist * (1.0 + intensity * 0.5));
+    float vignette = (1.0 - smoothstep(0.2, 0.8, dist * (1.0 + intensity * 0.5)));
     
     // Darken edges
     color.rgb *= mix(1.0, 1.0 - darkness, vignette);
@@ -149,15 +151,13 @@ const motionBlurFragmentShader = `
     for (int i = 0; i < 16; i++) {
       if (i >= samples) break;
       
-      float t = float(i) / float(samples - 1);
+      float t = float(i) / max(1.0, float(samples - 1));
       vec2 offset = velocity * t * intensity;
       vec2 sampleUV = vUv + offset;
       
       // Blend current and previous frame
       vec4 curr = texture2D(tDiffuse, clamp(sampleUV, 0.0, 1.0));
-      vec4 prev = texture2D(tPrev, clamp(sampleUV, 0.0, 1.0));
-      
-      color += mix(prev, curr, t);
+      color += curr;
       total += 1.0;
     }
     
@@ -216,7 +216,7 @@ const godRaysFragmentShader = `
 // POST-PROCESS EFFECT CLASSES
 // ============================================================================
 
-export class FilmGrainPass extends THREE.ShaderPass {
+export class FilmGrainPass extends ShaderPass {
   constructor(intensity = 0.05, size = 1.0) {
     super({
       uniforms: {
@@ -241,7 +241,7 @@ export class FilmGrainPass extends THREE.ShaderPass {
   }
 }
 
-export class ChromaticAberrationPass extends THREE.ShaderPass {
+export class ChromaticAberrationPass extends ShaderPass {
   constructor(strength = 0.002) {
     super({
       uniforms: {
@@ -272,7 +272,7 @@ export class ChromaticAberrationPass extends THREE.ShaderPass {
   }
 }
 
-export class DynamicVignettePass extends THREE.ShaderPass {
+export class DynamicVignettePass extends ShaderPass {
   constructor(intensity = 0.3, darkness = 0.4) {
     super({
       uniforms: {
@@ -309,14 +309,14 @@ export class DynamicVignettePass extends THREE.ShaderPass {
   }
 }
 
-export class MotionBlurPass extends THREE.ShaderPass {
+export class MotionBlurPass extends ShaderPass {
   constructor(intensity = 0.3, samples = 8) {
     super({
       uniforms: {
         tPrev: { value: null },
         velocity: { value: new THREE.Vector2(0, 0) },
         intensity: { value: intensity },
-        samples: { value: samples },
+        samples: { value: Math.max(2, Math.min(16, samples)) },
         tDiffuse: { value: null },
       },
       vertexShader: motionBlurVertexShader,
@@ -327,27 +327,11 @@ export class MotionBlurPass extends THREE.ShaderPass {
     this.prevRenderTarget = null;
   }
   
-  init(renderer, scene, camera) {
-    const size = renderer.getSize(new THREE.Vector2());
-    this.prevRenderTarget = new THREE.WebGLRenderTarget(
-      Math.floor(size.width),
-      Math.floor(size.height),
-      {
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        format: THREE.RGBAFormat,
-      }
-    );
-    this.uniforms.tPrev.value = this.prevRenderTarget.texture;
-  }
-  
-  capture(renderer) {
-    if (this.prevRenderTarget && this.enabled) {
-      renderer.setRenderTarget(this.prevRenderTarget);
-      // Current frame becomes previous
-    }
-  }
-  
+  // Spatial velocity blur samples the current read buffer. It needs no history
+  // target and must never redirect the renderer before EffectComposer renders.
+  init() {}
+  capture() {}
+
   setVelocity(velocity) {
     this.uniforms.velocity.value.copy(velocity);
   }
@@ -358,14 +342,11 @@ export class MotionBlurPass extends THREE.ShaderPass {
   }
   
   dispose() {
-    if (this.prevRenderTarget) {
-      this.prevRenderTarget.dispose();
-      this.prevRenderTarget = null;
-    }
+    super.dispose();
   }
 }
 
-export class GodRaysPass extends THREE.ShaderPass {
+export class GodRaysPass extends ShaderPass {
   constructor(lightPosition = new THREE.Vector2(0.5, 0.8), options = {}) {
     const {
       exposure = 0.6,
@@ -389,6 +370,7 @@ export class GodRaysPass extends THREE.ShaderPass {
       fragmentShader: godRaysFragmentShader,
     });
     this.enabled = true;
+    this.baseExposure = exposure;
     this.lightSources = [];
   }
   
@@ -408,13 +390,13 @@ export class GodRaysPass extends THREE.ShaderPass {
       
       if (primary.flicker) {
         const flicker = 0.95 + Math.sin(time * 10.0) * 0.05;
-        this.uniforms.exposure.value = this.uniforms.exposure.value * flicker;
+        this.uniforms.exposure.value = this.baseExposure * flicker;
       }
     }
   }
   
   setSamples(count) {
-    this.uniforms.samples.value = count;
+    this.uniforms.samples.value = Math.max(1, Math.min(64, Math.round(count)));
   }
 }
 
@@ -624,10 +606,10 @@ export class PostProcessManager {
     this.qualityProfile = qualityProfile;
     
     // Initialize composer
-    this.composer = new THREE.EffectComposer(renderer);
+    this.composer = new EffectComposer(renderer);
     
     // Base render pass
-    this.renderPass = new THREE.RenderPass(scene, camera);
+    this.renderPass = new RenderPass(scene, camera);
     this.composer.addPass(this.renderPass);
     
     // Quality-gated settings
@@ -778,6 +760,7 @@ export class PostProcessManager {
       if (pass.dispose) pass.dispose();
     }
     
+    this.passes = {};
     this._createPasses();
   }
   
@@ -840,6 +823,9 @@ export class PostProcessManager {
     // Update elapsed time
     this.elapsedTime += scaledDelta;
     
+    // Capture the gameplay camera each render, then restore it after presentation.
+    this.traumaController.originalTransform.position.copy(this.camera.position);
+    this.traumaController.originalTransform.quaternion.copy(this.camera.quaternion);
     // Update trauma
     this.traumaController.update(scaledDelta, this.elapsedTime);
     
@@ -863,7 +849,11 @@ export class PostProcessManager {
     }
     
     // Render through composer
-    this.composer.render();
+    try { this.composer.render(); }
+    finally {
+      this.camera.position.copy(this.traumaController.originalTransform.position);
+      this.camera.quaternion.copy(this.traumaController.originalTransform.quaternion);
+    }
   }
   
   resize(width, height) {

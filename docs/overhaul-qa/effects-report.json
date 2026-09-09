@@ -1,0 +1,47 @@
+{
+  "evidence": {
+    "three": "186",
+    "effects": {
+      "particles": 51,
+      "decals": 0,
+      "debris": 14,
+      "particleDraws": 2,
+      "debrisDraws": 1
+    },
+    "environment": true,
+    "operators": 20,
+    "arena": "forge",
+    "frame": {
+      "calls": 621,
+      "triangles": 320986
+    }
+  },
+  "cleanup": {
+    "low": {
+      "particles": 51,
+      "decals": 0,
+      "debris": 14,
+      "particleDraws": 2,
+      "debrisDraws": 1
+    },
+    "cleared": {
+      "particles": 0,
+      "decals": 0,
+      "debris": 0,
+      "particleDraws": 0,
+      "debrisDraws": 0
+    }
+  },
+  "regressions": {
+    "pausedPadReleased": true,
+    "keyboardPreserved": true,
+    "apex": {
+      "phase": "buy",
+      "encounterKind": "apex",
+      "scoreATK": 6,
+      "bossAlive": true,
+      "winnersUnharmed": true
+    }
+  },
+  "errors": []
+}

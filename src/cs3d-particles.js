@@ -32,234 +32,59 @@ export const PARTICLE_BUDGETS = Object.freeze({
 // SHADER CHUNKS - Custom GLSL for particle effects
 // ============================================================================
 
+// All particle families share a compact attribute layout and four batched draws.
+// Birth time is per particle, so late bursts always begin at age zero.
 const particleVertexShader = `
   uniform float time;
-  uniform vec3 cameraPosition;
-  
-  attribute vec3 startPos;
+  uniform float family;
   attribute vec3 velocity;
+  attribute float birth;
   attribute float life;
   attribute float size;
-  attribute vec3 color;
+  attribute vec3 tint;
   attribute float drag;
-  
-  varying float vLife;
   varying vec3 vColor;
   varying float vAlpha;
-  
+  varying float vRotation;
   void main() {
-    float age = mod(time, life);
-    float t = age / life;
-    
-    // Apply velocity with drag
-    vec3 pos = startPos + velocity * age * (1.0 - drag * t);
-    
-    // Add some turbulence for organic feel
-    float turbulence = sin(time * 3.0 + pos.y * 0.5) * 0.02;
-    pos.x += turbulence;
-    pos.z += turbulence * 0.5;
-    
-    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_Position = projectionMatrix * mvPosition;
-    
-    // Size attenuation with distance
-    float dist = length(mvPosition.xyz);
-    float sizeAttenuation = 10.0 / dist;
-    gl_PointSize = size * sizeAttenuation * (1.0 - t * 0.3);
-    
-    vLife = 1.0 - t;
-    vColor = color;
-    vAlpha = smoothstep(0.0, 0.15, t) * smoothstep(1.0, 0.85, t);
+    float age = max(0.0, time - birth);
+    float t = clamp(age / max(life, 0.001), 0.0, 1.0);
+    vec3 pos = position + velocity * age / (1.0 + drag * age);
+    if (family == 2.0 || family == 3.0) pos.y -= 1.9 * age * age;
+    if (family == 1.0) {
+      pos.x += sin(age * 3.0 + position.z * 4.0) * age * 0.16;
+      pos.y += age * 0.25;
+    }
+    vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+    gl_Position = projectionMatrix * mv;
+    float expansion = family == 1.0 ? 1.0 + t * 2.8 : 1.0 - t * 0.5;
+    gl_PointSize = clamp(size * 400.0 / max(0.2, -mv.z) * expansion, 1.0, 128.0);
+    vAlpha = (1.0 - smoothstep(0.15, 1.0, t)) * (family == 1.0 ? 0.24 : 1.0);
+    vColor = tint;
+    vRotation = age * 5.0 + position.x;
   }
 `;
-
 const particleFragmentShader = `
-  uniform sampler2D pointTexture;
-  
-  varying float vLife;
+  uniform float family;
   varying vec3 vColor;
   varying float vAlpha;
-  
+  varying float vRotation;
   void main() {
-    // Circular particle with soft edge
-    vec2 coord = gl_PointCoord - vec2(0.5);
-    float dist = length(coord);
-    if (dist > 0.5) discard;
-    
-    float softEdge = 1.0 - smoothstep(0.35, 0.5, dist);
-    float alpha = vAlpha * softEdge;
-    
-    gl_FragColor = vec4(vColor, alpha);
+    vec2 p = gl_PointCoord - 0.5;
+    float d = length(p);
+    if (d > 0.5) discard;
+    float shape = exp(-d*d*22.0) * (1.0 - smoothstep(0.32, 0.5, d));
+    if (family == 3.0) {
+      vec2 q = mat2(cos(vRotation), -sin(vRotation), sin(vRotation), cos(vRotation)) * p;
+      shape = 1.0 - smoothstep(0.26, 0.34, abs(q.x) + abs(q.y));
+    }
+    if (family == 1.0) {
+      float lobe = sin(p.x*15.0 + vRotation)*sin(p.y*12.0 - vRotation)*0.15 + 0.85;
+      shape *= lobe;
+    }
+    gl_FragColor = vec4(vColor, vAlpha * shape);
   }
 `;
-
-// Rising steam / mist particle shader
-const steamVertexShader = `
-  uniform float time;
-  uniform vec3 windDirection;
-  
-  attribute vec3 startPos;
-  attribute float riseSpeed;
-  attribute float wobble;
-  attribute float size;
-  attribute vec3 color;
-  attribute float life;
-  
-  varying float vLife;
-  varying vec3 vColor;
-  varying float vAlpha;
-  
-  void main() {
-    float age = mod(time, life);
-    float t = age / life;
-    
-    vec3 pos = startPos;
-    pos.y += riseSpeed * age;
-    pos.x += sin(time * wobble + startPos.y * 0.3) * 0.08;
-    pos.z += cos(time * wobble * 0.7 + startPos.x * 0.2) * 0.08;
-    
-    // Dissipate at top of life
-    float dissipate = smoothstep(1.0, 0.7, t);
-    
-    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_Position = projectionMatrix * mvPosition;
-    
-    float dist = length(mvPosition.xyz);
-    gl_PointSize = size * (15.0 / dist) * dissipate;
-    
-    vLife = 1.0 - t;
-    vColor = color;
-    vAlpha = smoothstep(0.0, 0.2, t) * dissipate * 0.6;
-  }
-`;
-
-const steamFragmentShader = `
-  varying float vLife;
-  varying vec3 vColor;
-  varying float vAlpha;
-  
-  void main() {
-    vec2 coord = gl_PointCoord - vec2(0.5);
-    float dist = length(coord);
-    if (dist > 0.5) discard;
-    
-    // Soft volumetric look
-    float gradient = 1.0 - smoothstep(0.0, 0.5, dist);
-    gradient = gradient * gradient;
-    
-    gl_FragColor = vec4(vColor, vAlpha * gradient);
-  }
-`;
-
-// Heat shimmer / ember shader
-const emberVertexShader = `
-  uniform float time;
-  
-  attribute vec3 startPos;
-  attribute vec3 flickerVel;
-  attribute float life;
-  attribute float brightness;
-  attribute float size;
-  
-  varying float vLife;
-  varying float vBrightness;
-  
-  void main() {
-    float age = mod(time, life);
-    float t = age / life;
-    
-    vec3 pos = startPos + flickerVel * age;
-    pos.y += 0.3 * age; // Rise
-    
-    // Random flicker
-    pos.x += sin(time * 8.0 + startPos.x) * 0.03;
-    pos.z += cos(time * 6.0 + startPos.z) * 0.03;
-    
-    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_Position = projectionMatrix * mvPosition;
-    
-    float dist = length(mvPosition.xyz);
-    gl_PointSize = size * (12.0 / dist) * (0.5 + 0.5 * sin(time * 10.0));
-    
-    vLife = 1.0 - t;
-    vBrightness = brightness * smoothstep(0.0, 0.1, t) * smoothstep(1.0, 0.8, t);
-  }
-`;
-
-const emberFragmentShader = `
-  varying float vLife;
-  varying float vBrightness;
-  
-  void main() {
-    vec2 coord = gl_PointCoord - vec2(0.5);
-    float dist = length(coord);
-    if (dist > 0.5) discard;
-    
-    // Glowing core
-    float glow = exp(-dist * 3.0);
-    float alpha = vLife * vBrightness * glow;
-    
-    gl_FragColor = vec4(1.0, 0.6, 0.2, alpha);
-  }
-`;
-
-// Ice crystal / shard shader
-const iceVertexShader = `
-  uniform float time;
-  
-  attribute vec3 startPos;
-  attribute vec3 spreadVel;
-  attribute float rotation;
-  attribute float rotationSpeed;
-  attribute float life;
-  attribute float size;
-  
-  varying float vLife;
-  varying float vRot;
-  
-  void main() {
-    float age = mod(time, life);
-    float t = age / life;
-    
-    vec3 pos = startPos + spreadVel * age;
-    pos.y -= 0.15 * age; // Fall slowly
-    
-    vRot = rotation + rotationSpeed * age;
-    
-    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_Position = projectionMatrix * mvPosition;
-    
-    float dist = length(mvPosition.xyz);
-    gl_PointSize = size * (10.0 / dist);
-    
-    vLife = 1.0 - t;
-  }
-`;
-
-const iceFragmentShader = `
-  varying float vLife;
-  varying float vRot;
-  
-  void main() {
-    // Crystalline shard shape
-    vec2 coord = gl_PointCoord - vec2(0.5);
-    
-    // Rotate UVs
-    float c = cos(vRot), s = sin(vRot);
-    vec2 rotated = vec2(coord.x * c - coord.y * s, coord.x * s + coord.y * c);
-    
-    // Diamond shape
-    float diamond = abs(rotated.x) + abs(rotated.y);
-    if (diamond > 0.45) discard;
-    
-    // Sparkle
-    float sparkle = 0.7 + 0.3 * sin(time * 15.0 + vRot);
-    float alpha = vLife * sparkle * (1.0 - diamond * 2.0);
-    
-    gl_FragColor = vec4(0.7, 0.85, 1.0, alpha);
-  }
-`;
-
 // ============================================================================
 // PARTICLE MANAGER CLASS
 // ============================================================================
@@ -282,64 +107,83 @@ export class ParticleManager {
     // Shared geometry
     this.particleGeometry = new THREE.BufferGeometry();
     
-    // Create particle material
-    this.particleMaterial = new THREE.ShaderMaterial({
-      vertexShader: particleVertexShader,
-      fragmentShader: particleFragmentShader,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: {
-        time: { value: 0 },
-        cameraPosition: { value: new THREE.Vector3() },
-      },
+    const makeMaterial = (family) => new THREE.ShaderMaterial({
+      vertexShader: particleVertexShader, fragmentShader: particleFragmentShader,
+      transparent: true, depthWrite: false,
+      blending: family === 1 ? THREE.NormalBlending : THREE.AdditiveBlending,
+      uniforms: { time: { value: 0 }, family: { value: family } },
     });
-    
-    // Steam material
-    this.steamMaterial = new THREE.ShaderMaterial({
-      vertexShader: steamVertexShader,
-      fragmentShader: steamFragmentShader,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.NormalBlending,
-      uniforms: {
-        time: { value: 0 },
-        windDirection: { value: new THREE.Vector3(0, 1, 0) },
-      },
-    });
-    
-    // Ember material
-    this.emberMaterial = new THREE.ShaderMaterial({
-      vertexShader: emberVertexShader,
-      fragmentShader: emberFragmentShader,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: {
-        time: { value: 0 },
-      },
-    });
-    
-    // Ice material
-    this.iceMaterial = new THREE.ShaderMaterial({
-      vertexShader: iceVertexShader,
-      fragmentShader: iceFragmentShader,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: {
-        time: { value: 0 },
-      },
-    });
-    
+    this.particleMaterial = makeMaterial(0);
+    this.steamMaterial = makeMaterial(1);
+    this.emberMaterial = makeMaterial(2);
+    this.iceMaterial = makeMaterial(3);
+    const materials = { default: this.particleMaterial, steam: this.steamMaterial, ember: this.emberMaterial, ice: this.iceMaterial };
+    for (const [type, material] of Object.entries(materials)) {
+      const geometry = new THREE.BufferGeometry();
+      for (const [name, width] of Object.entries({position:3, velocity:3, birth:1, life:1, size:1, tint:3, drag:1})) {
+        geometry.setAttribute(name, new THREE.BufferAttribute(new Float32Array(PARTICLE_BUDGETS.cinematic.maxParticles * width), width).setUsage(THREE.DynamicDrawUsage));
+      }
+      geometry.setDrawRange(0, 0);
+      const points = new THREE.Points(geometry, material);
+      points.frustumCulled = false; // Vertex shader moves particles beyond birth bounds.
+      points.name = `combat-particles-${type}`;
+      this.particleSystems.set(type, points);
+      this.scene.add(points);
+    }
     // Decal texture atlas (procedural)
     this.decalCanvas = this._createDecalAtlas();
     this.decalTexture = new THREE.CanvasTexture(this.decalCanvas);
     
+    this.debris = [];
+    this.debrisMesh = new THREE.InstancedMesh(
+      new THREE.TetrahedronGeometry(1, 0),
+      new THREE.MeshStandardMaterial({color: 0x89939b, roughness: .72, metalness: .45}),
+      96,
+    );
+    this.debrisMesh.name = 'combat-impact-fragments';
+    this.debrisMesh.count = 0;
+    this.debrisMesh.frustumCulled = false;
+    this.debrisMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.scene.add(this.debrisMesh);
+    this._debrisTransform = new THREE.Object3D();
     // Time tracking
     this.elapsedTime = 0;
   }
   
+  // Presentation-only API: never mutates collision, damage or ability state.
+  impact(position, color = 0xffbd72, intensity = 1) {
+    const amount = Math.max(.2, Math.min(3, intensity));
+    const tint = new THREE.Color(color);
+    const quality = this.budget.hazardIntensity;
+    this.spawnParticleBurst({position, count: Math.ceil(5 * quality * amount), type: 'steam',
+      spread: .14, lifeMin: .28, lifeMax: .7, sizeMin: .16 * amount, sizeMax: .4 * amount,
+      color: tint.clone().lerp(new THREE.Color(0x79828c), .82),
+      velocityMin: new THREE.Vector3(-.7, .4, -.7), velocityMax: new THREE.Vector3(.7, 1.7, .7)});
+    this.spawnParticleBurst({position, count: Math.ceil(5 * quality * amount), type: 'ember',
+      spread: .08, lifeMin: .12, lifeMax: .45, sizeMin: .025, sizeMax: .065,
+      color: tint, velocityMin: new THREE.Vector3(-3, .6, -3), velocityMax: new THREE.Vector3(3, 4, 3)});
+    const limit = Math.min(96, Math.round(64 * quality));
+    for (let i = 0; i < Math.ceil(4 * quality * amount) && this.debris.length < limit; i++) {
+      this.debris.push({position: position.clone(), velocity: new THREE.Vector3((Math.random()-.5)*5, 1+Math.random()*3, (Math.random()-.5)*5),
+        born: this.elapsedTime, life: .4 + Math.random() * .4, size: (.025 + Math.random() * .045) * amount,
+        spin: Math.random() * 10, seed: Math.random() * 6});
+    }
+  }
+
+  detonation(position, color = 0xffa34a, intensity = 1) {
+    this.impact(position, color, Math.min(3, 2 * intensity));
+    this.spawnParticleBurst({position, count: Math.round(18 * this.budget.hazardIntensity), type: 'steam',
+      spread: .7, lifeMin: .6, lifeMax: 1.35, sizeMin: .5, sizeMax: 1.1,
+      color: new THREE.Color(0x5c626b),
+      velocityMin: new THREE.Vector3(-1.2, 1.8, -1.2), velocityMax: new THREE.Vector3(1.2, 4, 1.2)});
+  }
+
+  get stats() {
+    return {particles: this.activeParticles.length, decals: this.decals.length, debris: this.debris.length,
+      particleDraws: [...this.particleSystems.values()].filter(p => p.geometry.drawRange.count > 0).length,
+      debrisDraws: this.debrisMesh.count > 0 ? 1 : 0};
+  }
+
   _createDecalAtlas() {
     const canvas = document.createElement("canvas");
     canvas.width = 256;
@@ -371,6 +215,7 @@ export class ParticleManager {
     this.qualityProfile = profile;
     this.budget = PARTICLE_BUDGETS[profile] || PARTICLE_BUDGETS.high;
     this.maxDecals = this.budget.maxDecals;
+    this.debris.length = Math.min(this.debris.length, Math.min(96, Math.round(64 * this.budget.hazardIntensity)));
     this._enforceBudgets();
   }
   
@@ -383,6 +228,8 @@ export class ParticleManager {
     while (this.decals.length > this.maxDecals) {
       const d = this.decals.shift();
       this.scene.remove(d.mesh);
+      d.mesh.geometry.dispose();
+      d.mesh.material.dispose();
     }
   }
   
@@ -403,40 +250,15 @@ export class ParticleManager {
       type = "default",
     } = config;
     
-    let material = this.particleMaterial;
-    if (type === "steam") material = this.steamMaterial;
-    else if (type === "ember") material = this.emberMaterial;
-    else if (type === "ice") material = this.iceMaterial;
-    
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array([position.x, position.y, position.z]);
-    const velocities = new Float32Array([velocity.x, velocity.y, velocity.z]);
-    const lives = new Float32Array([life]);
-    const sizes = new Float32Array([size]);
-    const colors = new Float32Array([color.r, color.g, color.b]);
-    const drags = new Float32Array([drag]);
-    
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("startPos", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("velocity", new THREE.BufferAttribute(velocities, 3));
-    geometry.setAttribute("life", new THREE.BufferAttribute(lives, 1));
-    geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
-    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    geometry.setAttribute("drag", new THREE.BufferAttribute(drags, 1));
-    
-    const points = new THREE.Points(geometry, material);
-    points.userData = {
-      spawnTime: this.elapsedTime,
-      life,
-      type,
+    const particle = {
+      position: position.clone(), velocity: velocity.clone(), color: color.clone(),
+      size: Math.max(0.001, size), drag: Math.max(0, drag),
+      userData: { spawnTime: this.elapsedTime, life: Math.max(0.001, life), type: this.particleSystems.has(type) ? type : 'default' },
     };
-    
-    this.scene.add(points);
-    this.activeParticles.push(points);
-    
-    return points;
+    this.activeParticles.push(particle);
+    return particle;
   }
-  
+
   spawnParticleBurst(config) {
     const {
       position = new THREE.Vector3(),
@@ -450,6 +272,7 @@ export class ParticleManager {
       sizeMax = 0.15,
       color = new THREE.Color(1, 1, 1),
       type = "default",
+      drag = .3,
     } = config;
     
     const spawned = [];
@@ -461,7 +284,7 @@ export class ParticleManager {
       );
       
       spawned.push(this.spawnParticle({
-        position: position.clone().applyMatrix4(new THREE.Matrix4().makeTranslation(
+        position: position.clone().add(new THREE.Vector3(
           (Math.random() - 0.5) * spread,
           (Math.random() - 0.5) * spread,
           (Math.random() - 0.5) * spread,
@@ -470,7 +293,7 @@ export class ParticleManager {
         life: lifeMin + Math.random() * (lifeMax - lifeMin),
         size: sizeMin + Math.random() * (sizeMax - sizeMin),
         color: color.clone().offsetHSL(Math.random() * 0.1, 0, 0),
-        type,
+        type, drag,
       }));
     }
     
@@ -547,6 +370,7 @@ export class ParticleManager {
       const old = this.decals.shift();
       this.scene.remove(old.mesh);
       old.mesh.geometry.dispose();
+      old.mesh.material.dispose();
     }
     
     // Select decal frame based on material type
@@ -558,7 +382,6 @@ export class ParticleManager {
       scorched: 3,
     }[materialType] || 0;
     
-    const frameSize = 0.5;
     const uvScale = 0.5;
     const uvOffset = new THREE.Vector2(
       (frameIndex % 2) * 0.5,
@@ -575,14 +398,12 @@ export class ParticleManager {
       opacity: 0.8,
     });
     
-    material.uvTransform = new THREE.Matrix3()
-      .scale(uvScale, uvScale)
-      .translate(uvOffset.x, uvOffset.y);
+    const uv = geometry.getAttribute('uv');
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * uvScale + uvOffset.x, uv.getY(i) * uvScale + uvOffset.y);
     
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.copy(position);
-    mesh.lookAt(position.clone().add(normal));
-    mesh.rotateX(Math.PI / 2);
+    mesh.position.copy(position).addScaledVector(normal, 0.012);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal.clone().normalize());
     
     this.scene.add(mesh);
     this.decals.push({ mesh, spawnTime: this.elapsedTime, life: 8.0 });
@@ -622,7 +443,7 @@ export class ParticleManager {
   }
   
   spawnTracer(start, end, color = new THREE.Color(1, 0.9, 0.6), duration = 0.15) {
-    if (this.activeParticles.length >= this.budget.maxTracers) return;
+    if (this.activeParticles.filter(p => p.userData.isTracer).length >= this.budget.maxTracers) return;
     
     const direction = new THREE.Vector3().subVectors(end, start);
     const length = direction.length();
@@ -697,7 +518,7 @@ export class ParticleManager {
   }
   
   update(deltaTime) {
-    this.elapsedTime += deltaTime;
+    this.elapsedTime += Math.max(0, Number.isFinite(deltaTime) ? deltaTime : 0);
     
     // Update shader uniforms
     this.particleMaterial.uniforms.time.value = this.elapsedTime;
@@ -717,6 +538,42 @@ export class ParticleManager {
       }
     }
     
+    // Compact live attributes into four persistent GPU buffers; no per-shot geometry.
+    const counts = { default: 0, steam: 0, ember: 0, ice: 0 };
+    for (const p of this.activeParticles) {
+      if (p.userData.isTracer) continue;
+      const type = p.userData.type, i = counts[type]++;
+      const a = this.particleSystems.get(type).geometry.attributes;
+      a.position.setXYZ(i, p.position.x, p.position.y, p.position.z);
+      a.velocity.setXYZ(i, p.velocity.x, p.velocity.y, p.velocity.z);
+      a.tint.setXYZ(i, p.color.r, p.color.g, p.color.b);
+      a.birth.setX(i, p.userData.spawnTime); a.life.setX(i, p.userData.life);
+      a.size.setX(i, p.size); a.drag.setX(i, p.drag);
+    }
+    for (const [type, points] of this.particleSystems) {
+      points.geometry.setDrawRange(0, counts[type]);
+      points.visible = counts[type] > 0;
+      for (const attribute of Object.values(points.geometry.attributes)) {
+        attribute.clearUpdateRanges();
+        if (counts[type]) attribute.addUpdateRange(0, counts[type] * attribute.itemSize);
+        attribute.needsUpdate = true;
+      }
+    }
+
+    this.debris = this.debris.filter(p => this.elapsedTime - p.born < p.life);
+    const transform = this._debrisTransform;
+    for (let i = 0; i < this.debris.length; i++) {
+      const p = this.debris[i], age = this.elapsedTime - p.born;
+      transform.position.copy(p.position).addScaledVector(p.velocity, age);
+      transform.position.y -= 4.9 * age * age;
+      transform.rotation.set(p.seed + age * p.spin, age * p.spin * .7, p.seed);
+      transform.scale.set(p.size, p.size * .55, p.size * (1 - age / p.life));
+      transform.updateMatrix();
+      this.debrisMesh.setMatrixAt(i, transform.matrix);
+    }
+    this.debrisMesh.count = this.debris.length;
+    this.debrisMesh.instanceMatrix.needsUpdate = true;
+
     // Update decals
     for (let i = this.decals.length - 1; i >= 0; i--) {
       const d = this.decals[i];
@@ -725,6 +582,7 @@ export class ParticleManager {
       if (age >= d.life) {
         this.scene.remove(d.mesh);
         d.mesh.geometry.dispose();
+        d.mesh.material.dispose();
         this.decals.splice(i, 1);
       } else {
         // Fade out
@@ -737,26 +595,36 @@ export class ParticleManager {
   }
   
   _disposeParticle(p) {
-    this.scene.remove(p);
+    if (p.isObject3D) this.scene.remove(p);
     if (p.geometry) p.geometry.dispose();
+    if (p.userData.isTracer) p.material?.dispose();
   }
   
   clear() {
+    this.debris.length = 0;
+    this.debrisMesh.count = 0;
     for (const p of this.activeParticles) {
       this._disposeParticle(p);
     }
     this.activeParticles = [];
+    for (const points of this.particleSystems.values()) { points.geometry.setDrawRange(0, 0); points.visible = false; }
     
     for (const d of this.decals) {
       this.scene.remove(d.mesh);
       d.mesh.geometry.dispose();
+      d.mesh.material.dispose();
     }
     this.decals = [];
   }
   
   dispose() {
     this.clear();
+    this.scene.remove(this.debrisMesh);
+    this.debrisMesh.geometry.dispose();
+    this.debrisMesh.material.dispose();
     this.particleGeometry.dispose();
+    for (const points of this.particleSystems.values()) { this.scene.remove(points); points.geometry.dispose(); }
+    this.particleSystems.clear();
     this.particleMaterial.dispose();
     this.steamMaterial.dispose();
     this.emberMaterial.dispose();

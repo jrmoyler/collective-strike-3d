@@ -31,6 +31,10 @@ function dataTexture(data, size, colorSpace) {
   const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.UnsignedByteType);
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(3, 3);
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.anisotropy = 4;
   texture.colorSpace = colorSpace;
   texture.needsUpdate = true;
   return texture;
@@ -111,9 +115,12 @@ export function proceduralSurfaceSet(baseValue, accentValue, seed, finish = "wor
     heights[index] = height;
     const wear = Math.max(0, macro * 0.18 + random() * 0.16), tint = base.clone().lerp(accent, Math.min(0.22, wear));
     const cavity = Math.max(0, -height) * 0.24, ai = index * 4;
-    albedo[ai] = Math.round(THREE.MathUtils.clamp(tint.r * (1 - cavity), 0, 1) * 255);
-    albedo[ai + 1] = Math.round(THREE.MathUtils.clamp(tint.g * (1 - cavity), 0, 1) * 255);
-    albedo[ai + 2] = Math.round(THREE.MathUtils.clamp(tint.b * (1 - cavity), 0, 1) * 255);
+    // Color stores linear RGB; the albedo texture is tagged sRGB. Encode once,
+    // otherwise the renderer decodes an already-linear value and crushes detail.
+    tint.multiplyScalar(1 - cavity).convertLinearToSRGB();
+    albedo[ai] = Math.round(THREE.MathUtils.clamp(tint.r, 0, 1) * 255);
+    albedo[ai + 1] = Math.round(THREE.MathUtils.clamp(tint.g, 0, 1) * 255);
+    albedo[ai + 2] = Math.round(THREE.MathUtils.clamp(tint.b, 0, 1) * 255);
     albedo[ai + 3] = 255;
     const rough = THREE.MathUtils.clamp(profile.rough + (random() - 0.5) * 0.26 + cavity * 0.35 - wear * 0.25, 0.12, 0.96);
     roughness[ai] = roughness[ai + 1] = roughness[ai + 2] = Math.round(rough * 255); roughness[ai + 3] = 255;
@@ -121,7 +128,8 @@ export function proceduralSurfaceSet(baseValue, accentValue, seed, finish = "wor
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const index = y * size + x, left = heights[y * size + (x + size - 1) % size], right = heights[y * size + (x + 1) % size], down = heights[((y + size - 1) % size) * size + x], up = heights[((y + 1) % size) * size + x];
     const nx = THREE.MathUtils.clamp((left - right) * 0.7, -1, 1), ny = THREE.MathUtils.clamp((down - up) * 0.7, -1, 1), ni = index * 4;
-    normal[ni] = Math.round((nx * 0.5 + 0.5) * 255); normal[ni + 1] = Math.round((ny * 0.5 + 0.5) * 255); normal[ni + 2] = 255; normal[ni + 3] = 255;
+    const inverseLength = 1 / Math.hypot(nx, ny, 1);
+    normal[ni] = Math.round((nx * inverseLength * 0.5 + 0.5) * 255); normal[ni + 1] = Math.round((ny * inverseLength * 0.5 + 0.5) * 255); normal[ni + 2] = Math.round((inverseLength * 0.5 + 0.5) * 255); normal[ni + 3] = 255;
   }
   return {
     map: dataTexture(albedo, size, THREE.SRGBColorSpace),
@@ -143,9 +151,10 @@ const CONCEPT_FILES = Object.freeze({
 });
 
 function assetMaterials(theme) {
-  const steelMaps = proceduralSurfaceSet(theme.accentHex, theme.secondaryHex, `${theme.id || theme.architecture}:steel`, "brushed-steel");
-  const darkMaps = proceduralSurfaceSet(theme.outer, theme.accentHex, `${theme.id || theme.architecture}:dark`, "worn-metal");
-  const paintedMaps = proceduralSurfaceSet(theme.wall, theme.accentHex, `${theme.id || theme.architecture}:paint`, "painted");
+  const forge = theme.id === "forge" || theme.architecture === "forge";
+  const steelMaps = proceduralSurfaceSet(forge ? 0x8d9498 : theme.accentHex, forge ? 0xb7b3aa : theme.secondaryHex, `${theme.id || theme.architecture}:steel`, "brushed-steel");
+  const darkMaps = proceduralSurfaceSet(forge ? 0x242a30 : theme.outer, forge ? 0x655a48 : theme.accentHex, `${theme.id || theme.architecture}:dark`, "worn-metal");
+  const paintedMaps = proceduralSurfaceSet(forge ? 0xb7b3aa : theme.wall, forge ? 0x656967 : theme.accentHex, `${theme.id || theme.architecture}:paint`, "painted");
   return {
     shell: new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -156,7 +165,7 @@ function assetMaterials(theme) {
       emissive: theme.wallEmissive,
       emissiveIntensity: 0.08,
       ...paintedMaps,
-      normalScale: new THREE.Vector2(0.38, 0.38),
+      normalScale: new THREE.Vector2(0.14, 0.14),
     }),
     dark: new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -166,7 +175,7 @@ function assetMaterials(theme) {
       emissive: theme.wallEmissive,
       emissiveIntensity: 0.04,
       ...darkMaps,
-      normalScale: new THREE.Vector2(0.48, 0.48),
+      normalScale: new THREE.Vector2(0.2, 0.2),
     }),
     accent: new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -331,6 +340,30 @@ function buildFurnace(ctx) {
   part(ctx, "carriage-heat-core", new THREE.CylinderGeometry(0.22, 0.3, 0.82, 10), mats.accent, { position: [0, 11.1, 0], group: "pour-system" });
   ctx.animations.push({ type: "spinY", o: crown, speed: 0.035 });
   pipe(ctx, "coolant-loop", [[2.4, 5.5, 0], [4, 5.3, 0], [4, 2.1, 1.2], [3, 1.2, 2.4]], 0.18, mats.shell, { group: "services" });
+  // Reference meso detail: clamped band hardware, service ladder and reservoir.
+  // Instances remain ray-pickable by instanceId and move with their named assembly.
+  const bolts = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.075, 0.075, 0.11, 6), mats.shell, 48);
+  bolts.name = "furnace-band-fasteners";
+  const matrix = new THREE.Matrix4(), quaternion = new THREE.Quaternion();
+  for (let i = 0; i < 48; i++) {
+    const angle = i % 16 / 16 * Math.PI * 2, level = Math.floor(i / 16);
+    const normal = v3(Math.cos(angle), 0, Math.sin(angle));
+    quaternion.setFromUnitVectors(v3(0, 1, 0), normal);
+    matrix.compose(v3(normal.x * (2.76 - level * 0.08), 2.25 + level * 1.82, normal.z * (2.76 - level * 0.08)), quaternion, v3(1, 1, 1));
+    bolts.setMatrixAt(i, matrix);
+  }
+  bolts.instanceMatrix.needsUpdate = true;
+  bolts.userData.explodeWithParent = true;
+  ctx.root.add(bolts); ctx.runtime.nodes[bolts.name] = bolts;
+  ctx.runtime.destructionGroups.reactor.push(bolts.name);
+  const ladder = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), mats.shell, 14);
+  ladder.name = "service-ladder";
+  for (let i = 0; i < 12; i++) setInstance(ladder, i, [2.86, 0.65 + i * 0.32, 1.5], [0.7, 0.045, 0.09], 0.25);
+  setInstance(ladder, 12, [2.52, 2.4, 1.59], [0.07, 4.0, 0.07]);
+  setInstance(ladder, 13, [3.2, 2.4, 1.41], [0.07, 4.0, 0.07]);
+  ladder.instanceMatrix.needsUpdate = true; ctx.root.add(ladder);
+  ctx.runtime.nodes[ladder.name] = ladder; ctx.runtime.destructionGroups.services.push(ladder.name);
+  part(ctx, "open-molten-reservoir", new THREE.CylinderGeometry(2.15, 2.15, 0.08, 32), mats.accent, { position: [0, 7.94, 0], group: "reactor" });
   const glow = new THREE.PointLight(0xff7a18, 4.6, 50, 1.8); glow.position.y = 7.6; ctx.root.add(glow);
   ctx.animations.push({ type: "light", o: glow, base: 3.4, amp: 1.3, phase: 0.8 });
 }
@@ -522,8 +555,8 @@ function livingMaterials(theme, id) {
   const hard = proceduralSurfaceSet(theme.wall, theme.secondaryHex, `${id}:living-hard`, id === "lunar" || id === "caldera" ? "stone" : "brushed-steel");
   const ground = proceduralSurfaceSet(theme.outer, theme.accentHex, `${id}:living-ground`, id === "verdant" ? "painted" : "stone");
   return {
-    hard: new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: LIVING_PROFILES[id].metal, roughness: 0.46, clearcoat: 0.14, clearcoatRoughness: 0.52, emissive: theme.wallEmissive, emissiveIntensity: 0.08, ...hard, normalScale: new THREE.Vector2(0.42, 0.42) }),
-    ground: new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.12, roughness: 0.82, emissive: theme.wallEmissive, emissiveIntensity: 0.035, ...ground, normalScale: new THREE.Vector2(0.56, 0.56) }),
+    hard: new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: LIVING_PROFILES[id].metal, roughness: 0.46, clearcoat: 0.14, clearcoatRoughness: 0.52, emissive: theme.wallEmissive, emissiveIntensity: 0.08, ...hard, normalScale: new THREE.Vector2(0.16, 0.16) }),
+    ground: new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.12, roughness: 0.82, emissive: theme.wallEmissive, emissiveIntensity: 0.035, ...ground, normalScale: new THREE.Vector2(0.2, 0.2) }),
     energy: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, metalness: 0.18, roughness: 0.16, clearcoat: 0.74, clearcoatRoughness: 0.12, emissive: theme.accentHex, emissiveIntensity: 2.15 }),
     /* No `transmission`: see the note on assetMaterials().glass. */
     glass: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, metalness: 0, roughness: 0.08, clearcoat: 0.92, clearcoatRoughness: 0.06, transparent: true, opacity: 0.64, emissive: theme.secondaryHex, emissiveIntensity: 0.52 }),
@@ -625,16 +658,30 @@ export function buildArenaLivingSet(definition, theme, tileSize = ARENA_SIZE.til
   return { root, animations };
 }
 
+export const ARENA_SURFACE_PALETTES = Object.freeze({
+  forge: ["thermal-plate", "brushed-steel", "worn-metal"],
+  abyss: ["ritual-inlay", "weathered-stone", "void-stone"],
+  tempest: ["weathered-stone", "stone", "bedrock"],
+  verdant: ["biomech-soil", "organic", "overgrown"],
+  cryo: ["snow-packed", "ice-crystal", "glacial-stone"],
+  mirage: ["ritual-inlay", "void-stone", "dark-matter"],
+  neon: ["composite-roof", "painted-metal", "city-deep"],
+  solar: ["sandstone", "solar-panel", "desert-rock"],
+  lunar: ["lunar-regolith", "crawler-plate", "bedrock"],
+  caldera: ["basalt-rock", "thermal-plate", "magma-deep"],
+});
+
 /** Cohesive large-scale materials used by the authored floor, ramps, and cover. */
 export function buildArenaMaterialSet(theme) {
   const id = theme.id || theme.architecture || "arena";
-  const floorMaps = proceduralSurfaceSet(theme.floorTint, theme.accentHex, `${id}:floor`, id === "lunar" || id === "caldera" ? "stone" : "painted");
-  const structureMaps = proceduralSurfaceSet(theme.wall, theme.secondaryHex, `${id}:structure`, "brushed-steel");
-  const darkMaps = proceduralSurfaceSet(theme.outer, theme.accentHex, `${id}:outer`, id === "verdant" ? "painted" : "worn-metal");
+  const finishes = ARENA_SURFACE_PALETTES[id] || ARENA_SURFACE_PALETTES.forge;
+  const floorMaps = proceduralSurfaceSet(theme.floorTint, theme.accentHex, `${id}:floor`, finishes[0]);
+  const structureMaps = proceduralSurfaceSet(theme.wall, theme.secondaryHex, `${id}:structure`, finishes[1]);
+  const darkMaps = proceduralSurfaceSet(theme.outer, theme.accentHex, `${id}:outer`, finishes[2]);
   return {
-    floor: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: theme.floorRoughness, metalness: theme.floorMetalness, clearcoat: 0.08, clearcoatRoughness: 0.7, emissive: theme.wallEmissive, emissiveIntensity: 0.04, ...floorMaps, normalScale: new THREE.Vector2(0.52, 0.52) }),
-    structure: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.48, clearcoat: 0.16, clearcoatRoughness: 0.48, emissive: theme.wallEmissive, emissiveIntensity: 0.08, ...structureMaps, normalScale: new THREE.Vector2(0.42, 0.42) }),
-    dark: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.74, metalness: 0.24, clearcoat: 0.06, emissive: theme.wallEmissive, emissiveIntensity: 0.035, ...darkMaps, normalScale: new THREE.Vector2(0.58, 0.58) }),
+    floor: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: theme.floorRoughness, metalness: theme.floorMetalness, clearcoat: 0.08, clearcoatRoughness: 0.7, emissive: theme.wallEmissive, emissiveIntensity: 0.04, ...floorMaps, normalScale: new THREE.Vector2(0.18, 0.18) }),
+    structure: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.48, clearcoat: 0.16, clearcoatRoughness: 0.48, emissive: theme.wallEmissive, emissiveIntensity: 0.08, ...structureMaps, normalScale: new THREE.Vector2(0.16, 0.16) }),
+    dark: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.74, metalness: 0.24, clearcoat: 0.06, emissive: theme.wallEmissive, emissiveIntensity: 0.035, ...darkMaps, normalScale: new THREE.Vector2(0.22, 0.22) }),
     accent: new THREE.MeshPhysicalMaterial({ color: theme.accentHex, roughness: 0.22, metalness: 0.38, clearcoat: 0.5, emissive: theme.accentHex, emissiveIntensity: 1.1 }),
     secondary: new THREE.MeshPhysicalMaterial({ color: theme.secondaryHex, roughness: 0.2, metalness: 0.32, clearcoat: 0.55, emissive: theme.secondaryHex, emissiveIntensity: 0.92 }),
   };
@@ -728,3 +775,41 @@ export function buildExclusionReadability(definition, theme, tileSize = ARENA_SI
 }
 
 export const ARENA_ASSET_VERSION = "2.1.0";
+
+/** One opaque sky draw, no textures, lights, postpasses, particles or timers. */
+export function buildArenaAtmosphere(definition, theme, tileSize = ARENA_SIZE.tile * 0.1) {
+  const root = new THREE.Group(); root.name = `atmosphere-${definition.identity.id}`;
+  const id = definition.identity.id;
+  const daylight = { solar: 0.9, tempest: 0.5, verdant: 0.5, cryo: 0.65, lunar: 0.04 }[id] ?? 0.12;
+  const zenith = color(theme.fog ?? definition.visuals.fog).lerp(color(0x356488), daylight * 0.48);
+  const horizon = color(theme.secondaryHex).lerp(color(0xb7b5b0), daylight * 0.65).multiplyScalar(0.24 + daylight * 0.52);
+  const material = new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: { zenith: { value: zenith }, horizon: { value: horizon }, sunColor: { value: color(id === 'solar' ? 0xffe2a4 : 0xcddbeb) }, daylight: { value: daylight }, cloudAmount: { value: id === 'lunar' ? 0 : 0.22 + daylight * 0.2 } },
+    vertexShader: `varying vec3 skyDirection;
+      void main(){skyDirection=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+    fragmentShader: `varying vec3 skyDirection;
+      uniform vec3 zenith,horizon,sunColor; uniform float daylight,cloudAmount;
+      float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+      float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+      void main(){vec3 d=normalize(skyDirection);float h=max(d.y,0.);
+        vec3 col=mix(horizon,zenith,smoothstep(0.,.85,h));
+        vec2 p=d.xz/(abs(d.y)+.28)*2.1;
+        float n=noise(p)*.57+noise(p*2.03)*.28+noise(p*4.17)*.15;
+        float cloud=smoothstep(.48,.78,n)*smoothstep(.03,.27,h)*cloudAmount;
+        col=mix(col,horizon*1.18,cloud);
+        float alignment=max(dot(d,normalize(vec3(-.5,.38,-.7))),0.);
+        float sun=smoothstep(.9993,.99975,alignment);
+        col+=sunColor*(sun*.65+pow(alignment,72.)*.055)*daylight;
+        gl_FragColor=vec4(col,1.);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(360, 24, 12), material);
+  sky.name = `${id}-layered-sky`; sky.renderOrder = -100; sky.frustumCulled = false;
+  sky.position.set(ARENA_SIZE.width * tileSize / 2, 0, ARENA_SIZE.height * tileSize / 2);
+  sky.userData.visualOnly = true; root.add(sky);
+  root.userData.renderBudget = { drawCalls: 1, triangles: 528, textures: 0 };
+  return { root, animations: [] };
+}

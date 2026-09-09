@@ -1,0 +1,37 @@
+{
+  "route": "direct-threejs-existing-runtime-with-blender-inspection",
+  "authorization": "User requested a new PR overhauling arenas using Blender, Three.js and the full image-to-threejs pipeline while preserving characters.",
+  "legacyState": "No pre-existing state or reviewed sculpt spec existed for these committed factories. Newly initialized local checklist does not retroactively accept their history.",
+  "strategy": "Export and inspect actual runtime meshes; correct reference-observed details and PBR encoding/sampling defects; preserve exact-reference rejection separately from functional upgrade validation.",
+  "iterations": [
+    {
+      "id": 1,
+      "finding": "WebGL reveals double-decoded albedo and unfiltered procedural texture aliasing; Forge material palette too orange.",
+      "action": "refine-code",
+      "evidence": "docs/arena-pipeline/forge/review-01",
+      "strictReferenceAccepted": false,
+      "captureRetention": "Original screenshot was overwritten by the capture harness before archival; original diagnostic renderHash and failure report are retained. No corrected screenshot is labeled as the rejected render."
+    },
+    {
+      "id": 2,
+      "changes": [
+        "linear-to-sRGB albedo encoding",
+        "mipmap-linear sampling, anisotropy 4",
+        "unit-length tangent normals",
+        "reduced normal amplitude across all arena material factories",
+        "ceramic/oxidized-steel Forge palette",
+        "48 band fasteners, 14 ladder instances, molten reservoir"
+      ],
+      "evidence": "docs/arena-pipeline/forge/webgl-angle-0.png",
+      "strictReferenceAccepted": false
+    }
+  ],
+  "remainingGaps": [
+    "exact reference camera alignment",
+    "buttressed broad base and grated platforms",
+    "dense pipe elbows and local damage",
+    "reference-projected PBR finish",
+    "historical sequential generator pass reviews unavailable"
+  ],
+  "acceptanceScope": "Playable procedural upgrade and real multi-angle geometry; no photoreal exact-likeness claim"
+}
