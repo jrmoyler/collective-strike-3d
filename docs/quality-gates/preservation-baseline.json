@@ -1,0 +1,26 @@
+{
+  "baselineCommit": "9d01a6d368f11b4c0aabb05dad2136d799aa2ad2",
+  "blocks": {
+    "operators": {
+      "pattern": "const DIVS=\\[([\\s\\S]*?)\\]\\.map",
+      "sha256": "216da229a8a5a3f1225ab30d313efa2386b47a475970d721a91804dac28d9421"
+    },
+    "doctrine": {
+      "pattern": "const SIGNATURES=\\{([\\s\\S]*?)\\n\\};\\n/\\* Arsenal Series 03",
+      "sha256": "de948b938fe25fbfea2b758f1ed1b7546c98e568477f7f715ea3f0f25da14087"
+    },
+    "series03": {
+      "pattern": "const ADDITIONAL_WEAPONS=\\{([\\s\\S]*?)\\n\\};\\nconst ARSENAL_RUNTIME",
+      "sha256": "5d5f6995b0a3171256eeb35424da954daa508f39aa2b01bd0b40421eae0d8849"
+    }
+  },
+  "files": {
+    "src/persistence.js": "a7d4a687f84c95aeffaf40f138ebf19f3a8990196a30f8e880a8cf327ac3f004",
+    "src/operator-assets.js": "13e105cc5a1d0fe95f9712a7a010d8efa66c1a931f724f9c1eca3a9a0d9b2e5e",
+    "src/arena-core.js": "84177fadae4ff068554714bc1456d796fbf7c360bcfcee741c08de1374fdb9fb",
+    "src/boss-dna.js": "8e9f9f50a5531b88ea22f4344a30e24772951f373e149c8b7557ce414db344e4",
+    "src/boss-mode.js": "20b417dedeb96ff85bf46b108fbe266f63b4bb9dd1f22952eccbf7dc160857ba",
+    "src/boss-abilities.js": "3f2b3c01b7b77ae845f79976a17f13225bb9552b500541fbe12a634feb150489",
+    "src/divisional-arsenal.js": "a055797bda890e93d7a64022b04395e2bf0b4bf732aac3d47453bfdcaf925c44"
+  }
+}

@@ -3375,7 +3375,16 @@ function initInputEvents(){
  appLifecycle.listen(document,"visibilitychange",()=>{if(document.hidden){clearPhysicalInput();if(!["menu","mapselect","gameover"].includes(phase)&&!paused)togglePause()}});
  appLifecycle.listen(window,"contextmenu",e=>e.preventDefault());appLifecycle.listen(document,"touchmove",e=>{if(document.body.classList.contains("game-active"))e.preventDefault()},{passive:false});appLifecycle.listen(document,"gesturestart",e=>{if(document.body.classList.contains("game-active"))e.preventDefault()});
 }
-function loop(){if(!loopStarted)return;loopHandle=requestAnimationFrame(loop);const rawDt=clock.getDelta(),dt=Math.min(.05,rawDt);if(document.hidden)return;pollGamepad(dt);if(paused)return;frameTimes.push(rawDt*1000);if(frameTimes.length>180)frameTimes.shift();perf.t+=dt;globalU.uTime.value=perf.t;gameScheduler.tick(dt);updateAim();updateSim(dt);updateRender(dt);renderHUD();updateCombatUI();drawMinimap();adaptiveQuality(dt);if(sbOpen&&Math.random()<dt*4)renderScoreboard()}
+let deviceBenchmark=null;
+function benchmarkState(){return {arena:window.CS3D_selectedArenaId||selectedArenaId,playlist:selectedPlaylist,
+ operator:me?.div?.id,quality:qualityController.profile,settingsQuality:SETTINGS.quality,renderer,
+ paused,combat:!!me&&!["loading","menu","mapselect","gameover"].includes(phase),
+ active:phase==="live"&&!!me?.alive&&!paused&&!buyOpen&&!document.hidden,
+ invalid:paused||buyOpen||["menu","mapselect","gameover"].includes(phase),pause:togglePause}}
+function loop(){if(!loopStarted)return;loopHandle=requestAnimationFrame(loop);const rawDt=clock.getDelta(),dt=Math.min(.05,rawDt);
+ if(!deviceBenchmark&&new URLSearchParams(location.search).get("benchmark")==="1")deviceBenchmark=window.CS3D_installDeviceBenchmark(benchmarkState);
+ if(document.hidden){deviceBenchmark?.tick(rawDt*1000,0);return}pollGamepad(dt);if(paused){deviceBenchmark?.tick(rawDt*1000,0);return}
+ const frameStart=performance.now();frameTimes.push(rawDt*1000);if(frameTimes.length>180)frameTimes.shift();perf.t+=dt;globalU.uTime.value=perf.t;gameScheduler.tick(dt);updateAim();updateSim(dt);updateRender(dt);renderHUD();updateCombatUI();drawMinimap();adaptiveQuality(rawDt);if(sbOpen&&Math.random()<dt*4)renderScoreboard();deviceBenchmark?.tick(rawDt*1000,performance.now()-frameStart)}
 function showBootFailure(message){
  const loading=document.getElementById("loading");loading.className="loadFail";loading.innerHTML=`<div><b>RENDERING LATTICE OFFLINE</b><small>${message}</small><button type="button" onclick="location.reload()">RETRY INITIALIZATION</button></div>`;
 }

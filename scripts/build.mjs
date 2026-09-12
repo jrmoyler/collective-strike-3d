@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 
 const root = path.resolve(import.meta.dirname, "..");
 const out = path.join(root, "dist");
@@ -36,4 +38,13 @@ const bytes = fs.readdirSync(out, { recursive: true })
   .filter(entry => fs.statSync(entry).isFile())
   .reduce((total, entry) => total + fs.statSync(entry).size, 0);
 
+// Hash the actual shipped files so phone evidence can be bound to this build,
+// including local authoring builds whose HEAD alone does not describe the files.
+const hash=createHash('sha256');
+for(const file of fs.readdirSync(out,{recursive:true}).sort()) {
+  const full=path.join(out,file);if(!fs.statSync(full).isFile())continue;
+  hash.update(file);hash.update('\0');hash.update(fs.readFileSync(full));
+}
+let commit=null;try{commit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();}catch{}
+fs.writeFileSync(path.join(out,'build-info.json'),JSON.stringify({commit,contentSha256:hash.digest('hex')},null,2));
 console.log(`Built ${path.join(out, "index.html")} (${(bytes / 1024).toFixed(0)} kB total)`);

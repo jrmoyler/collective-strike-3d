@@ -320,7 +320,11 @@ function buildFurnace(ctx) {
     ["lower-port-right", [0.16, 1.58, 0.34], [0.53, 1.18, 2.78]],
     ["lower-port-top", [1.22, 0.16, 0.34], [0, 1.93, 2.78]],
   ]) part(ctx, id, new THREE.BoxGeometry(...size), mats.shell, { position, group: "reactor" });
-  const crucible = part(ctx, "crucible", new THREE.CylinderGeometry(1.28, 0.88, 1.65, 18), mats.shell, { position: [0, 8.25, 0], group: "pour-system" });
+  // A closed cylinder hid the reservoir and read as a solid plug. The wall has
+  // real thickness, an open interior and a rolled rim, visible from orbit views.
+  const cupProfile = [[0.72,-0.82],[0.88,-0.78],[1.12,0.65],[1.28,0.72],
+    [1.28,0.82],[1.08,0.82],[0.94,0.63],[0.72,-0.63],[0.72,-0.82]];
+  const crucible = part(ctx, "crucible", new THREE.LatheGeometry(cupProfile.map(p => new THREE.Vector2(...p)), 24), mats.shell, { position: [0, 8.25, 0], group: "pour-system" });
   socket(ctx, crucible, "pour-socket", [0, -0.7, 1.05]);
   part(ctx, "pour-stream", new THREE.CylinderGeometry(0.16, 0.27, 2.4, 10), mats.accent, { position: [0, 7.15, 1.25], group: "pour-system" });
   radialParts(ctx, 6, 3.35, (i, a, r) => {
@@ -364,8 +368,78 @@ function buildFurnace(ctx) {
   ladder.instanceMatrix.needsUpdate = true; ctx.root.add(ladder);
   ctx.runtime.nodes[ladder.name] = ladder; ctx.runtime.destructionGroups.services.push(ladder.name);
   part(ctx, "open-molten-reservoir", new THREE.CylinderGeometry(2.15, 2.15, 0.08, 32), mats.accent, { position: [0, 7.94, 0], group: "reactor" });
+  finishFurnaceReference(ctx);
   const glow = new THREE.PointLight(0xff7a18, 4.6, 50, 1.8); glow.position.y = 7.6; ctx.root.add(glow);
   ctx.animations.push({ type: "light", o: glow, base: 3.4, amp: 1.3, phase: 0.8 });
+}
+
+/** Reference-defined mechanical systems, batched by material. No new gameplay
+ * colliders: the existing arena topology remains the movement authority. */
+function finishFurnaceReference(ctx) {
+  const { mats } = ctx;
+  const bronze = new THREE.MeshStandardMaterial({color:0xa66d35,metalness:.78,roughness:.38,
+    ...proceduralSurfaceSet(0xa66d35,0x594332,'forge:bronze','brushed-steel'),normalScale:new THREE.Vector2(.12,.12)});
+  const batches = new Map();
+  const box = new THREE.BoxGeometry(1,1,1);
+  const add = (name, material, position, scale, angle=0, group='services') => {
+    if (!batches.has(name)) batches.set(name,{material,group,entries:[]});
+    batches.get(name).entries.push({position,scale,angle});
+  };
+  // Retain the original pivots, collider capsules and destruction group IDs.
+  // Only the visual cross-section changes: broad plates with chamfered corners.
+  for (let i=0;i<6;i++) {
+    const pivot=ctx.runtime.nodes[`furnace-leg-${i}`], mesh=pivot.children[0];
+    const angle=i/6*Math.PI*2;
+    const a=v3(Math.cos(angle)*3.9,.45,Math.sin(angle)*3.9);
+    const b=v3(Math.cos(angle)*2.55,4.45,Math.sin(angle)*2.55);
+    const length=a.distanceTo(b);
+    const shape=new THREE.Shape();
+    const outline=[[-.35,-length/2],[.35,-length/2],[.52,-length*.3],
+      [.40,length*.36],[.28,length/2],[-.28,length/2],[-.40,length*.36],[-.52,-length*.3]];
+    outline.forEach(([x,y],n)=>n?shape.lineTo(x,y):shape.moveTo(x,y));shape.closePath();
+    mesh.geometry.dispose();
+    mesh.geometry=new THREE.ExtrudeGeometry(shape,{depth:.44,bevelEnabled:true,bevelThickness:.035,bevelSize:.045,bevelSegments:1,steps:1});
+    mesh.geometry.translate(0,0,-.22);
+    // Bake visual coordinates into the unchanged legacy action pivot.
+    pivot.updateMatrix();
+    const visualRotation=new THREE.Quaternion().setFromUnitVectors(v3(0,1,0),b.clone().sub(a).normalize());
+    visualRotation.multiply(new THREE.Quaternion().setFromAxisAngle(v3(0,1,0),Math.PI/2-angle));
+    const visualWorld=new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(.5),visualRotation,v3(1,1,1));
+    mesh.geometry.applyMatrix4(pivot.matrix.clone().invert().multiply(visualWorld));
+    for (let j=0;j<4;j++) {
+      const t=(j+.5)/4, r=3.9*(1-t)+2.55*t;
+      add('buttress-joint-clamps',mats.dark,[Math.cos(angle)*r,.45+4*t,Math.sin(angle)*r],[.98,.16,.62],Math.PI/2-angle,'frame');
+    }
+  }
+  // Open grating has actual gaps; no alpha cards or dense individual draws.
+  for (let side=-1;side<=1;side+=2) {
+    for (const y of [2.15,4.25]) {
+      for (let n=0;n<19;n++) add('service-deck-grating',mats.dark,[side*3.02,y,-1.3+n*.145],[1.05,.055,.035]);
+      for (const x of [side*2.52,side*3.52]) add('service-deck-edges',bronze,[x,y,.0],[.055,.11,2.75]);
+      for (let n=0;n<6;n++) add('deck-guardrails',bronze,[side*3.52,y+.28,-1.3+n*.52],[.035,.56,.035]);
+      add('deck-guardrails',bronze,[side*3.52,y+.56,0],[.035,.035,2.75]);
+    }
+    // Bronze return line follows the shell; elbows are curved geometry.
+    pipe(ctx,`bronze-return-${side}`,[[side*2.15,7.3,-.8],[side*2.9,7.15,-.8],
+      [side*3.05,6.6,-.8],[side*3.05,4.9,-.8],[side*3.35,4.65,-.8],
+      [side*3.55,4.35,-.8],[side*3.55,2.5,-.8]],.105,bronze,{group:'services'});
+    for (const y of [3,4,5.3,6.3]) add('pipe-union-blocks',mats.dark,[side*3.08,y,-.8],[.31,.13,.3]);
+    add('cup-suspension',bronze,[side*.8,10.1,0],[.075,2.55,.075],0,'pour-system');
+    add('cup-suspension-clamps',mats.dark,[side*.8,8.95,0],[.22,.16,.28],0,'pour-system');
+  }
+  // Segmented rail saddles replace an uninterrupted toy-like torus reading.
+  for(let i=0;i<16;i++) {
+    const a=i/16*Math.PI*2;
+    add('rail-saddles',mats.dark,[Math.cos(a)*3.15,12,Math.sin(a)*3.15],[.54,.52,.35],Math.PI/2-a,'frame');
+    add('reservoir-rim-plates',mats.dark,[Math.cos(a)*2.37,7.83,Math.sin(a)*2.37],[.65,.34,.27],Math.PI/2-a,'reactor');
+  }
+  for(const [name,{material,entries,group}] of batches) {
+    const mesh=new THREE.InstancedMesh(box,material,entries.length);mesh.name=name;
+    entries.forEach((e,i)=>setInstance(mesh,i,e.position,e.scale,e.angle));
+    mesh.instanceMatrix.needsUpdate=true;mesh.castShadow=true;mesh.receiveShadow=true;
+    mesh.userData.explodeWithParent=true;ctx.root.add(mesh);ctx.runtime.nodes[name]=mesh;
+    ctx.runtime.destructionGroups[group].push(name);
+  }
 }
 
 /**

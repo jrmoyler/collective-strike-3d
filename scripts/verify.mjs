@@ -202,7 +202,7 @@ for (const contract of [
   ["touch controls", /function initTouch\(/],
   ["gamepad controls", /function pollGamepad\(/],
   ["controller spatial menu navigation", /function moveGamepadFocus\(/],
-  ["controller polling survives pause", /pollGamepad\(dt\);if\(paused\)return/],
+  ["controller polling survives pause", /pollGamepad\(dt\);if\(paused\)\{deviceBenchmark\?\.tick\(rawDt\*1000,0\);return\}/],
   ["adaptive quality", /function adaptiveQuality\(/],
   ["WebGL recovery", /webglcontextlost/],
   ["operator rigs grip their weapon", /function twoBoneIK\(/],
