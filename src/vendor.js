@@ -283,3 +283,6 @@ window.CS3D_TACTICAL_AI = Object.freeze({ ...TACTICAL_AI });
 window.CS3D_PRESENTATION = Object.freeze({ ...PRESENTATION });
 
 window.CS3D_LIGHTING = Object.freeze({ createReflectionEnvironment });
+
+import { installDeviceBenchmark } from './device-benchmark.js';
+window.CS3D_installDeviceBenchmark = installDeviceBenchmark;

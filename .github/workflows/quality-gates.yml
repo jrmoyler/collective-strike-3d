@@ -1,0 +1,42 @@
+name: Quality gates
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run audio:check
+      - run: node node_modules/playwright-core/cli.js install --with-deps chromium
+      - name: Capture actual reference geometry
+        run: node scripts/capture-arena-landmark.mjs
+        env:
+          CS3D_REVIEW_OUT: quality-evidence/forge
+      - name: All ten arena budgets
+        run: npm run budget -- --report quality-evidence/arena-budget.json
+        env:
+          CS3D_BUDGET_SHOTS: 0
+      - name: Complete gameplay and input regression
+        run: npm run smoke -- --out quality-evidence/smoke
+      - name: Effects and combat regression
+        run: node scripts/overhaul-smoke.mjs quality-evidence/effects
+      - name: Device capture integration
+        run: node scripts/device-benchmark-smoke.mjs quality-evidence/device
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-evidence
+          path: |
+            quality-evidence
+            dist/build-info.json

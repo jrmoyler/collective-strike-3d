@@ -2,12 +2,12 @@
 Run node scripts/export-arena-review.mjs first, then blender -b -t 4 -P this.py.
 The GLB is an authoring/review artifact; the game ships the same procedural source.
 """
-import bpy, json, math, pathlib
+import bpy, json, math, pathlib, os
 from mathutils import Matrix, Vector
 root=pathlib.Path(__file__).resolve().parent.parent
-out=root/'docs/arena-pipeline/forge'; out.mkdir(parents=True,exist_ok=True)
+out=root/os.environ.get('CS3D_REVIEW_OUT','docs/arena-pipeline/forge'); out.mkdir(parents=True,exist_ok=True)
 bpy.ops.object.select_all(action='SELECT'); bpy.ops.object.delete(use_global=False)
-data=json.loads((root/'.img2threejs/forge/runtime-meshes.json').read_text())
+data=json.loads((root/os.environ.get('CS3D_MESH_OUT','.img2threejs/forge/runtime-meshes.json')).read_text())
 materials={}
 for part in data['meshes']:
     coords=list(zip(*[iter(part['position'])]*3)); indices=part['indices'] or list(range(len(coords)))

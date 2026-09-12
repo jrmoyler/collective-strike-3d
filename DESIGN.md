@@ -1,5 +1,18 @@
 # Collective Strike 3D — preserved-identity overhaul
 
+## Device benchmark
+
+An opt-in `?benchmark=1` route adds a compact opaque status strip during play and a
+native dialog for capture/export. Use the existing navy, silver, gold and white tokens,
+system sans at 14–16px, a 20px bold dialog title, 16px spacing, 1px silver borders,
+and a maximum 460px width. Buttons have 44px minimum targets, visible gold focus,
+disabled states and plain action labels. On narrow screens the dialog scrolls within
+the safe area. No new component library or decorative imagery is needed.
+Primary action: record a real match and download its JSON. Show warmup, capturing,
+complete, interrupted and error states in text. Controls remain outside the touch pads;
+the expanded dialog pauses play. No animation is necessary. Export is user initiated
+and local; no telemetry upload. Hardware identity is reported, never asserted from UA alone.
+
 The game is a browser tactical squad shooter. The primary selection action is choosing an existing division operator and then an arena; success means the player can compare the original kit, recognize the character, deploy, and play all three existing modes.
 
 ## Locked content

@@ -15,6 +15,7 @@ result.root.traverse(o => {
     meshes.push({name:o.name+(o.isInstancedMesh?`-${i}`:''),position:Array.from(g.attributes.position.array),indices:g.index?Array.from(g.index.array):null,matrix:matrix.toArray(),material:{color:m.map?[0.23,0.27,0.32]:m.color.toArray(),metalness:m.metalness||0,roughness:m.roughness??0.6,emissive:m.emissive?.toArray()||[0,0,0],emissiveIntensity:m.emissiveIntensity||0}});
   }
 });
-fs.mkdirSync('.img2threejs/forge',{recursive:true});
-fs.writeFileSync('.img2threejs/forge/runtime-meshes.json',JSON.stringify({meshes,sockets:Object.keys(result.root.userData.sculptRuntime.sockets),groups:result.root.userData.sculptRuntime.destructionGroups}));
+const output=process.env.CS3D_MESH_OUT||'.img2threejs/forge/runtime-meshes.json';
+fs.mkdirSync(output.slice(0,output.lastIndexOf('/')),{recursive:true});
+fs.writeFileSync(output,JSON.stringify({meshes,sockets:Object.keys(result.root.userData.sculptRuntime.sockets),groups:result.root.userData.sculptRuntime.destructionGroups}));
 console.log(`Exported ${meshes.length} actual runtime meshes for Blender inspection`);
