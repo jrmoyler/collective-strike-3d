@@ -35,7 +35,10 @@ const TYPES = {
   ".css": "text/css; charset=utf-8",
   ".woff2": "font/woff2",
   ".png": "image/png",
-  ".mp3": "audio/mpeg"
+  ".mp3": "audio/mpeg",
+  ".svg": "image/svg+xml",
+  ".json": "application/json",
+  ".webmanifest": "application/manifest+json"
 };
 
 const server = http.createServer((req, res) => {
@@ -1066,6 +1069,34 @@ try {
     };
   });
   console.log("mobile touch:", JSON.stringify(touchState));
+  // Phone landscape is the primary way to play on touch: the thumb arcs must
+  // stay clear of both sticks, of each other, and of the top-corner HUD cards.
+  const landscapeTouch = [];
+  for (const leftHanded of [false, true]) {
+    await mobilePage.setViewportSize({ width: 844, height: 390 });
+    await mobilePage.evaluate(value => { SETTINGS.touchLeftHanded = value; applyUserSettings(); }, leftHanded);
+    await mobilePage.waitForTimeout(120);
+    landscapeTouch.push(await mobilePage.evaluate(leftHanded => {
+      const rect = node => node.getBoundingClientRect();
+      const overlaps = (a, b) => a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
+      const pads = ["movePad", "aimPad"].map(id => rect(document.getElementById(id)));
+      const buttons = [...document.querySelectorAll(".touchBtn")].map(button => ({ action: button.dataset.action, box: rect(button) }));
+      const cards = ["bottomLeft", "bottomRight", "minimap"].map(id => document.getElementById(id)).filter(node => getComputedStyle(node).display !== "none").map(rect);
+      const clashes = [];
+      for (const [index, button] of buttons.entries()) {
+        const box = button.box;
+        if (box.left < 0 || box.top < 0 || box.right > innerWidth || box.bottom > innerHeight) clashes.push(`${button.action} offscreen`);
+        if (pads.some(pad => overlaps(box, pad))) clashes.push(`${button.action} covers a stick`);
+        if (cards.some(card => overlaps(box, card))) clashes.push(`${button.action} covers a HUD card`);
+        for (const other of buttons.slice(index + 1)) if (overlaps(box, other.box)) clashes.push(`${button.action} overlaps ${other.action}`);
+      }
+      return { leftHanded, clashes, minTarget: Math.min(...buttons.map(button => Math.min(button.box.width, button.box.height))) };
+    }, leftHanded));
+  }
+  console.log("landscape touch:", JSON.stringify(landscapeTouch));
+  for (const layout of landscapeTouch) if (layout.clashes.length || layout.minTarget < 44) problems.push(`landscape touch layout failed: ${JSON.stringify(layout)}`);
+  await mobilePage.setViewportSize({ width: 390, height: 844 });
+  await mobilePage.evaluate(() => { SETTINGS.touchLeftHanded = true; applyUserSettings(); });
   if (touchState.mode !== "touch" || !touchState.reloadStarted || !touchState.controlsVisible || touchState.horizontalOverflow > 1 || touchState.minTarget < 44 || touchState.overlapsPads || touchState.overlaysTouchTargets || !touchState.leftHanded || !touchState.orientationVisible) problems.push(`touch-only layout/input failed: ${JSON.stringify(touchState)}`);
   await mobilePage.locator("#orientationGuide button").tap();
   await capture(mobilePage, "09-mobile-gameplay.png");

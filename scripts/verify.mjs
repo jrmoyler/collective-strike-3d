@@ -194,6 +194,22 @@ assert(/AUDIO\.playBossMusic\(chosen\)/.test(html) && /AUDIO\.playMusic\("final_
 assert(/AUDIO\.setPaused\(paused\)/.test(html) && /visibilitychange/.test(audioManagerSource), "pause and document visibility audio handling are live");
 assert(/id="soundtrackToggle"/.test(html) && /cs3d\.audio\.muted/.test(audioManagerSource), "persistent mute control is present");
 
+// Installable offline app shell
+const manifestPath = path.join(root, "manifest.webmanifest");
+const workerSource = fs.existsSync(path.join(root, "sw.js")) ? fs.readFileSync(path.join(root, "sw.js"), "utf8") : "";
+let webManifest = null;
+try { webManifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")); } catch (error) { failures.push(`web app manifest is missing or invalid: ${error.message}`); }
+if (webManifest) {
+  assert(webManifest.name && webManifest.short_name && webManifest.start_url && ["fullscreen", "standalone"].includes(webManifest.display), "web app manifest declares an installable app");
+  const iconSizes = (webManifest.icons || []).map(icon => icon.sizes);
+  assert(iconSizes.includes("192x192") && iconSizes.includes("512x512") && webManifest.icons.some(icon => icon.purpose === "maskable"), "manifest ships 192, 512 and maskable icons");
+  for (const icon of webManifest.icons || []) assert(fs.existsSync(path.join(root, icon.src)), `manifest icon exists: ${icon.src}`);
+}
+assert(/<link rel="manifest" href="manifest\.webmanifest">/.test(html) && /apple-touch-icon/.test(html) && /name="theme-color"/.test(html), "page links the manifest, touch icon and theme colour");
+assert(/const BUILD_ID = "source";/.test(workerSource) && /const PRECACHE = \["\.\/", "index\.html"\];/.test(workerSource), "service worker keeps the build stamping markers");
+assert(!/https?:\/\//.test(workerSource) && /Content-Range/.test(workerSource), "service worker is same-origin only and serves ranged audio");
+assert(/<script src="src\/app-shell\.js"><\/script>/.test(html) && /app-shell\.js/.test(fs.readFileSync(path.join(root, "scripts", "build.mjs"), "utf8")), "app shell script is loaded and shipped");
+
 for (const contract of [
   ["startMatch", /function startMatch\(/],
   ["round resolution", /function endRoundWin\(/],

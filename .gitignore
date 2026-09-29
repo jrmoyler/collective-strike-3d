@@ -91,3 +91,5 @@ Thumbs.db
 # Original rules preserved
 *.log
 ```
+# Smoke / rig-sheet output
+screenshots/
