@@ -13,6 +13,7 @@
     "smoke": "node scripts/smoke.mjs",
     "budget": "node scripts/arena-budget.mjs",
     "rigs": "node scripts/rig-sheet.mjs",
+    "icons": "node scripts/icons.mjs",
     "check": "npm run test && npm run build && npm run audio:check && npm run smoke && npm run budget"
   },
   "engines": {

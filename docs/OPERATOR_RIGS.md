@@ -108,3 +108,30 @@ and the rig sheet both read these values.
 `npm run rigs` renders all twenty operators holding their signature weapon into
 `screenshots/rigs/`. `npm run check` runs the browser smoke, which asserts rig
 count, weapon socket accuracy, draw calls and triangle budget.
+
+## Presentation finish
+
+`src/aaa-finish.js` runs after `polishProceduralOperator` and
+`polishWeaponAssembly`, and after `makeBossRig`. It is identity-neutral: it
+never reads the division, weapon or boss tables and never moves, rescales or
+replaces an authored part. It only changes how existing surfaces are shaded and
+how they come alive.
+
+- **Skin:** height-graded occlusion that grounds the creature, a warm-floor /
+  cool-sky bounce, light bleeding through thin forms, a tight clearcoat
+  highlight, a key-side rim, an onset-only damage flash, and an ember dissolve
+  on elimination (`uHit` / `uDissolve` on the rig's shared uniforms).
+- **Eyes and visors:** a limbal ring, a pupil, two catchlights, a blink, and a
+  scanning sweep on visors.
+- **Joint guards:** one instanced, shadow-free draw per operator over every
+  knee and elbow, driven from the existing IK solve.
+- **Weapons:** micro-roughness and a silhouette rim on metal, energy that flows
+  along cores, and instanced rail teeth / barrel fluting on the standard
+  receivers. Grip, foregrip, reload and muzzle sockets are untouched.
+- **Bosses:** a rim in the boss accent, energy veins across armour and chitin
+  that surge on telegraphs, an onset-only damage flash, and a soft contact
+  shadow.
+
+`tests/aaa-finish.test.js` asserts that every boss keeps its parts, segments,
+limbs and hit radius, that weapon sockets are unchanged, and that flash and
+dissolve restore cleanly.

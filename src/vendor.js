@@ -15,6 +15,7 @@ import { animate, createSpring, createTimeline, engine, stagger, utils, waapi } 
 import { BOSS_DNA, BOSS_BY_ID, BOSS_LOCO_CLASSES, resolveBossLocos } from "./boss-dna.js";
 import { BOSS_ABILITIES, runBossAbility } from "./boss-abilities.js";
 import { makeBossRig, updateBossRig } from "./boss-rig.js";
+import * as AAA_FINISH from "./aaa-finish.js";
 import {
   PLAYLISTS,
   BOSS_PHASE_THRESHOLDS,
@@ -217,6 +218,7 @@ window.CS3D_ARENA_CONTENT = Object.freeze({
   playableBounds
 });
 window.CS3D_ARSENAL = Object.freeze({ ...ARSENAL_FINISH });
+window.CS3D_AAA = Object.freeze({ ...AAA_FINISH });
 window.CS3D_OPERATIONS = Object.freeze({
   LATTICE_RANK_COUNT,
   OPERATIONS_VERSION,

@@ -17,7 +17,10 @@ const TYPES = {
   ".css": "text/css; charset=utf-8",
   ".woff2": "font/woff2",
   ".png": "image/png",
-  ".mp3": "audio/mpeg"
+  ".mp3": "audio/mpeg",
+  ".svg": "image/svg+xml",
+  ".json": "application/json",
+  ".webmanifest": "application/manifest+json"
 };
 
 /** Set CS3D_CHROMIUM, or PLAYWRIGHT_BROWSERS_PATH to a Playwright browser pool. */

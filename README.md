@@ -64,6 +64,27 @@ session a clear arc.
 Every runtime dependency is vendored into the repository, so the game runs with
 no network access at all — no CDN, no webfont request.
 
+## Install it like an app
+
+Collective Strike is a Progressive Web App. Open the deployed site and:
+
+- **Android / Chrome / Edge:** tap **Install app** (top right of the title
+  screen) or use the browser's *Install* menu item.
+- **iPhone / iPad (Safari):** tap **Install app**, then *Share → Add to Home
+  Screen*.
+- **Desktop Chrome / Edge:** click the install icon in the address bar.
+
+The installed game launches full screen with its own icon, locks to landscape
+when you deploy on a phone, and runs with no network at all: the app shell is
+precached by `sw.js` on first visit, and each soundtrack is cached the first
+time it plays. A new deploy shows an **Update** prompt instead of silently
+swapping code under a live match.
+
+On touch devices the right stick aims **and fires** once you push it past
+about two thirds of its travel (switch this off under *Pause → Touch
+auto-fire*). Hits, eliminations, damage and round results give short haptic
+pulses where the device supports vibration (*Pause → Haptic feedback*).
+
 ## Install
 
 ```bash
@@ -97,6 +118,7 @@ Open `http://localhost:4173/`. Serving the repository root and opening
 | `npm run smoke` | Headless Chromium playthrough into a live round, fails on any console, page, or network error |
 | `npm run rigs` | Render a close-up sheet of all 20 operator rigs holding a weapon |
 | `npm run check` | `test` + `build` + `audio:check` + full browser smoke |
+| `npm run icons` | Re-rasterise the app icons from `assets/icons/icon.svg` |
 
 `npm run smoke` and `npm run rigs` write into `screenshots/` (git-ignored).
 
