@@ -194,6 +194,13 @@ assert(/AUDIO\.playBossMusic\(chosen\)/.test(html) && /AUDIO\.playMusic\("final_
 assert(/AUDIO\.setPaused\(paused\)/.test(html) && /visibilitychange/.test(audioManagerSource), "pause and document visibility audio handling are live");
 assert(/id="soundtrackToggle"/.test(html) && /cs3d\.audio\.muted/.test(audioManagerSource), "persistent mute control is present");
 
+// Presentation finish: bundled, hooked after every existing polish pass, identity-neutral
+const aaaSource = fs.existsSync(path.join(root, "src", "aaa-finish.js")) ? fs.readFileSync(path.join(root, "src", "aaa-finish.js"), "utf8") : "";
+assert(/CS3D_AAA/.test(vendorSource) && /AAA_FINISH=window\.CS3D_AAA/.test(html), "presentation finish is bundled and wired");
+assert(/polishProceduralOperator\?\.\(THREE,rig\);AAA_FINISH\.finishOperatorRig/.test(html) && /polishWeaponAssembly\?\.\(THREE,g\);AAA_FINISH\.finishWeapon/.test(html) && /AAA_FINISH\.finishBossRig\?\.\(THREE,rig\)/.test(html), "operators, weapons and bosses are finished after their existing polish");
+assert(/AAA_FINISH\.updateOperatorFinish/.test(html) && /AAA_FINISH\.updateOperatorDeath/.test(html) && /AAA_FINISH\.updateBossFinish/.test(html), "finish life cycle runs inside the existing rig updates");
+assert(!/https?:\/\//.test(aaaSource) && !/DIVS|SIGNATURES|BOSS_DNA/.test(aaaSource), "finish pass reads no identity tables and fetches nothing");
+
 // Installable offline app shell
 const manifestPath = path.join(root, "manifest.webmanifest");
 const workerSource = fs.existsSync(path.join(root, "sw.js")) ? fs.readFileSync(path.join(root, "sw.js"), "utf8") : "";

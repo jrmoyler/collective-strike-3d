@@ -34,6 +34,23 @@
   cooldown seconds.
 - Title screen fits phone landscape above the fold.
 
+## AAA presentation finish (operators, weapons, bosses)
+Nothing about any operator, weapon or boss was redesigned: anatomy, colours,
+silhouettes, sockets and every stat are byte-identical (the preservation
+baseline still passes). What changed is how they are rendered:
+- Operators: grounded occlusion, floor bounce, subsurface light bleed,
+  lacquered clearcoat highlight, key-side rim, living eyes (catchlight,
+  pupil, blink, visor sweep), machined knee/elbow guards, breathing trim,
+  a crisp onset damage flash, soft contact shadows, and an ember dissolve
+  on elimination.
+- Weapons: micro-roughness and silhouette rim on metal, flowing energy
+  cores, machined rail teeth and barrel fluting.
+- Bosses: accent rim, living energy veins that surge on telegraphs, onset
+  damage flash, soft contact shadow.
+- Operator select: the showcase column is no longer covered by a haze, the
+  podium is a lacquered plinth with an accent-coloured inlay, and the tall
+  in-match faction band becomes a thin inlay on the podium.
+
 ## Fixes
 - **Arena washed out to flat grey on LOW quality.** Toggling shadows at
   runtime never recompiled materials; the automatic quality scaler hit this on

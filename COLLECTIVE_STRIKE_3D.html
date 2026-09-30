@@ -156,7 +156,7 @@ body.reduced-motion .tReveal{opacity:1;transform:none}
 @media (max-height:660px){#tHero{padding-top:46px;padding-bottom:34px}#titleWord{font-size:clamp(38px,7vw,74px)}#titleLede{margin-top:16px;font-size:12.5px;line-height:1.6}#titleStats{margin-top:18px}.tStat{min-width:92px;padding:8px 12px}.tStat b{font-size:19px}#titleActions{margin-top:20px}.tCta{padding:13px 30px}.tGhost{padding:13px 20px}#titleCareer{margin-top:14px}#titleScrollCue{padding-top:18px}#titleScrollCue i{height:22px}}
 
 /* Operator select: command panel on the left, 3D preview protected on the right. */
-#menu{position:fixed;inset:0;z-index:100;display:none;grid-template-columns:minmax(360px,28vw) 1fr minmax(280px,24vw);gap:22px;padding:24px 28px 22px;background:radial-gradient(circle at 58% 42%,rgba(124,58,237,.18),transparent 30%),linear-gradient(90deg,rgba(3,6,14,.98),rgba(5,8,18,.84) 32%,rgba(5,8,18,.38) 62%,rgba(5,8,18,.9));overflow:hidden}
+#menu{position:fixed;inset:0;z-index:100;display:none;grid-template-columns:minmax(360px,28vw) 1fr minmax(280px,24vw);gap:22px;padding:24px 28px 22px;/* the operator showcase column stays clear so the hero renders crisp */background:linear-gradient(90deg,rgba(3,6,14,.98),rgba(5,8,18,.86) 27%,rgba(5,8,18,0) 38%,rgba(5,8,18,0) 66%,rgba(5,8,18,.82) 80%,rgba(5,8,18,.92)),linear-gradient(0deg,rgba(3,6,14,.55),transparent 22%);overflow:hidden}
 #menu:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(212,168,67,.08) 1px,transparent 1px),linear-gradient(0deg,rgba(56,189,248,.05) 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(circle at 62% 45%,#000,transparent 72%);opacity:.55;pointer-events:none}
 #menuPanel{min-height:0;display:flex;flex-direction:column}
 #backToTitleBtn{align-self:flex-start;margin-bottom:12px;padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:rgba(8,13,26,.7);color:var(--muted);font:800 8px "JetBrains Mono";letter-spacing:.16em;cursor:pointer;transition:border-color .16s,color .16s}
@@ -553,6 +553,8 @@ button:not(.touchBtn):not(:disabled):active{transform:scale(.965);filter:brightn
  #titleActions{margin-top:12px!important;gap:8px}
  #titleCareer{display:none}
 }
+/* The opt-in device capture strip (?benchmark=1) must sit above the title and menu layers. */
+#deviceBenchmark{z-index:246!important}
 /* ---- Boot splash + install surfaces ---- */
 #loading{background:radial-gradient(circle at 50% 42%,rgba(212,168,67,.14),transparent 38%),radial-gradient(circle at 50% 110%,rgba(56,189,248,.12),transparent 50%),#050812}
 #loading .bootMark{display:grid;justify-items:center;gap:18px}
@@ -949,7 +951,7 @@ const nearestTo=(arr,pt)=>{let b=null,bd=Infinity;for(const q of arr){const dq=d
 const V3=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),hex=c=>new THREE.Color(c);
 const BOSS_RUNTIME=window.CS3D_BOSS||{},BOSS_DNA=BOSS_RUNTIME.BOSS_DNA||[],BOSS_BY_ID=BOSS_RUNTIME.BOSS_BY_ID||{},PLAYLISTS=BOSS_RUNTIME.PLAYLISTS||{};
 const OPERATIONS=window.CS3D_OPERATIONS||{};
-const COMBAT_RUNTIME=window.CS3D_COMBAT||{},TACTICAL_AI=window.CS3D_TACTICAL_AI||{},OPERATOR_ASSETS=window.CS3D_OPERATOR_ASSETS||{};
+const AAA_FINISH=window.CS3D_AAA||{},COMBAT_RUNTIME=window.CS3D_COMBAT||{},TACTICAL_AI=window.CS3D_TACTICAL_AI||{},OPERATOR_ASSETS=window.CS3D_OPERATOR_ASSETS||{};
 const operatorAssetValidation=OPERATOR_ASSETS.validateOperatorManifest?.(OPERATOR_ASSETS.OPERATOR_ASSET_MANIFEST)||{valid:false,errors:["operator asset contract unavailable"],warnings:[]};
 const AUDIO=window.CS3D_AUDIO;
 const RUNTIME=window.CS3D_RUNTIME,INPUT_RUNTIME=window.CS3D_INPUT,PERSISTENCE=window.CS3D_PERSISTENCE,MASTERY=window.CS3D_MASTERY;
@@ -1309,7 +1311,7 @@ function startBossEncounter(team,{source="boss",bossId=null}={}){
  const radius=Math.round(22+(dna.scale||1.8)*18),point=findArenaBossSpawn(radius,team,chosen);if(!point){console.error(`[boss] no safe spawn for ${chosen} in ${selectedArenaId}`);bossOutcome="ARENA SPAWN VALIDATION FAILED";matchOutcomeOverride=false;return endGame()}
  activeBoss=makeBossEntity(dna,point.x,point.y,source);
  if(source==="wave")AUDIO.playMusic("final_boss");else AUDIO.playBossMusic(chosen);
- const rig=BOSS_RUNTIME.makeBossRig(activeBoss,{THREE,scene,S});bossRigs.set(activeBoss.id,rig);
+ const rig=BOSS_RUNTIME.makeBossRig(activeBoss,{THREE,scene,S});AAA_FINISH.finishBossRig?.(THREE,rig);bossRigs.set(activeBoss.id,rig);
  bomb={state:"inactive",carrier:null,x:0,y:0,timer:0};clearSpikeMesh();
  transitionState(RUNTIME.GAME_STATES.BOSS_INTRO,"boss-introduction");setGamePhase("buy","boss-buy");phaseT=source==="smoke"?.05:3.5;
  showBanner(`${dna.name} DESCENDS`);feed(`${dna.role} / ${bossOccupancyCells(activeBoss).length}-cell collision footprint`,dna.accent);
@@ -1789,7 +1791,7 @@ function makeWeapon(accent,signature,additions=[]){
  for(const az of[0,Math.PI/2]){const pl=new THREE.Mesh(geo.plane,starMat);pl.rotation.set(-Math.PI/2,0,az);pl.scale.set(1,.2,1);muzzleStar.add(pl)}
  muzzleStar.visible=false;g.add(muzzleStar);
  g.userData={dark,metal,trim,classTrim,coil,flash,body,barrel,stock,mag,grip,rail,core,sight,scope,lens,brake,handle,bipod,muzzleGlow,rings,muzzle,muzzleStar,starMat,standard,doctrineRoot,doctrineGroups,signatureGroup,signatureProfile,signature};
- ARSENAL_RUNTIME.polishWeaponAssembly?.(THREE,g);
+ ARSENAL_RUNTIME.polishWeaponAssembly?.(THREE,g);AAA_FINISH.finishWeapon?.(THREE,g);
  return g
 }
 /* b: receiver box, ba: barrel length, r: barrel radius, st: stock depth,
@@ -1930,7 +1932,7 @@ class Spring{
  constructor(v=0){this.v=v;this.vel=0;this.target=v}
  update(dt,stiff=90,dampK=11){this.vel+=(this.target-this.v)*stiff*dt;this.vel*=Math.exp(-dampK*dt);this.v+=this.vel*dt;return this.v}
 }
-const _camV=new THREE.Vector3(),_camT=new THREE.Vector3(),_camW=new THREE.Vector3(),_pvWhite=new THREE.Color("#ffffff"),_sh=V3(),_grip=V3(),_pole=V3();
+const _camV=new THREE.Vector3(),_camT=new THREE.Vector3(),_camW=new THREE.Vector3(),_pvWhite=new THREE.Color("#ffffff"),_pvAccent=new THREE.Color(),_sh=V3(),_grip=V3(),_pole=V3();
 const _legA=V3(),_legB=V3(),_legC=V3(),_legD=V3();
 function makeRig(p,previewMode=false){
  const d=DNA[p.div.id]||DNA.zenflow,color=p.div.c,root=new THREE.Group(),assetSelection=OPERATOR_ASSETS.selectOperatorSource?.(p.div.id)||{source:"procedural",reason:"contract-unavailable",definition:null};root.position.set(p.x*S,arenaElevationWorld(p.x,p.y),p.y*S);root.userData.operatorAsset={source:assetSelection.source,reason:assetSelection.reason,divisionId:assetSelection.definition?.id||p.div.id,contractVersion:OPERATOR_ASSETS.OPERATOR_ASSET_VERSION||null};scene.add(root);
@@ -2147,7 +2149,7 @@ function makeRig(p,previewMode=false){
  plate.scale.set(3.5,.98,1);plate.position.y=topY+.62;plate.renderOrder=6;root.add(plate);
  const rig={root,body,torso,head,weapon,mark,markShape,markBeam,footprint,footRing,footDisc,barbs,heading,plate,plateCanvas,plateCtx:plateCanvas.getContext("2d"),plateTex,plateKey:"",teamParts,liveryMat,arms,hold,muzzleLight,quadish,topY,fitR,fitY,pulse:0,breath:Math.random()*7,greet:0,previewMode,scale:s,dna:d,teamKey:look.key,assetSource:assetSelection.source,assetReason:assetSelection.reason,
   shared,legs,wings,earMeshes,earSprings,antennae,tailSegs,tailSpring,tendrilList,
-  baseH,bodyY:baseH,squash:1,squashTarget:1,hopY:0,hopPhase:0,flap:Math.random()*6,bank:0,pitch:0,lastHeading:p.angle||0,vy:0,select:0,sq:1,gaitSwing:0};
+  baseH,shadowDisc:shadow,bodyY:baseH,squash:1,squashTarget:1,hopY:0,hopPhase:0,flap:Math.random()*6,bank:0,pitch:0,lastHeading:p.angle||0,vy:0,select:0,sq:1,gaitSwing:0};
  rig.applyTeamLook=()=>{
   const next=teamLook(p);
   rig.teamKey=next.key;rig.plateKey="";
@@ -2157,8 +2159,8 @@ function makeRig(p,previewMode=false){
   rig.heading.visible=next.key==="self";
   rig.markBeam.visible=next.hostile;
  };
- if(previewMode){plate.visible=false;mark.visible=false}else root.scale.setScalar(1.08)
- OPERATOR_ASSETS.polishProceduralOperator?.(THREE,rig);
+ if(previewMode){plate.visible=false;mark.visible=false;/* On the podium the faction band is a thin inlay, not the tall in-match read. */footShade.visible=false;barbs.visible=false;footRing.scale.z=.7;footRing.material.opacity=.55;footDisc.visible=false}else root.scale.setScalar(1.08)
+ OPERATOR_ASSETS.polishProceduralOperator?.(THREE,rig);AAA_FINISH.finishOperatorRig?.(THREE,rig);
  rigs.set(p.id,rig);return rig
 }
 /* Redraws the floating callsign plate only when its content actually changes. */
@@ -2265,7 +2267,7 @@ function updateSecondary(r,dt,speed,now){
 }
 function updateRig(p,dt){
  let r=rigs.get(p.id);if(!r)r=makeRig(p);const now=performance.now()/1000;
- if(!p.alive){r.root.visible=now-p.deadT<2.4;r.root.rotation.z=Math.min(1,now-p.deadT)*1.35;r.body.scale.setScalar(1);if(r.muzzleLight)r.muzzleLight.intensity=0;if(r.plate)r.plate.visible=false;if(r.footprint)r.footprint.visible=false;if(r.mark)r.mark.visible=false;return}
+ if(!p.alive){AAA_FINISH.updateOperatorDeath?.(r,now-p.deadT);r.root.visible=now-p.deadT<2.4;r.root.rotation.z=Math.min(1,now-p.deadT)*1.35;r.body.scale.setScalar(1);if(r.muzzleLight)r.muzzleLight.intensity=0;if(r.plate)r.plate.visible=false;if(r.footprint)r.footprint.visible=false;if(r.mark)r.mark.visible=false;return}
  if(!r.previewMode&&r.teamKey!==teamLook(p).key)r.applyTeamLook();
  const enemy=p.team!==myTeam,visible=p===me||!enemy||canSee(me,p)||p.revealT>now;r.root.visible=visible;if(!visible)return;
  if(!r.previewMode){
@@ -2396,7 +2398,7 @@ function updateRig(p,dt){
   const mz=wcfg.muzzle[2]*wScale;
   r.muzzleLight.position.set(r.weapon.position.x+fwdX*mz,r.weapon.position.y+.05,r.weapon.position.z+fwdZ*mz);
  }
- ARSENAL_RUNTIME.updateWeaponFinish?.(r.weapon,dt,kick);
+ ARSENAL_RUNTIME.updateWeaponFinish?.(r.weapon,dt,kick);AAA_FINISH.updateOperatorFinish?.(r,dt,now,hit);
  r.mark.visible=!enemy||p.revealT>now;r.mark.position.y=r.topY+Math.sin(now*4)*.06;r.mark.scale.setScalar(1+hit*.55);
 }
 function makeFX(){
@@ -3063,8 +3065,14 @@ function updateWorld(dt){
 function ensurePreviewPad(){
  if(previewPad)return previewPad;
  previewPad=new THREE.Group();scene.add(previewPad);
- const baseMat=new THREE.MeshStandardMaterial({color:0x151c26,roughness:.5,metalness:.65});
+ /* Showcase plinth: polished top with an inlaid glow
+    ring that takes the selected operator's accent colour. */
+ const baseMat=new THREE.MeshStandardMaterial({color:0x0d131c,roughness:.34,metalness:.6});
  const disc=new THREE.Mesh(new THREE.CylinderGeometry(1.45,1.55,.12,64),baseMat);disc.position.y=-.02;disc.receiveShadow=true;previewPad.add(disc);
+ const inlayMat=new THREE.MeshBasicMaterial({color:0x38bdf8,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false});
+ const inlay=new THREE.Mesh(new THREE.TorusGeometry(1.08,.012,6,96),inlayMat);inlay.rotation.x=Math.PI/2;inlay.position.y=.045;previewPad.add(inlay);
+ for(let i=0;i<3;i++){const tick=new THREE.Mesh(new THREE.TorusGeometry(1.25+i*.06,.004,4,96,Math.PI*(.35+i*.12)),inlayMat);tick.rotation.x=Math.PI/2;tick.position.y=.042;tick.userData.previewSpin=(i%2?-1:1)*(.18+i*.07);previewPad.add(tick)}
+ previewPad.userData.accentMats=[inlayMat];
  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.38,.018,6,64),new THREE.MeshStandardMaterial({color:0xd4a843,roughness:.32,metalness:.72,emissive:0xd4a843,emissiveIntensity:.12}));ring.rotation.x=Math.PI/2;ring.position.y=.055;previewPad.add(ring);
  const column=new THREE.PointLight(0x8bd7ff,.3,14,1.5);column.position.set(0,3,0);previewPad.add(column);
  return previewPad
@@ -3080,7 +3088,7 @@ function updateMapSelect(dt){
  if(mapSelectMarkers)for(const marker of mapSelectMarkers.children){const pulse=.5+.5*Math.sin(now*2.4+marker.userData.phase);marker.position.y=marker.userData.baseY+pulse*.22;for(const child of marker.children){if(child.userData.markerRing!==undefined){child.rotation.z+=dt*(child.userData.markerRing?-.42:.62);child.material.opacity=.34+pulse*.5}else if(child.userData.markerBeam)child.material.opacity=.08+pulse*.18}}
  drawScene()
 }
-function updateRender(dt){if(phase!=="mapselect"&&camera.view?.enabled)camera.clearViewOffset();if(titleActive){updateTitleCinematic(dt);return}if(phase==="menu"){if(arenaGroup)arenaGroup.visible=false;updateWorld(dt);updatePreview(dt);drawScene();return}if(phase==="mapselect"){updateMapSelect(dt);return}if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;players.forEach(p=>updateRig(p,dt));if(activeBoss){const br=bossRigs.get(activeBoss.id),now=performance.now()/1000;if(br){br.root.visible=activeBoss.alive;br.root.position.set(activeBoss.x*S,arenaElevationWorld(activeBoss.x,activeBoss.y),activeBoss.y*S);BOSS_RUNTIME.updateBossRig?.(br,dt,now,{speed:Math.hypot(activeBoss.vx||0,activeBoss.vy||0),angle:activeBoss.angle,phase,hit:clamp(((activeBoss.hitT||0)-now)/.3,0,1),telegraph:!!activeBoss.pendingAbility})}}fx.step(dt);updateWorld(dt);for(let i=tempMeshes.length-1;i>=0;i--){const o=tempMeshes[i];o.t-=dt;if(o.m.material)o.m.material.opacity=Math.min(.72,Math.max(0,o.t*.8));if(o.t<=0){scene.remove(o.m);disposeTree(o.m);tempMeshes.splice(i,1)}}let followP=me;
+function updateRender(dt){AAA_FINISH.tick?.(performance.now()/1000);if(phase!=="mapselect"&&camera.view?.enabled)camera.clearViewOffset();if(titleActive){updateTitleCinematic(dt);return}if(phase==="menu"){if(arenaGroup)arenaGroup.visible=false;updateWorld(dt);updatePreview(dt);drawScene();return}if(phase==="mapselect"){updateMapSelect(dt);return}if(arenaGroup)arenaGroup.visible=true;if(previewPad)previewPad.visible=false;players.forEach(p=>updateRig(p,dt));if(activeBoss){const br=bossRigs.get(activeBoss.id),now=performance.now()/1000;if(br){br.root.visible=activeBoss.alive;br.root.position.set(activeBoss.x*S,arenaElevationWorld(activeBoss.x,activeBoss.y),activeBoss.y*S);BOSS_RUNTIME.updateBossRig?.(br,dt,now,{speed:Math.hypot(activeBoss.vx||0,activeBoss.vy||0),angle:activeBoss.angle,phase,hit:clamp(((activeBoss.hitT||0)-now)/.3,0,1),telegraph:!!activeBoss.pendingAbility});AAA_FINISH.updateBossFinish?.(br,dt,now,{hit:clamp(((activeBoss.hitT||0)-now)/.3,0,1),telegraph:!!activeBoss.pendingAbility})}}fx.step(dt);updateWorld(dt);for(let i=tempMeshes.length-1;i>=0;i--){const o=tempMeshes[i];o.t-=dt;if(o.m.material)o.m.material.opacity=Math.min(.72,Math.max(0,o.t*.8));if(o.t<=0){scene.remove(o.m);disposeTree(o.m);tempMeshes.splice(i,1)}}let followP=me;
 if(!me.alive){const mate=players.find(q=>q.alive&&q.team===myTeam&&q.id===ui.spectateId)||players.find(q=>q.alive&&q.team===myTeam);if(mate){followP=mate;ui.spectateId=mate.id}else if(activeBoss?.alive)followP=activeBoss;else if(bomb.state==="planted")followP=bomb}
 const focus=window.CS3D_PRESENTATION.combatCameraFocus(followP,aim,S,arenaElevationWorld(followP.x,followP.y),followP===me&&me.alive);
 const tx=focus.x,tz=focus.z;
@@ -3090,7 +3098,7 @@ if(shakeAmt>0){const s2=shakeAmt*shakeAmt;camera.position.x+=rnd(-1,1)*s2*.9;cam
 camera.lookAt(tx,focus.y,tz);
 ui.followP=followP;
 drawScene()}
-function updatePreview(dt){if(!preview)return;menuOrbit+=SETTINGS.reducedMotion?0:dt*.45;preview.angle=Math.PI/2-menuOrbit;updateRig(preview,dt);const px=WORLD_W*S*.82,pz=WORLD_H*S*.24,pad=ensurePreviewPad();pad.visible=true;pad.position.set(px,0,pz);pad.children.forEach(o=>{if(o.userData.previewSpin&&!SETTINGS.reducedMotion)o.rotation.z+=dt*o.userData.previewSpin});const r=rigs.get(preview.id);let eye=2.6,mid=1.6;if(r){const fit=clamp(1.55/Math.max(.5,r.fitR),.45,2.4);r.root.scale.setScalar(fit);r.root.visible=true;r.mark.visible=false;eye=r.fitR*fit;mid=r.fitY*fit;preview.greetT=(preview.greetT===undefined?2.2:preview.greetT)-dt;if(preview.greetT<=0){r.greet=1.2;preview.greetT=6.5}}globalU.uLightDir.value.set(Math.sin(menuOrbit+.65)*.65,.65,Math.cos(menuOrbit+.65)*.65).normalize();const target=_camT.set(px,mid+.2,pz);const orbit=eye*3.3;if(previewLight){previewLight.position.set(target.x+2,mid+eye*2.8,target.z+4);previewLight.color.copy(_pvWhite)}if(previewRim)previewRim.position.set(target.x-Math.sin(menuOrbit)*eye*3,mid+eye*1.1,target.z-Math.cos(menuOrbit)*eye*3);const want=_camW.set(target.x+Math.sin(menuOrbit)*orbit,mid+eye*.85,target.z+Math.cos(menuOrbit)*orbit);if(previewSnap||SETTINGS.reducedMotion){camera.position.copy(want);previewSnap=false}else camera.position.lerp(want,Math.min(1,dt*4));camera.lookAt(target)}
+function updatePreview(dt){if(!preview)return;menuOrbit+=SETTINGS.reducedMotion?0:dt*.45;preview.angle=Math.PI/2-menuOrbit;updateRig(preview,dt);const px=WORLD_W*S*.82,pz=WORLD_H*S*.24,pad=ensurePreviewPad();pad.visible=true;pad.position.set(px,0,pz);pad.children.forEach(o=>{if(o.userData.previewSpin&&!SETTINGS.reducedMotion)o.rotation.z+=dt*o.userData.previewSpin});const r=rigs.get(preview.id);let eye=2.6,mid=1.6;if(r){for(const m of pad.userData.accentMats||[])m.color.lerp(_pvAccent.set(r.dna.accent||preview.div.c),Math.min(1,dt*5));const fit=clamp(1.55/Math.max(.5,r.fitR),.45,2.4);r.root.scale.setScalar(fit);r.root.visible=true;r.mark.visible=false;eye=r.fitR*fit;mid=r.fitY*fit;preview.greetT=(preview.greetT===undefined?2.2:preview.greetT)-dt;if(preview.greetT<=0){r.greet=1.2;preview.greetT=6.5}}globalU.uLightDir.value.set(Math.sin(menuOrbit+.65)*.65,.65,Math.cos(menuOrbit+.65)*.65).normalize();const target=_camT.set(px,mid+.2,pz);const orbit=eye*3.3;if(previewLight){previewLight.position.set(target.x+2,mid+eye*2.8,target.z+4);previewLight.color.copy(_pvWhite)}if(previewRim)previewRim.position.set(target.x-Math.sin(menuOrbit)*eye*3,mid+eye*1.1,target.z-Math.cos(menuOrbit)*eye*3);const want=_camW.set(target.x+Math.sin(menuOrbit)*orbit,mid+eye*.85,target.z+Math.cos(menuOrbit)*orbit);if(previewSnap||SETTINGS.reducedMotion){camera.position.copy(want);previewSnap=false}else camera.position.lerp(want,Math.min(1,dt*4));camera.lookAt(target)}
 function renderTacticalHUD(nowS,w){
  const objective=document.getElementById("objectiveChip");let text="HOLD THE LINE",hot=false;
  if(ui.hazardT>nowS){text=ui.hazardWarning;hot=true}

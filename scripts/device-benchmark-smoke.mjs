@@ -14,7 +14,11 @@ try {
  await page.locator('#deviceDownload').click();
  await page.locator('#deviceClose').click();
  await page.locator('#titleEnterBtn').click();
- if(await page.locator('#tutorialSkip').isVisible())await page.locator('#tutorialSkip').click();
+ // The band wipe opens operator select (and first-launch onboarding) after a beat;
+ // wait for it rather than racing a visibility check against the transition.
+ await page.waitForFunction(()=>document.getElementById('menu')?.style.display==='grid');
+ await page.waitForTimeout(600);
+ if(await page.evaluate(()=>document.getElementById('onboarding')?.classList.contains('on')))await page.locator('#tutorialSkip').click();
  // Use the real deployment controls. Onboarding is dismissed via its normal UI.
  await page.locator('.divCard').first().click();
  await page.locator('#deployBtn').click();
